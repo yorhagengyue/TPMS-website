@@ -1,151 +1,172 @@
-# 德明理工学院智力运动俱乐部网站
+# TPMS - Temasek Polytechnic Mindsport Club Website
 
-这是德明理工学院智力运动俱乐部的官方网站项目，提供新闻发布、活动管理和基于位置的签到系统等功能。
+This is the official website for the Temasek Polytechnic CCA (Co-Curricular Activity) TPMS (TP Mindsport) club. The platform serves as a central hub for club activities, member management, and event coordination.
 
-## 功能特点
+## Features
 
-### 🌟 核心功能
-- 新闻动态展示与管理
-- 活动日历系统
-- 基于位置的电子签到
-- 学生身份认证
-- 响应式设计，支持移动端
+- **Modern Responsive Interface**: Fully responsive design optimized for all device sizes
+- **Digital Attendance System**: Track and manage student attendance at club activities
+- **Events Calendar**: Display upcoming tournaments, workshops, and regular club meetings
+- **News Section**: Highlight club achievements and announcements
+- **Member Management**: Import/export member data using Excel spreadsheets
 
-### 📱 用户界面
-- 现代化的 UI 设计
-- 流畅的动画效果
-- 直观的导航系统
-- 深色/浅色主题支持
+## Technical Implementation
 
-### 👨‍💼 管理功能
-- Excel 导入/导出学生数据
-- 活动管理系统
-- 签到数据统计
-- 用户权限管理
+- **Frontend Framework**: React.js
+- **Styling**: Tailwind CSS with custom color theming
+- **Animations**: Framer Motion for smooth transitions and effects
+- **Data Handling**: 
+  - Excel integration using XLSX library
+  - Local storage for persistent data without backend dependency
+- **Icons**: React Icons (FI set)
+- **Package Management**: npm
 
-## 技术栈
+## Getting Started
 
-### 前端框架
-- React 18
-- Tailwind CSS
-- Framer Motion
-- shadcn/ui 组件库
+```bash
+# Install dependencies
+npm install
 
-### 工具库
-- date-fns：日期处理
-- xlsx：Excel 文件处理
-- react-hot-toast：通知提示
-- react-icons：图标库
+# Start development server
+npm start
 
-## 项目结构
+# Build for production
+npm run build
+```
+
+## Project Structure
 
 ```
 /
 ├── src/
-│   ├── components/           # React 组件
-│   │   ├── ui/              # UI 组件
-│   │   │   ├── button/      # 按钮组件
-│   │   │   ├── card/        # 卡片组件
-│   │   │   └── layout/      # 布局组件
-│   │   └── pages/           # 页面组件
-│   ├── lib/                 # 工具函数
-│   ├── styles/              # 全局样式
-│   └── App.jsx             # 主应用组件
-├── public/                  # 静态资源
-└── config/                 # 配置文件
+│   ├── components/           # React components
+│   │   ├── ui/               # UI components
+│   │   │   ├── button/       # Button components
+│   │   │   ├── card/         # Card components
+│   │   │   └── layout/       # Layout components
+│   │   └── pages/            # Page components
+│   ├── lib/                  # Utility functions
+│   ├── styles/               # Global styles
+│   └── App.jsx               # Main application component
+├── public/                   # Static assets
+└── config/                   # Configuration files
 ```
 
-## 开始使用
+## Requirements
 
-### 环境要求
-- Node.js 16.0 或更高版本
-- npm 7.0 或更高版本
+### Environment Requirements
+- Node.js 16.0 or higher
+- npm 7.0 or higher
 
-### 安装步骤
+### Installation Steps
 
-1. 克隆项目
+1. Clone the project
 ```bash
-git clone [项目地址]
+git clone [repository URL]
 cd tpms
 ```
 
-2. 安装依赖
+2. Install dependencies
 ```bash
 npm install
 ```
 
-3. 启动开发服务器
+3. Start development server
 ```bash
 npm start
 ```
 
-4. 构建生产版本
+4. Build for production
 ```bash
 npm run build
 ```
 
-### 配置说明
+### Configuration Details
 
-1. 位置服务配置
-在 `src/App.jsx` 中设置校园坐标：
+1. Location Service Configuration
+Set campus coordinates in `src/App.jsx`:
 ```javascript
 const tpLocation = { 
-  lat: 1.3456,   // 纬度
-  lng: 103.9321  // 经度
+  lat: 1.3456,   // latitude
+  lng: 103.9321  // longitude
 };
 ```
 
-2. 签到范围设置
-在 `src/components/pages/CheckinPage.jsx` 中调整：
+2. Check-in Range Settings
+Adjust in `src/components/pages/CheckinPage.jsx`:
 ```javascript
-const CHECKIN_RADIUS = 0.5; // 单位：公里
+const CHECKIN_RADIUS = 0.5; // unit: kilometers
 ```
 
-## 开发指南
+## Development Guidelines
 
-### 代码规范
-- 使用 ESLint 进行代码检查
-- 遵循 React 最佳实践
-- 使用 Prettier 进行代码格式化
+### Code Standards
+- Use ESLint for code linting
+- Follow React best practices
+- Use Prettier for code formatting
 
-### 提交规范
+### Commit Standards
 ```bash
-feat: 新功能
-fix: 修复问题
-docs: 文档更新
-style: 代码格式
-refactor: 代码重构
-test: 测试相关
-chore: 构建过程或辅助工具的变动
+feat: new feature
+fix: bug fix
+docs: documentation updates
+style: code formatting
+refactor: code refactoring
+test: testing related changes
+chore: build process or auxiliary tool changes
 ```
 
-## 部署说明
+## Deployment Instructions
 
-### 生产环境部署
-1. 构建项目
+### Production Environment Deployment
+1. Build the project
 ```bash
 npm run build
 ```
 
-2. 将 `build` 目录下的文件部署到服务器
+2. Deploy files from the `build` directory to your server
 
-### 环境变量配置
-创建 `.env` 文件：
+### Environment Variables Configuration
+Create a `.env` file:
 ```env
-REACT_APP_API_URL=你的API地址
-REACT_APP_GOOGLE_MAPS_KEY=你的Google Maps API密钥
+REACT_APP_API_URL=your_API_address
+REACT_APP_GOOGLE_MAPS_KEY=your_Google_Maps_API_key
 ```
 
-## 维护者
+## Maintainers
 
-- 开发团队 - TP Mindsport Club Development Team
+- Development Team - TP Mindsport Club Development Team
 
-## 许可证
+## License
 
-本项目采用 MIT 许可证
+This project is licensed under the MIT License
 
-## 使用 ngrok 快速预览
+## Using ngrok for Quick Preview
 
-如果需要临时将本地开发环境分享给他人预览，可以使用 ngrok：
+If you need to temporarily share your local development environment with others for preview, you can use ngrok:
 
-1. 安装 ngrok
+1. Install ngrok
+
+## TODO List - Future Development
+
+### Database Integration
+- Connect the application to MySQL database for persistent data storage
+- Implement automatic synchronization between attendance records and Excel spreadsheets
+
+### Department Ranking Systems
+- Develop ranking systems for:
+  - Go (Weiqi) department
+  - International Chess department
+  - Chinese Chess department
+- Track players' progress, match history, and achievements
+
+### Enhanced Attendance System
+- Implement user authentication and login functionality
+- Restrict check-in to official CCA time periods
+- Validate check-in locations to ensure students are physically present at CCA venues
+- Add admin dashboard for attendance management and reporting
+
+### Additional Features
+- Push notifications for upcoming events
+- Member performance analytics
+- Tournament management system
