@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply text-gray-900;
+    font-family: 'Roboto', system-ui, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Roboto', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .section-title {
+    @apply text-2xl font-normal text-gray-800 mb-2;
+  }
+
+  .section-line {
+    @apply w-20 h-0.5 bg-blue-600;
+  }
+}
+
+.hover-scale {
+  @apply transition-transform duration-300;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+} 
