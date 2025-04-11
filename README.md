@@ -9,6 +9,7 @@ This is the official website for the Temasek Polytechnic CCA (Co-Curricular Acti
 - **Events Calendar**: Display upcoming tournaments, workshops, and regular club meetings
 - **News Section**: Highlight club achievements and announcements
 - **Member Management**: Import/export member data using Excel spreadsheets
+- **Authentication System**: Secure student login with student ID verification
 
 ## Technical Implementation
 
@@ -170,3 +171,115 @@ If you need to temporarily share your local development environment with others 
 - Push notifications for upcoming events
 - Member performance analytics
 - Tournament management system
+
+## Database Integration
+
+This project has been updated to use MySQL for data persistence. Below are the steps to set up the database integration:
+
+### Prerequisites
+
+- MySQL Server (version 5.7 or higher)
+- Node.js (version 14 or higher)
+
+### Database Setup
+
+1. Create a MySQL database
+```sql
+CREATE DATABASE tpms_db;
+```
+
+2. Configure your database connection in the `.env` file
+```
+DB_HOST=localhost
+DB_USER=your_mysql_username
+DB_PASSWORD=your_mysql_password
+DB_NAME=tpms_db
+```
+
+3. Run the database migration script to import Excel data
+```bash
+node migrate-excel.js
+```
+
+### Running the Application with Database
+
+1. Start the backend server
+```bash
+npm run server
+```
+
+2. In a separate terminal, start the React frontend
+```bash
+npm run client
+```
+
+3. For development (running both simultaneously)
+```bash
+npm run dev
+```
+
+## Test and Production Environments
+
+This project supports separate test and production database environments to ensure that development and testing activities do not affect production data.
+
+For detailed information about the separation of test and production database environments, available commands, and usage examples, please refer to the [Database Environment Separation Guide](database-environments.md).
+
+### API Endpoints
+
+- `GET /api/students` - Get all students
+- `POST /api/import-students` - Import students from Excel file
+- `POST /api/attendance` - Record student attendance
+- `GET /api/export-attendance` - Export attendance data to Excel
+
+### Database Schema
+
+**students table**
+- id: INT (Primary Key, Auto Increment)
+- name: VARCHAR(255)
+- course: VARCHAR(255)
+- index_number: VARCHAR(50) (Unique)
+- created_at: TIMESTAMP
+
+**attendance table**
+- id: INT (Primary Key, Auto Increment)
+- student_id: INT (Foreign Key to students.id)
+- check_in_time: TIMESTAMP
+- location_lat: DECIMAL(10, 8)
+- location_lng: DECIMAL(11, 8)
+
+## Maintenance Tools
+
+The project includes a set of maintenance tools that have been categorized for easier system maintenance and troubleshooting:
+
+### Test and Utility Scripts Directory Structure
+
+The test and utility scripts in the project have been organized by functionality into different subdirectories under the `tests/` directory:
+
+- **tests/auth/** - Scripts related to authentication and user management
+- **tests/db/** - Scripts for database maintenance and migration
+- **tests/analysis/** - Scripts for data analysis and Excel processing
+- **tests/attendance/** - Scripts for the attendance checking system
+- **tests/utils/** - General utility tools and configuration files
+
+Each directory contains scripts for specific functionality. For detailed information, please refer to the [Test Scripts Documentation](tests/README.md).
+
+### Common Tools
+
+The project also includes maintenance tools in the `tools/` directory:
+
+1. **Clear Student Account**
+   ```bash
+   node tools/clear-account.js <student_id>
+   ```
+
+2. **Test Authentication System**
+   ```bash
+   node tools/test-auth.js
+   ```
+
+3. **Database Migration**
+   ```bash
+   node tools/migrate-db.js
+   ```
+
+For more detailed information, please refer to the [Tools Documentation](tools/README.md).
