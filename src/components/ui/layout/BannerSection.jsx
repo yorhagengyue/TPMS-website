@@ -22,11 +22,14 @@ export const BannerSection = ({ currentPage }) => {
   const subtitle = pageSubtitles[currentPage] || pageSubtitles.default;
 
   return (
-    <div className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700">
+    <div className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 h-[300px]">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]"></div>
       
-      <div className="relative z-10 container mx-auto px-4 py-16 md:py-24">
+      {/* 增强背景遮罩，确保文字清晰可读 */}
+      <div className="absolute inset-0 bg-blue-900/70 backdrop-blur-[1px]"></div>
+      
+      <div className="relative z-10 container mx-auto px-4 py-12 md:py-20 h-full flex items-center">
         <div className="max-w-3xl">
           <motion.div 
             initial={{ y: 30, opacity: 0 }}

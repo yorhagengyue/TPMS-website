@@ -1,110 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './components/ui/layout/Header';
 import { EventsPage } from './components/pages/EventsPage';
 import { CheckinPage } from './components/pages/CheckinPage';
 import { HomePage } from './components/pages/HomePage';
+import LoginPage from './components/pages/LoginPage';
+import RegisterPage from './components/pages/RegisterPage';
+import { StudentDashboard } from './components/pages/StudentDashboard';
+import { NewsPage } from './components/pages/NewsPage';
+import { IntroSection } from './components/ui/layout/IntroSection';
+import { BannerSection } from './components/ui/layout/BannerSection';
 import { motion } from 'framer-motion';
-import { FiCalendar, FiArrowRight, FiAward, FiBell, FiBook, FiUsers } from 'react-icons/fi';
-
-// News Page Component
-const NewsPage = () => {
-  // News items with icons as fallbacks
-  const news = [
-    {
-      id: 1,
-      title: "Chess Tournament Success",
-      date: "2024-01-15",
-      content: "Our team secured top positions in the inter-polytechnic chess championship. The event saw participation from all major polytechnics in Singapore with over 50 participants competing in various categories.",
-      category: "Achievement",
-      icon: <FiAward className="w-12 h-12 text-green-500" />
-    },
-    {
-      id: 2,
-      title: "New Gaming Room Opening",
-      date: "2024-01-10",
-      content: "We're excited to announce our new gaming room in Block A. This state-of-the-art facility features new chess sets, go boards, and digital gaming stations for strategic eSports.",
-      category: "Announcement",
-      icon: <FiBell className="w-12 h-12 text-blue-500" />
-    },
-    {
-      id: 3,
-      title: "Strategic Thinking Workshop",
-      date: "2024-01-05",
-      content: "The strategic thinking workshop conducted by International Master John Doe was a huge success with over 30 participants. Students learned advanced techniques to improve their strategic thinking abilities.",
-      category: "Event",
-      icon: <FiBook className="w-12 h-12 text-amber-500" />
-    },
-    {
-      id: 4,
-      title: "Partnership with Singapore Chess Federation",
-      date: "2023-12-20",
-      content: "We're proud to announce our new partnership with the Singapore Chess Federation, which will provide our members with more opportunities to participate in national-level competitions.",
-      category: "Announcement",
-      icon: <FiUsers className="w-12 h-12 text-purple-500" />
-    }
-  ];
-
-  return (
-    <div className="container mx-auto mt-8 px-4 py-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="mb-10"
-      >
-        <h2 className="text-3xl font-bold mb-4 text-gray-800">Latest News & Updates</h2>
-        <p className="text-gray-600 max-w-3xl">
-          Stay up to date with the latest happenings, achievements, and announcements from the TP Mindsport Club community.
-        </p>
-      </motion.div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {news.map((item, index) => (
-          <motion.div
-            key={item.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1, duration: 0.5 }}
-            className="group"
-          >
-            <div className="bg-white rounded-lg shadow-md overflow-hidden h-full flex flex-col hover:shadow-xl transition-shadow">
-              <div className="h-48 overflow-hidden bg-gray-100 flex items-center justify-center">
-                {/* Use icon instead of trying to load images */}
-                <div className="flex flex-col items-center justify-center text-gray-400">
-                  {item.icon}
-                </div>
-              </div>
-              <div className="p-6 flex flex-col flex-grow">
-                <div className="flex justify-between items-center mb-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    item.category === 'Achievement' ? 'bg-green-100 text-green-800' :
-                    item.category === 'Announcement' ? 'bg-blue-100 text-blue-800' :
-                    'bg-amber-100 text-amber-800'
-                  }`}>
-                    {item.category}
-                  </span>
-                  <div className="text-sm text-gray-500 flex items-center">
-                    <FiCalendar className="w-3 h-3 mr-1" />
-                    {item.date}
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold mb-3 text-gray-800">{item.title}</h3>
-                <p className="text-gray-600 text-sm mb-4 flex-grow">{item.content}</p>
-                <button className="text-primary-600 font-medium text-sm inline-flex items-center mt-auto group-hover:text-primary-700">
-                  Read more <FiArrowRight className="ml-1 w-3 h-3 transition-transform group-hover:translate-x-1" />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  );
-};
+import { FiCalendar, FiArrowRight, FiAward, FiBell, FiBook, FiUsers, FiAlertCircle } from 'react-icons/fi';
 
 // Main App Component
 const TPMSApp = () => {
   const [currentPage, setCurrentPage] = useState('home');
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   
   // Initialize student data from localStorage with error handling
   const [studentData, setStudentData] = useState(() => {
@@ -117,19 +30,167 @@ const TPMSApp = () => {
     }
   });
 
+  // Check if user is logged in on page load
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const savedToken = localStorage.getItem('token');
+        const savedUser = localStorage.getItem('user');
+        
+        if (!savedToken || !savedUser) {
+          setLoading(false);
+          return;
+        }
+        
+        // Validate token with server
+        const response = await fetch('/api/users/profile', {
+          headers: {
+            'Authorization': `Bearer ${savedToken}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setUser(data.user);
+          } else {
+            // Token is invalid, clear local storage
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+          }
+        } else {
+          // Token is invalid, clear local storage
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    checkAuth();
+  }, []);
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setCurrentPage('home');
+  };
+
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      if (token) {
+        // Call logout API
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear local storage and state
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
+      setCurrentPage('login');
+    }
+  };
+
+  // Authenticated route guard
+  const AuthGuard = ({ children, requiredAuth }) => {
+    if (loading) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+        </div>
+      );
+    }
+    
+    if (requiredAuth && !user) {
+      return <LoginPage onLogin={handleLogin} />;
+    }
+    
+    return children;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header currentPage={currentPage} setCurrentPage={setCurrentPage} />
+      <Header 
+        currentPage={currentPage} 
+        setCurrentPage={setCurrentPage} 
+        user={user}
+        onLogout={handleLogout}
+      />
       
-      <main className="animate-fade-in">
-        {currentPage === 'home' && <HomePage />}
-        {currentPage === 'news' && <NewsPage />}
-        {currentPage === 'events' && <EventsPage />}
+      {/* 首页部分处理，包括IntroSection */}
+      {currentPage === 'home' && (
+        <div>
+          <IntroSection />
+        </div>
+      )}
+      
+      {/* 其他页面时只显示Banner */}
+      {currentPage !== 'home' && currentPage !== 'login' && currentPage !== 'register' && (
+        <div className="pt-20">
+          <BannerSection currentPage={currentPage} />
+        </div>
+      )}
+
+      {/* 主要内容区域 */}
+      <main className={`animate-fade-in ${
+        currentPage === 'login' || currentPage === 'register' 
+        ? 'pt-32' 
+        : currentPage === 'home'
+        ? 'pt-0' // 首页不需要额外的padding，因为IntroSection已经包含了
+        : 'pt-8'
+      }`}>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mx-auto max-w-3xl mt-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 flex items-start rounded-md"
+          >
+            <FiAlertCircle className="mr-3 mt-0.5 flex-shrink-0" size={20} />
+            <span>{error}</span>
+          </motion.div>
+        )}
+        
+        {currentPage === 'login' && (
+          <LoginPage onLogin={handleLogin} />
+        )}
+
+        {currentPage === 'register' && (
+          <RegisterPage onLogin={handleLogin} />
+        )}
+        
+        {currentPage === 'home' && (
+          user ? <StudentDashboard user={user} /> : <HomePage user={user} />
+        )}
+        
+        {currentPage === 'news' && (
+          <NewsPage />
+        )}
+        
+        {currentPage === 'events' && (
+          <AuthGuard requiredAuth={true}>
+            <EventsPage user={user} />
+          </AuthGuard>
+        )}
+        
         {currentPage === 'check-in' && (
-          <CheckinPage 
-            studentData={studentData} 
-            setStudentData={setStudentData}
-          />
+          <AuthGuard requiredAuth={true}>
+            <CheckinPage 
+              studentData={studentData} 
+              setStudentData={setStudentData}
+              user={user} 
+            />
+          </AuthGuard>
         )}
       </main>
       

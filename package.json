@@ -1,43 +1,65 @@
 {
   "name": "tpms",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
+  "description": "Temasek Polytechnic Mindsport Club Website",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start:prod": "cross-env NODE_ENV=production node server.js",
+    "start:test": "cross-env NODE_ENV=test node server.js",
+    "server": "nodemon server.js",
+    "server:prod": "cross-env NODE_ENV=production nodemon server.js",
+    "server:test": "cross-env NODE_ENV=test nodemon server.js",
+    "client": "react-scripts start",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "dev:test": "concurrently \"npm run server:test\" \"npm run client\"",
+    "build": "react-scripts build",
+    "setup:test": "node setup-test-db.js",
+    "update:db": "node update-db-schema.js",
+    "update:db:test": "cross-env NODE_ENV=test node update-db-schema.js",
+    "update:db:prod": "cross-env NODE_ENV=production node update-db-schema.js",
+    "migrate:prod": "cross-env NODE_ENV=production node migrate-excel.js",
+    "migrate:test": "cross-env NODE_ENV=test node migrate-excel.js",
+    "check:prod": "cross-env NODE_ENV=production node check-db.js",
+    "check:test": "cross-env NODE_ENV=test node check-db.js",
+    "check:attendance": "node check-attendance-analysis.js",
+    "check:attendance:test": "cross-env NODE_ENV=test node check-attendance-analysis.js",
+    "check:attendance:prod": "cross-env NODE_ENV=production node check-attendance-analysis.js",
+    "analyze:excel": "node analyze-excel.js",
+    "analyze:attendance": "node analyze-attendance.js",
+    "analyze:attendance:test": "cross-env NODE_ENV=test node analyze-attendance.js",
+    "analyze:attendance:prod": "cross-env NODE_ENV=production node analyze-attendance.js"
+  },
   "dependencies": {
-    "@fontsource/poppins": "^5.1.1",
-    "@fontsource/roboto": "^5.1.1",
-    "@heroicons/react": "^2.0.18",
-    "@radix-ui/react-alert-dialog": "^1.0.5",
-    "@radix-ui/react-slot": "^1.0.2",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "class-variance-authority": "^0.7.0",
-    "clsx": "^2.0.0",
-    "date-fns": "^2.30.0",
+    "@fontsource/poppins": "^5.2.5",
+    "@fontsource/roboto": "^5.2.5",
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
+    "class-variance-authority": "^0.7.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
     "file-saver": "^2.0.5",
-    "framer-motion": "^10.16.4",
-    "lucide-react": "^0.263.1",
+    "framer-motion": "^12.6.5",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.14.0",
+    "python-shell": "^5.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-hot-toast": "^2.4.1",
-    "react-icons": "^5.4.0",
-    "react-scripts": "5.0.1",
-    "tailwind-merge": "^1.14.0",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.5.0",
+    "tailwind-merge": "^3.2.0",
     "tailwindcss-animate": "^1.0.7",
-    "web-vitals": "^2.1.4",
+    "web-vitals": "^4.2.4",
     "xlsx": "^0.18.5"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "nodemon": "^3.0.3",
+    "react-scripts": "^5.0.1",
+    "tailwindcss": "^3.4.0"
   },
   "browserslist": {
     "production": [
@@ -50,10 +72,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.31",
-    "tailwindcss": "^3.3.3"
   }
 }

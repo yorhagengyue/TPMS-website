@@ -1,0 +1,303 @@
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { FiUser, FiLock, FiUserPlus, FiAlertCircle, FiCheck, FiArrowRight } from 'react-icons/fi';
+
+const RegisterPage = ({ onLogin }) => {
+  const [studentId, setStudentId] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [step, setStep] = useState(1); // 1: Verify student ID, 2: Set password
+  const [studentInfo, setStudentInfo] = useState(null);
+
+  // Verify student ID
+  const verifyStudentId = async () => {
+    setError('');
+    setMessage('');
+    setIsLoading(true);
+
+    if (!studentId) {
+      setError('Please enter your student ID');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/verify-student', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ studentId }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        setError(data.message || 'Student ID verification failed');
+        setIsLoading(false);
+        return;
+      }
+
+      // Student ID verified successfully, save student info and proceed to next step
+      setStudentInfo(data.student);
+      setMessage(`Welcome, ${data.student.name}! Please set your password`);
+      setStep(2);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Verification error:', error);
+      setError('An unexpected error occurred. Please try again');
+      setIsLoading(false);
+    }
+  };
+
+  // Register user
+  const registerUser = async () => {
+    setError('');
+    setIsLoading(true);
+
+    if (!password || !confirmPassword) {
+      setError('Please enter password and confirmation');
+      setIsLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ studentId, password }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        setError(data.message || 'Registration failed');
+        setIsLoading(false);
+        return;
+      }
+
+      // Save login status
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      // Call login callback
+      if (onLogin) {
+        onLogin(data.user);
+      }
+
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Registration error:', error);
+      setError('An unexpected error occurred. Please try again');
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (step === 1) {
+      await verifyStudentId();
+    } else {
+      await registerUser();
+    }
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-24 flex flex-col items-center">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 mt-10"
+      >
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-800">Create Account</h2>
+          <p className="text-gray-600 mt-2">Verify Student ID and Set Password</p>
+        </div>
+
+        {/* Step indicator */}
+        <div className="flex items-center justify-center mb-8">
+          <div className={`flex items-center justify-center w-8 h-8 rounded-full ${step === 1 ? 'bg-primary-600 text-white' : 'bg-green-500 text-white'}`}>
+            {step > 1 ? <FiCheck /> : 1}
+          </div>
+          <div className={`h-1 w-16 ${step === 1 ? 'bg-gray-300' : 'bg-green-500'}`}></div>
+          <div className={`flex items-center justify-center w-8 h-8 rounded-full ${step === 1 ? 'bg-gray-300' : 'bg-primary-600 text-white'}`}>
+            2
+          </div>
+        </div>
+
+        {/* Error message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 flex items-start"
+          >
+            <FiAlertCircle className="mr-3 mt-0.5 flex-shrink-0" />
+            <span>{error}</span>
+          </motion.div>
+        )}
+
+        {/* Success message */}
+        {message && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 flex items-start"
+          >
+            <FiCheck className="mr-3 mt-0.5 flex-shrink-0" />
+            <span>{message}</span>
+          </motion.div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          {step === 1 ? (
+            /* Step 1: Verify student ID */
+            <div className="mb-6">
+              <label htmlFor="studentId" className="block text-gray-700 text-sm font-medium mb-2">
+                Student ID
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiUser className="text-gray-400" />
+                </div>
+                <input
+                  id="studentId"
+                  type="text"
+                  value={studentId}
+                  onChange={(e) => setStudentId(e.target.value)}
+                  className="pl-10 block w-full border border-gray-300 rounded-md py-3 px-4 bg-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter your student ID"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Example: 2401360i (Your student ID will be your username)
+              </p>
+            </div>
+          ) : (
+            /* Step 2: Set password */
+            <>
+              <div className="mb-6">
+                <label htmlFor="password" className="block text-gray-700 text-sm font-medium mb-2">
+                  Set Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiLock className="text-gray-400" />
+                  </div>
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 block w-full border border-gray-300 rounded-md py-3 px-4 bg-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="Set your password"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Password must be at least 6 characters
+                </p>
+              </div>
+
+              <div className="mb-6">
+                <label htmlFor="confirmPassword" className="block text-gray-700 text-sm font-medium mb-2">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiLock className="text-gray-400" />
+                  </div>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="pl-10 block w-full border border-gray-300 rounded-md py-3 px-4 bg-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="Re-enter password"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
+          <div className="mb-6">
+            <button
+              type="submit"
+              className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
+                isLoading ? 'opacity-75 cursor-not-allowed' : ''
+              }`}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  {step === 1 ? 'Verifying...' : 'Registering...'}
+                </>
+              ) : (
+                <>
+                  {step === 1 ? (
+                    <>
+                      <FiArrowRight className="mr-2" /> Verify Student ID
+                    </>
+                  ) : (
+                    <>
+                      <FiUserPlus className="mr-2" /> Complete Registration
+                    </>
+                  )}
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+
+        <div className="text-center mt-4">
+          <p className="text-sm text-gray-600">
+            Already have an account? <a href="/login" className="text-primary-600 hover:text-primary-700">Login</a>
+          </p>
+          <p className="text-xs text-gray-500 mt-2">
+            If you need help, please contact your administrator or teacher
+          </p>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default RegisterPage; 

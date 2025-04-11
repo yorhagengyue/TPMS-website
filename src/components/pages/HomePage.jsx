@@ -58,11 +58,8 @@ export const HomePage = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section with Carousel */}
-      <div className="relative">
-        <Carousel />
-      </div>
-
+      {/* Hero Section - 不再单独使用轮播图，这部分内容会由App.jsx中的IntroSection提供 */}
+      
       {/* Activities Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">

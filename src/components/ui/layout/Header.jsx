@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "../button";
-import { IntroSection } from "./IntroSection";
-import { BannerSection } from "./BannerSection";
-import { FiSearch, FiMenu, FiX, FiChevronDown } from 'react-icons/fi';
+import { FiSearch, FiMenu, FiX, FiChevronDown, FiHome, FiCalendar, FiCheckSquare, FiUser, FiLogOut, FiLogIn, FiBell } from 'react-icons/fi';
+import { Link as RouterLink } from 'react-router-dom';
 
-export const Header = ({ currentPage, setCurrentPage }) => {
+export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   
   const topNavItems = [
     { label: 'About', url: '#' },
@@ -19,206 +20,209 @@ export const Header = ({ currentPage, setCurrentPage }) => {
   ];
   
   const navItems = [
-    { 
-      label: 'Home', 
-      value: 'home',
-      submenu: []
-    },
-    { 
-      label: 'News', 
-      value: 'news',
-      submenu: [
-        { label: 'Club News', url: '#' },
-        { label: 'Achievements', url: '#' },
-        { label: 'Announcements', url: '#' }
-      ]
-    },
-    { 
-      label: 'Events', 
-      value: 'events',
-      submenu: [
-        { label: 'Upcoming Events', url: '#' },
-        { label: 'Past Events', url: '#' },
-        { label: 'Tournaments', url: '#' }
-      ]
-    },
-    { 
-      label: 'Check-in', 
-      value: 'check-in',
-      submenu: []
-    },
-    { 
-      label: 'Resources', 
-      value: 'resources',
-      submenu: [
-        { label: 'Chess Resources', url: '#' },
-        { label: 'Go Tutorials', url: '#' },
-        { label: 'Strategic Games', url: '#' }
-      ]
-    }
+    { id: 'home', label: 'Home', icon: <FiHome />, requiresAuth: false },
+    { id: 'news', label: 'News', icon: <FiBell />, requiresAuth: false },
+    { id: 'events', label: 'Events', icon: <FiCalendar />, requiresAuth: true },
+    { id: 'check-in', label: 'Check-in', icon: <FiCheckSquare />, requiresAuth: true },
   ];
 
+  // Add scroll event listener
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleNavigation = (pageId) => {
+    // Handle authentication requirements
+    if (pageId === 'login' || (!user && navItems.find(item => item.id === pageId)?.requiresAuth)) {
+      setCurrentPage('login');
+    } else {
+      setCurrentPage(pageId);
+    }
+    setIsOpen(false);
+  };
+
   return (
-    <header className="relative w-full">
-      {/* Top utility navigation - SMU style */}
-      <div className="bg-smu-navy text-white text-xs">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center h-10">
-            <div className="hidden md:flex space-x-6">
-              {topNavItems.map((item, index) => (
-                <a key={index} href={item.url} className="hover:text-smu-gold transition-colors">
-                  {item.label}
-                </a>
-              ))}
-            </div>
-            <div className="flex items-center space-x-4 ml-auto">
-              <button 
-                onClick={() => setSearchOpen(!searchOpen)}
-                className="p-1 hover:text-smu-gold transition-colors"
-              >
-                <FiSearch className="w-4 h-4" />
-              </button>
+    <header
+      className={`fixed top-0 left-0 right-0 z-40 ${
+        scrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'
+      } transition-all duration-300`}
+    >
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center">
+          {/* Logo and site name */}
+          <div
+            onClick={() => handleNavigation('home')}
+            className="flex items-center cursor-pointer"
+          >
+            <div
+              className={`font-bold text-xl md:text-2xl transition-colors duration-300 ${
+                scrolled ? 'text-primary-600' : 'text-primary-500'
+              }`}
+            >
+              TP Mindsport Club
             </div>
           </div>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-1">
+            {navItems.map((item) => {
+              const isActive = currentPage === item.id;
+              const isDisabled = item.requiresAuth && !user;
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavigation(item.id)}
+                  className={`px-3 py-2 rounded-md transition-colors duration-200 flex items-center ${
+                    isActive
+                      ? 'bg-primary-500 text-white'
+                      : isDisabled
+                      ? 'text-gray-400 cursor-not-allowed'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                  disabled={isDisabled}
+                >
+                  <span className="mr-1.5">{item.icon}</span>
+                  {item.label}
+                </button>
+              );
+            })}
+
+            {/* User menu or login button */}
+            {user ? (
+              <div className="relative group ml-2">
+                <button className="px-3 py-2 rounded-md transition-colors flex items-center text-gray-700 hover:bg-gray-100">
+                  <span className="mr-1.5"><FiUser /></span>
+                  {user.name ? user.name.split(' ')[0] : user.username}
+                </button>
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden transform scale-0 group-hover:scale-100 origin-top-right transition-transform duration-200">
+                  <div className="px-4 py-3 text-sm text-gray-900 border-b">
+                    <div className="font-medium">{user.name}</div>
+                    <div className="text-gray-500 truncate">{user.index_number}</div>
+                  </div>
+                  <button
+                    onClick={onLogout}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center"
+                  >
+                    <FiLogOut className="mr-2" /> Sign Out
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => handleNavigation('register')}
+                  className="px-3 py-2 rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors flex items-center"
+                >
+                  Register
+                </button>
+                <button
+                  onClick={() => handleNavigation('login')}
+                  className="px-3 py-2 rounded-md text-primary-600 border border-primary-600 hover:bg-primary-50 transition-colors flex items-center"
+                >
+                  Login
+                </button>
+              </div>
+            )}
+          </nav>
+
+          {/* Mobile menu button */}
+          <button
+            className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="Toggle menu"
+          >
+            {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+          </button>
         </div>
       </div>
-      
-      {/* Main Navigation */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center space-x-4">
-              {logoError ? (
-                <div className="h-12 w-12 bg-smu-red rounded-md flex items-center justify-center text-white font-bold text-xl">
-                  TP
-                </div>
-              ) : (
-                <img 
-                  src="/images/logo.png" 
-                  alt="TP Logo" 
-                  className="h-12 w-auto"
-                  onError={() => setLogoError(true)} 
-                />
-              )}
-              <div className="text-smu-navy">
-                <h1 className="text-xl font-serif font-bold leading-tight">
-                  Temasek Polytechnic
-                </h1>
-                <p className="text-sm text-smu-gray font-medium">Mindsport Club</p>
-              </div>
-            </div>
-            
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-1">
-              {navItems.map((item) => (
-                <div key={item.value} className="relative group">
-                  <Button
-                    variant="ghost"
-                    className={`transition-all px-4 py-2 h-16 text-base rounded-none border-b-2 ${
-                      currentPage === item.value 
-                        ? "border-smu-red text-smu-red font-medium" 
-                        : "border-transparent text-smu-navy hover:text-smu-red hover:border-smu-red/30"
-                    }`}
-                    onClick={() => setCurrentPage(item.value)}
-                  >
-                    <span className="flex items-center">
+
+      {/* Mobile Navigation */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="md:hidden bg-white shadow-lg"
+          >
+            <div className="container mx-auto px-4 py-2">
+              <nav className="flex flex-col space-y-2">
+                {navItems.map((item) => {
+                  const isActive = currentPage === item.id;
+                  const isDisabled = item.requiresAuth && !user;
+
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleNavigation(item.id)}
+                      className={`px-4 py-3 rounded-md transition-colors duration-200 flex items-center ${
+                        isActive
+                          ? 'bg-primary-500 text-white'
+                          : isDisabled
+                          ? 'text-gray-400 cursor-not-allowed'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      disabled={isDisabled}
+                    >
+                      <span className="mr-3">{item.icon}</span>
                       {item.label}
-                      {item.submenu.length > 0 && (
-                        <FiChevronDown className="ml-1 w-4 h-4" />
-                      )}
-                    </span>
-                  </Button>
-                  
-                  {/* Dropdown for submenu */}
-                  {item.submenu.length > 0 && (
-                    <div className="absolute left-0 w-48 bg-white shadow-lg rounded-b-md overflow-hidden z-50 transform origin-top scale-0 group-hover:scale-100 transition-transform duration-150 ease-in-out">
-                      <div className="py-2">
-                        {item.submenu.map((subitem, idx) => (
-                          <a 
-                            key={idx}
-                            href={subitem.url}
-                            className="block px-4 py-2 text-sm text-smu-navy hover:bg-smu-lightgray hover:text-smu-red"
-                          >
-                            {subitem.label}
-                          </a>
-                        ))}
+                    </button>
+                  );
+                })}
+
+                {user ? (
+                  <>
+                    <div className="px-4 py-3 border-t border-gray-200">
+                      <div className="flex items-center">
+                        <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600">
+                          <FiUser size={20} />
+                        </div>
+                        <div className="ml-3">
+                          <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                          <div className="text-xs text-gray-500">{user.index_number}</div>
+                        </div>
                       </div>
                     </div>
-                  )}
-                </div>
-              ))}
-            </nav>
-
-            {/* Mobile Menu Button */}
-            <div className="md:hidden">
-              <Button
-                variant="ghost"
-                className="text-smu-navy"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                {mobileMenuOpen ? (
-                  <FiX className="w-6 h-6" />
+                    <button
+                      onClick={onLogout}
+                      className="px-4 py-3 rounded-md text-left transition-colors duration-200 flex items-center text-gray-700 hover:bg-gray-100"
+                    >
+                      <span className="mr-3"><FiLogOut /></span>
+                      Sign Out
+                    </button>
+                  </>
                 ) : (
-                  <FiMenu className="w-6 h-6" />
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          className="md:hidden bg-white border-b border-gray-200 shadow-md"
-        >
-          <div className="py-2 px-4">
-            {navItems.map((item) => (
-              <div key={item.value} className="py-2">
-                <Button
-                  variant="ghost"
-                  className={`w-full text-left justify-between ${
-                    currentPage === item.value 
-                      ? "text-smu-red font-medium" 
-                      : "text-smu-navy"
-                  } px-0 py-2 hover:text-smu-red flex items-center`}
-                  onClick={() => {
-                    setCurrentPage(item.value);
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  <span>{item.label}</span>
-                  {item.submenu.length > 0 && (
-                    <FiChevronDown className="w-4 h-4" />
-                  )}
-                </Button>
-                
-                {/* Mobile submenu */}
-                {item.submenu.length > 0 && (
-                  <div className="pl-4 mt-1 border-l-2 border-gray-100">
-                    {item.submenu.map((subitem, idx) => (
-                      <a
-                        key={idx}
-                        href={subitem.url}
-                        className="block py-2 text-sm text-smu-gray hover:text-smu-red"
-                      >
-                        {subitem.label}
-                      </a>
-                    ))}
+                  <div className="flex flex-col space-y-2 mt-2">
+                    <button
+                      onClick={() => handleNavigation('register')}
+                      className="px-4 py-3 rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors flex items-center justify-center"
+                    >
+                      Register
+                    </button>
+                    <button
+                      onClick={() => handleNavigation('login')}
+                      className="px-4 py-3 rounded-md text-primary-600 border border-primary-600 hover:bg-primary-50 transition-colors flex items-center justify-center"
+                    >
+                      Login
+                    </button>
                   </div>
                 )}
-                
-                {item !== navItems[navItems.length - 1] && (
-                  <div className="h-px bg-gray-100 my-2"></div>
-                )}
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      )}
+              </nav>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Search Overlay */}
       {searchOpen && (
@@ -245,9 +249,6 @@ export const Header = ({ currentPage, setCurrentPage }) => {
           </div>
         </motion.div>
       )}
-
-      {/* Banner based on current page */}
-      {currentPage === 'home' ? <IntroSection /> : <BannerSection currentPage={currentPage} />}
     </header>
   );
 }; 
