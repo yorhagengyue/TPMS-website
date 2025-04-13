@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "../button";
 import { FiSearch, FiMenu, FiX, FiChevronDown, FiHome, FiCalendar, FiCheckSquare, FiUser, FiLogOut, FiLogIn, FiBell } from 'react-icons/fi';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -20,10 +21,10 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
   ];
   
   const navItems = [
-    { id: 'home', label: 'Home', icon: <FiHome />, requiresAuth: false },
-    { id: 'news', label: 'News', icon: <FiBell />, requiresAuth: false },
-    { id: 'events', label: 'Events', icon: <FiCalendar />, requiresAuth: true },
-    { id: 'check-in', label: 'Check-in', icon: <FiCheckSquare />, requiresAuth: true },
+    { id: 'home', label: 'Home', icon: <FiHome />, requiresAuth: false, path: '/' },
+    { id: 'news', label: 'News', icon: <FiBell />, requiresAuth: false, path: '/news' },
+    { id: 'events', label: 'Events', icon: <FiCalendar />, requiresAuth: true, path: '/events' },
+    { id: 'check-in', label: 'Check-in', icon: <FiCheckSquare />, requiresAuth: true, path: '/check-in' },
   ];
 
   // Add scroll event listener
@@ -40,12 +41,12 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleNavigation = (pageId) => {
+  const handleNavigation = (pageId, path) => {
     // Handle authentication requirements
     if (pageId === 'login' || (!user && navItems.find(item => item.id === pageId)?.requiresAuth)) {
-      setCurrentPage('login');
+      navigate('/login');
     } else {
-      setCurrentPage(pageId);
+      navigate(path);
     }
     setIsOpen(false);
   };
@@ -59,10 +60,7 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
           {/* Logo and site name */}
-          <div
-            onClick={() => handleNavigation('home')}
-            className="flex items-center cursor-pointer"
-          >
+          <Link to="/" className="flex items-center cursor-pointer">
             <div
               className={`font-bold text-xl md:text-2xl transition-colors duration-300 ${
                 scrolled ? 'text-primary-600' : 'text-primary-500'
@@ -70,7 +68,7 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
             >
               TP Mindsport Club
             </div>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
@@ -78,22 +76,28 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
               const isActive = currentPage === item.id;
               const isDisabled = item.requiresAuth && !user;
 
-              return (
+              return isDisabled ? (
                 <button
                   key={item.id}
-                  onClick={() => handleNavigation(item.id)}
-                  className={`px-3 py-2 rounded-md transition-colors duration-200 flex items-center ${
-                    isActive
-                      ? 'bg-primary-500 text-white'
-                      : isDisabled
-                      ? 'text-gray-400 cursor-not-allowed'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                  disabled={isDisabled}
+                  className="px-3 py-2 rounded-md transition-colors duration-200 flex items-center text-gray-400 cursor-not-allowed"
+                  disabled={true}
                 >
                   <span className="mr-1.5">{item.icon}</span>
                   {item.label}
                 </button>
+              ) : (
+                <Link
+                  key={item.id}
+                  to={item.path}
+                  className={`px-3 py-2 rounded-md transition-colors duration-200 flex items-center ${
+                    isActive
+                      ? 'bg-primary-500 text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <span className="mr-1.5">{item.icon}</span>
+                  {item.label}
+                </Link>
               );
             })}
 
@@ -119,18 +123,18 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
               </div>
             ) : (
               <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => handleNavigation('register')}
+                <Link
+                  to="/register"
                   className="px-3 py-2 rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors flex items-center"
                 >
                   Register
-                </button>
-                <button
-                  onClick={() => handleNavigation('login')}
+                </Link>
+                <Link
+                  to="/login"
                   className="px-3 py-2 rounded-md text-primary-600 border border-primary-600 hover:bg-primary-50 transition-colors flex items-center"
                 >
                   Login
-                </button>
+                </Link>
               </div>
             )}
           </nav>
@@ -162,22 +166,29 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
                   const isActive = currentPage === item.id;
                   const isDisabled = item.requiresAuth && !user;
 
-                  return (
+                  return isDisabled ? (
                     <button
                       key={item.id}
-                      onClick={() => handleNavigation(item.id)}
-                      className={`px-4 py-3 rounded-md transition-colors duration-200 flex items-center ${
-                        isActive
-                          ? 'bg-primary-500 text-white'
-                          : isDisabled
-                          ? 'text-gray-400 cursor-not-allowed'
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                      disabled={isDisabled}
+                      className="px-4 py-3 rounded-md transition-colors duration-200 flex items-center text-gray-400 cursor-not-allowed"
+                      disabled={true}
                     >
                       <span className="mr-3">{item.icon}</span>
                       {item.label}
                     </button>
+                  ) : (
+                    <Link
+                      key={item.id}
+                      to={item.path}
+                      onClick={() => setIsOpen(false)}
+                      className={`px-4 py-3 rounded-md transition-colors duration-200 flex items-center ${
+                        isActive
+                          ? 'bg-primary-500 text-white'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <span className="mr-3">{item.icon}</span>
+                      {item.label}
+                    </Link>
                   );
                 })}
 
@@ -204,18 +215,20 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
                   </>
                 ) : (
                   <div className="flex flex-col space-y-2 mt-2">
-                    <button
-                      onClick={() => handleNavigation('register')}
+                    <Link
+                      to="/register"
+                      onClick={() => setIsOpen(false)}
                       className="px-4 py-3 rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors flex items-center justify-center"
                     >
                       Register
-                    </button>
-                    <button
-                      onClick={() => handleNavigation('login')}
+                    </Link>
+                    <Link
+                      to="/login"
+                      onClick={() => setIsOpen(false)}
                       className="px-4 py-3 rounded-md text-primary-600 border border-primary-600 hover:bg-primary-50 transition-colors flex items-center justify-center"
                     >
                       Login
-                    </button>
+                    </Link>
                   </div>
                 )}
               </nav>

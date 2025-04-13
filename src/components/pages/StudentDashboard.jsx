@@ -208,7 +208,17 @@ export const StudentDashboard = ({ user }) => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {attendance.location_lat && attendance.location_lng
-                          ? `${attendance.location_lat.toFixed(4)}, ${attendance.location_lng.toFixed(4)}`
+                          ? (() => {
+                              try {
+                                const lat = Number(attendance.location_lat);
+                                const lng = Number(attendance.location_lng);
+                                return isNaN(lat) || isNaN(lng) 
+                                  ? `${attendance.location_lat}, ${attendance.location_lng}` 
+                                  : `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                              } catch (error) {
+                                return `${attendance.location_lat}, ${attendance.location_lng}`;
+                              }
+                            })()
                           : 'N/A'}
                       </td>
                     </tr>

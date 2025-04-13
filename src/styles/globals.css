@@ -2,6 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Add styles for aspect ratio container */
+.aspect-ratio-container {
+  position: relative;
+  width: 100%;
+  /* Default aspect ratio container will have dynamic height set by JS */
+}
+
+/* Include specific aspect ratios for browsers that support it */
+@supports (aspect-ratio: 16 / 9) {
+  .aspect-ratio-16-9 {
+    aspect-ratio: 16 / 9;
+  }
+  
+  .aspect-ratio-4-3 {
+    aspect-ratio: 4 / 3;
+  }
+  
+  .aspect-ratio-1-1 {
+    aspect-ratio: 1 / 1;
+  }
+  
+  .aspect-ratio-21-9 {
+    aspect-ratio: 21 / 9;
+  }
+}
+
+/* Object fit classes */
+.object-fit-cover {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+.object-fit-contain {
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
+}
+
+/* Carousel responsive styles */
+@media (max-width: 768px) {
+  .carousel-mobile-height {
+    height: 65vh !important;
+  }
+}
+
 @layer base {
   body {
     @apply text-gray-900;

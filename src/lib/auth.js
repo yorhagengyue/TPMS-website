@@ -82,17 +82,32 @@ const verifyStudentId = async (studentId) => {
     
     // Check if student already has a user account
     const [users] = await connection.query(
-      'SELECT id FROM users WHERE student_id = ?',
+      'SELECT id, password_hash FROM users WHERE student_id = ?',
       [student.id]
     );
     
     if (users.length > 0) {
-      return { success: false, message: 'Student already has an account' };
+      // If account exists, check if password is set
+      const hasPassword = users[0].password_hash && users[0].password_hash.length > 0;
+      
+      return { 
+        success: true, 
+        hasAccount: true, 
+        needsPasswordSetup: !hasPassword,
+        student: {
+          id: student.id,
+          name: student.name,
+          index_number: student.index_number,
+          email: student.email,
+          course: student.course
+        }
+      };
     }
     
     // Return student info
     return {
       success: true,
+      hasAccount: false,
       student: {
         id: student.id,
         name: student.name,
@@ -111,12 +126,11 @@ const verifyStudentId = async (studentId) => {
 };
 
 /**
- * Create a new user account
+ * Create a new user account without password
  * @param {String} studentId Student ID (index_number)
- * @param {String} password Password
- * @returns {Object} Registration result with token and user info
+ * @returns {Object} Creation result
  */
-const registerUser = async (studentId, password) => {
+const createUserAccount = async (studentId) => {
   let connection;
   
   try {
@@ -144,13 +158,11 @@ const registerUser = async (studentId, password) => {
       return { success: false, message: 'Student already has an account' };
     }
     
-    // Hash password
-    const passwordHash = await bcrypt.hash(password, 10);
-    
-    // Create user - use username = index_number, and add student_id as reference to students table
+    // Create user account with empty password (will be set during first login)
+    // Use placeholder for password_hash that indicates it needs to be set
     const [result] = await connection.query(
       'INSERT INTO users (username, password_hash, student_id, role) VALUES (?, ?, ?, ?)',
-      [studentId.toLowerCase(), passwordHash, student.id, 'student']
+      [studentId.toLowerCase(), '', student.id, 'student']
     );
     
     if (!result.insertId) {
@@ -172,10 +184,7 @@ const registerUser = async (studentId, password) => {
     
     const user = users[0];
     
-    // Generate token
-    const token = generateToken(user);
-    
-    // Return user info (without password)
+    // Return user info without token (since password not set yet)
     const userInfo = {
       id: user.id,
       username: user.username,
@@ -183,7 +192,72 @@ const registerUser = async (studentId, password) => {
       index_number: user.index_number,
       email: user.email,
       role: user.role,
-      course: user.course
+      course: user.course,
+      needsPasswordSetup: true
+    };
+    
+    return {
+      success: true,
+      user: userInfo
+    };
+  } catch (error) {
+    return { success: false, message: error.message };
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+};
+
+/**
+ * Set or update user password
+ * @param {Number} userId User ID
+ * @param {String} password New password
+ * @returns {Object} Result with token and user info
+ */
+const setUserPassword = async (userId, password) => {
+  let connection;
+  
+  try {
+    connection = await mysql.createConnection(config.DB_CONFIG);
+    
+    // Validate user exists
+    const [users] = await connection.query(
+      `SELECT u.*, s.name, s.course, s.email, s.index_number 
+       FROM users u 
+       JOIN students s ON u.student_id = s.id 
+       WHERE u.id = ?`,
+      [userId]
+    );
+    
+    if (users.length === 0) {
+      return { success: false, message: 'User not found' };
+    }
+    
+    const user = users[0];
+    
+    // Hash password
+    const passwordHash = await bcrypt.hash(password, 10);
+    
+    // Update password
+    await connection.query(
+      'UPDATE users SET password_hash = ? WHERE id = ?',
+      [passwordHash, userId]
+    );
+    
+    // Generate token
+    const token = generateToken(user);
+    
+    // Return user info
+    const userInfo = {
+      id: user.id,
+      username: user.username,
+      name: user.name,
+      index_number: user.index_number,
+      email: user.email,
+      role: user.role,
+      course: user.course,
+      needsPasswordSetup: false
     };
     
     return {
@@ -222,10 +296,49 @@ const authenticateUser = async (username, password) => {
     );
     
     if (users.length === 0) {
-      return { success: false, message: 'User not found' };
+      // Check if student exists but no account yet
+      const [students] = await connection.query(
+        'SELECT * FROM students WHERE index_number = ?',
+        [username.toLowerCase()]
+      );
+      
+      if (students.length > 0) {
+        // Student exists but no account - create account and require password setup
+        const createResult = await createUserAccount(username);
+        if (createResult.success) {
+          return { 
+            success: true, 
+            needsPasswordSetup: true,
+            user: createResult.user,
+            message: 'Account created. Please set your password.'
+          };
+        } else {
+          return { success: false, message: createResult.message };
+        }
+      } else {
+        return { success: false, message: 'User not found' };
+      }
     }
     
     const user = users[0];
+    
+    // Check if password is set
+    if (!user.password_hash || user.password_hash === '') {
+      return { 
+        success: true, 
+        needsPasswordSetup: true,
+        user: {
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          index_number: user.index_number,
+          email: user.email,
+          role: user.role,
+          course: user.course
+        },
+        message: 'Please set your password to continue.'
+      };
+    }
     
     // Verify password
     const isValid = await bcrypt.compare(password, user.password_hash);
@@ -317,8 +430,9 @@ module.exports = {
   generateToken,
   verifyToken,
   authenticateUser,
-  revokeToken,
-  hasRole,
   verifyStudentId,
-  registerUser
+  createUserAccount,
+  setUserPassword,
+  revokeToken,
+  hasRole
 }; 

@@ -4,14 +4,25 @@ import anime from 'animejs/lib/anime.es.js';
 const LoadingScreen = ({ onComplete }) => {
   const progressBarRef = useRef(null);
   const loadingIntervalRef = useRef(null);
-  const [loadingText, setLoadingText] = useState('正在载入系统，请稍候...');
+  const logoRef = useRef(null);
+  const tRef = useRef(null);
+  const knightRef = useRef(null);
+  const msRef = useRef(null);
+  const welcomeRef = useRef(null);
+  const progressInfoRef = useRef(null);
+  const demoLabelRef = useRef(null);
+  
+  const [loadingText, setLoadingText] = useState('Initializing system...');
   const [progressValue, setProgressValue] = useState(0);
 
   useEffect(() => {
-    // 开始加载动画
-    startSplashAnimation();
+    // Initialize anime.js animations
+    initLogoAnimation();
+    
+    // Start progress simulation
+    simulateLoading();
 
-    // 清理函数
+    // Cleanup function
     return () => {
       if (loadingIntervalRef.current) {
         clearInterval(loadingIntervalRef.current);
@@ -19,60 +30,83 @@ const LoadingScreen = ({ onComplete }) => {
     };
   }, []);
 
-  // 开始动画序列
-  const startSplashAnimation = () => {
-    // 字母元素动画序列
-    const timeline = anime.timeline({
+  const initLogoAnimation = () => {
+    // Logo entrance animation
+    const logoTimeline = anime.timeline({
       easing: 'easeOutExpo'
     });
-    
-    // 先显示T字母
-    timeline.add({
-      targets: '.t-letter',
-      scale: [0, 1],
-      opacity: [0, 1],
-      duration: 800
-    })
-    // 再显示骑士
-    .add({
-      targets: '.knight',
-      scale: [0, 1],
-      opacity: [0, 1],
-      translateY: [-20, 0],
-      duration: 600,
-      easing: 'easeOutQuad'
-    }, '-=600') // 更早开始骑士动画
-    // 最后显示MS文字
-    .add({
-      targets: '.ms-text',
-      scale: [0, 1],
-      opacity: [0, 1],
-      duration: 600
-    }, '-=500') // 更早开始MS动画
-    // 显示欢迎文字区域
-    .add({
-      targets: '.welcome-area',
-      opacity: [0, 1],
-      translateX: [20, 0],
-      duration: 600
-    })
-    // 显示进度条容器
-    .add({
-      targets: '.progress-container',
-      opacity: [0, 1],
-      duration: 600
-    }, '-=300');
 
-    // 模拟加载进度
-    simulateLoading();
+    // T letter animation
+    logoTimeline
+      .add({
+        targets: tRef.current,
+        opacity: [0, 1],
+        scale: [0, 1],
+        duration: 800,
+        delay: 300
+      })
+      // Knight animation
+      .add({
+        targets: knightRef.current,
+        opacity: [0, 1],
+        scale: [0, 1],
+        duration: 800
+      }, '-=400')
+      // MS animation
+      .add({
+        targets: msRef.current,
+        opacity: [0, 1],
+        scale: [0, 1],
+        duration: 800
+      }, '-=400')
+      // Welcome text animation
+      .add({
+        targets: welcomeRef.current,
+        opacity: [0, 1],
+        translateX: [20, 0],
+        duration: 800
+      }, '-=400')
+      // Demo label animation
+      .add({
+        targets: demoLabelRef.current,
+        opacity: [0, 1],
+        scale: [0.5, 1],
+        duration: 600
+      }, '-=400')
+      // Progress bar container fade in
+      .add({
+        targets: '.progress-container',
+        opacity: [0, 1],
+        duration: 800
+      }, '-=200');
+      
+    // Add subtle floating animation
+    anime({
+      targets: logoRef.current,
+      translateY: [-5, 5],
+      duration: 3000,
+      direction: 'alternate',
+      loop: true,
+      easing: 'easeInOutSine'
+    });
+    
+    // Add pulse animation to demo label
+    anime({
+      targets: demoLabelRef.current,
+      scale: [1, 1.1, 1],
+      opacity: [1, 0.8, 1],
+      duration: 2000,
+      loop: true,
+      easing: 'easeInOutSine'
+    });
   };
 
-  // 模拟加载过程
+  // Simulate loading process
   const simulateLoading = () => {
     let progress = 0;
     
     loadingIntervalRef.current = setInterval(() => {
-      // 随机增加进度，模拟实际加载
+      // Random progress increment
       const increment = Math.random() * 5 + 1;
       progress += increment;
       
@@ -80,37 +114,92 @@ const LoadingScreen = ({ onComplete }) => {
         progress = 100;
         clearInterval(loadingIntervalRef.current);
         
-        // 更新进度条显示
+        // Update progress bar
         if (progressBarRef.current) {
           progressBarRef.current.style.width = `${progress}%`;
         }
         
-        // 更新进度值和加载文本
+        // Update progress value and text
         setProgressValue(100);
-        setLoadingText('加载完成');
+        setLoadingText('Loaded successfully');
         
-        // 延迟后调用完成回调
+        // Wait a bit to show the 100% state before fading out
         setTimeout(() => {
-          if (onComplete) {
-            onComplete();
-          }
-        }, 800);
+          // Orchestrated fade out animations
+          const fadeOutTimeline = anime.timeline({
+            easing: 'easeOutCubic'
+          });
+          
+          // First animate progress info
+          fadeOutTimeline
+            .add({
+              targets: progressInfoRef.current,
+              opacity: [1, 0],
+              translateY: [0, -10],
+              duration: 400
+            })
+            // Demo label fade out
+            .add({
+              targets: demoLabelRef.current,
+              opacity: [1, 0],
+              scale: [1, 0.8],
+              duration: 300
+            }, '-=300')
+            // Then animate the TPMS logo with scale and fade
+            .add({
+              targets: [tRef.current, knightRef.current, msRef.current],
+              opacity: [1, 0],
+              scale: [1, 1.1],
+              duration: 500,
+              delay: anime.stagger(100)
+            }, '-=200')
+            // Then animate the welcome text
+            .add({
+              targets: welcomeRef.current,
+              opacity: [1, 0],
+              translateY: [0, -15],
+              duration: 400
+            }, '-=300')
+            // Finally fade out the entire container
+            .add({
+              targets: '.splash-container',
+              opacity: [1, 0],
+              translateY: [0, -30],
+              duration: 800,
+              complete: () => {
+                if (onComplete) {
+                  onComplete();
+                }
+              }
+            }, '-=200');
+          
+          // Add a background color shift for additional effect
+          anime({
+            targets: '.splash-container',
+            background: [
+              'linear-gradient(to bottom, #000, #0a1529)',
+              'linear-gradient(to bottom, #000, #000)'
+            ],
+            duration: 1500,
+            easing: 'easeOutQuad'
+          });
+        }, 600);
       } else {
-        // 更新进度条显示
+        // Update progress bar
         if (progressBarRef.current) {
           progressBarRef.current.style.width = `${progress}%`;
         }
         
-        // 更新进度值
+        // Update progress value
         setProgressValue(Math.floor(progress));
         
-        // 根据加载进度更新文本
+        // Update loading text based on progress
         if (progress > 80) {
-          setLoadingText('准备完成，即将进入系统...');
+          setLoadingText('Preparing to launch...');
         } else if (progress > 50) {
-          setLoadingText('加载系统资源中...');
+          setLoadingText('Loading resources...');
         } else if (progress > 20) {
-          setLoadingText('初始化系统组件...');
+          setLoadingText('Initializing components...');
         }
       }
     }, 200);
@@ -118,19 +207,28 @@ const LoadingScreen = ({ onComplete }) => {
 
   return (
     <div className="splash-container">
-      <div className="content-area">
+      {/* Demo label */}
+      <div 
+        ref={demoLabelRef} 
+        className="demo-label absolute top-4 right-4 bg-yellow-500 text-yellow-900 font-bold px-3 py-1 rounded-md z-20 text-sm shadow-lg transform rotate-3"
+      >
+        DEMO MODE
+      </div>
+      
+      <div className="content-area" ref={logoRef}>
         <div className="tpms-wrap">
-          <span className="t-letter">T</span>
-          <span className="knight">♞</span>
-          <span className="ms-text">MS</span>
+          {/* TPMS Logo with individual letter refs */}
+          <span ref={tRef} className="t-letter">T</span>
+          <span ref={knightRef} className="knight">♞</span>
+          <span ref={msRef} className="ms-text">MS</span>
         </div>
         
-        <div className="welcome-area">
-          <p className="welcome-text">欢迎来到思维运动俱乐部</p>
+        <div ref={welcomeRef} className="welcome-area">
+          <p className="welcome-text">Temasek Polytechnic Mindsport Club</p>
         </div>
       </div>
       
-      <div className="progress-info">
+      <div className="progress-info" ref={progressInfoRef}>
         <div className="progress-text">{loadingText}</div>
         <div className="progress-percentage">{progressValue}%</div>
       </div>

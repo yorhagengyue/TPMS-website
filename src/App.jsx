@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Header } from './components/ui/layout/Header';
 import { EventsPage } from './components/pages/EventsPage';
 import { CheckinPage } from './components/pages/CheckinPage';
@@ -17,7 +18,16 @@ import { FiCalendar, FiArrowRight, FiAward, FiBell, FiBook, FiUsers, FiAlertCirc
 
 // Main App Component
 const TPMSApp = () => {
-  const [currentPage, setCurrentPage] = useState('home');
+  const navigate = useNavigate();
+  const location = useLocation();
+  // 可以根据当前路径动态获取当前页面
+  const getCurrentPage = () => {
+    const path = location.pathname;
+    if (path === '/') return 'home';
+    // 去掉前导斜杠返回页面名称
+    return path.substring(1);
+  };
+  
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -96,7 +106,7 @@ const TPMSApp = () => {
 
   const handleLogin = (userData) => {
     setUser(userData);
-    setCurrentPage('home');
+    navigate('/');
   };
 
   const handleLogout = async () => {
@@ -119,7 +129,7 @@ const TPMSApp = () => {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       setUser(null);
-      setCurrentPage('login');
+      navigate('/login');
     }
   };
 
@@ -134,7 +144,8 @@ const TPMSApp = () => {
     }
     
     if (requiredAuth && !user) {
-      return <LoginPage onLogin={handleLogin} />;
+      navigate('/login');
+      return null;
     }
     
     return children;
@@ -145,13 +156,16 @@ const TPMSApp = () => {
     return <LoadingScreen onComplete={() => setIsAppReady(true)} />;
   }
 
+  // 获取当前页面
+  const currentPage = getCurrentPage();
+
   return (
     <AnimatePresence mode="wait">
       <PageTransition key="main-app">
         <div className="min-h-screen bg-gray-50">
           <Header 
             currentPage={currentPage} 
-            setCurrentPage={setCurrentPage} 
+            setCurrentPage={(page) => navigate(`/${page === 'home' ? '' : page}`)} 
             user={user}
             onLogout={handleLogout}
           />
@@ -159,7 +173,7 @@ const TPMSApp = () => {
           {/* 首页部分处理，包括IntroSection */}
           {currentPage === 'home' && (
             <div>
-              <IntroSection />
+              <IntroSection user={user} />
             </div>
           )}
           
@@ -189,37 +203,31 @@ const TPMSApp = () => {
               </motion.div>
             )}
             
-            {currentPage === 'login' && (
-              <LoginPage onLogin={handleLogin} />
-            )}
-
-            {currentPage === 'register' && (
-              <RegisterPage onLogin={handleLogin} />
-            )}
-            
-            {currentPage === 'home' && (
-              user ? <StudentDashboard user={user} /> : <HomePage user={user} />
-            )}
-            
-            {currentPage === 'news' && (
-              <NewsPage />
-            )}
-            
-            {currentPage === 'events' && (
-              <AuthGuard requiredAuth={true}>
-                <EventsPage user={user} />
-              </AuthGuard>
-            )}
-            
-            {currentPage === 'check-in' && (
-              <AuthGuard requiredAuth={true}>
-                <CheckinPage 
-                  studentData={studentData} 
-                  setStudentData={setStudentData}
-                  user={user} 
-                />
-              </AuthGuard>
-            )}
+            <Routes>
+              <Route path="/" element={
+                <>
+                  <HomePage user={user} />
+                  {user && <StudentDashboard user={user} />}
+                </>
+              } />
+              <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+              <Route path="/register" element={<RegisterPage onLogin={handleLogin} />} />
+              <Route path="/news" element={<NewsPage />} />
+              <Route path="/events" element={
+                <AuthGuard requiredAuth={true}>
+                  <EventsPage user={user} />
+                </AuthGuard>
+              } />
+              <Route path="/check-in" element={
+                <AuthGuard requiredAuth={true}>
+                  <CheckinPage 
+                    studentData={studentData} 
+                    setStudentData={setStudentData}
+                    user={user} 
+                  />
+                </AuthGuard>
+              } />
+            </Routes>
           </main>
           
           <footer className="bg-primary-800 text-white mt-20 py-8">

@@ -7,11 +7,11 @@ const XLSX = require('xlsx');
 const path = require('path');
 const fs = require('fs');
 const config = require('./config'); // 使用新的配置系统
-const { authenticateUser, revokeToken, verifyStudentId, registerUser } = require('./src/lib/auth');
+const { authenticateUser, revokeToken, verifyStudentId, registerUser, setUserPassword, createUserAccount } = require('./src/lib/auth');
 const { authenticate, authorize } = require('./src/lib/authMiddleware');
 
 const app = express();
-const PORT = config.PORT;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
@@ -114,19 +114,34 @@ if (!fs.existsSync('uploads')) {
 
 // API Endpoints
 
+// 健康检查端点
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', message: 'Server is running' });
+});
+
 // Authentication routes
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     
-    if (!username || !password) {
+    if (!username) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Username and password are required' 
+        message: 'Username is required' 
       });
     }
     
     const result = await authenticateUser(username, password);
+    
+    // 返回不同的响应，取决于是否需要设置密码
+    if (result.success && result.needsPasswordSetup) {
+      return res.json({
+        success: true,
+        needsPasswordSetup: true,
+        user: result.user,
+        message: result.message || 'Please set your password to continue'
+      });
+    }
     
     if (!result.success) {
       return res.status(401).json(result);
@@ -142,6 +157,63 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// 设置用户密码
+app.post('/api/auth/set-password', async (req, res) => {
+  try {
+    const { userId, studentId, password } = req.body;
+    
+    if ((!studentId && !userId) || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        message: '学生ID/用户ID和密码不能为空' 
+      });
+    }
+    
+    const auth = require('./src/lib/auth');
+    let result;
+    
+    if (userId) {
+      // 使用用户ID设置密码
+      result = await auth.setUserPassword(userId, password);
+    } else {
+      // 使用学生ID设置密码 - 查找对应的用户ID
+      const [userRows] = await pool.execute(
+        'SELECT u.id FROM users u JOIN students s ON u.student_id = s.id WHERE s.index_number = ?',
+        [studentId]
+      );
+      
+      if (userRows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: '用户不存在'
+        });
+      }
+      
+      result = await auth.setUserPassword(userRows[0].id, password);
+    }
+    
+    if (result.success) {
+      return res.json({
+        success: true,
+        message: '密码设置成功',
+        token: result.token,
+        user: result.user
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: result.message || '设置密码失败'
+      });
+    }
+  } catch (error) {
+    console.error('设置密码时出错:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: '服务器错误，请稍后再试' 
+    });
+  }
+});
+
 // 验证学生ID
 app.post('/api/auth/verify-student', async (req, res) => {
   try {
@@ -150,27 +222,69 @@ app.post('/api/auth/verify-student', async (req, res) => {
     if (!studentId) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Student ID is required' 
+        message: '学生ID不能为空' 
       });
     }
     
-    const result = await verifyStudentId(studentId);
+    const auth = require('./src/lib/auth');
+    const result = await auth.verifyStudentId(studentId);
     
-    if (!result.success) {
-      return res.status(400).json(result);
+    // 检查学生是否已有账户
+    const [userRows] = await pool.execute(
+      'SELECT * FROM users WHERE student_id = ?',
+      [studentId]
+    );
+    
+    if (userRows.length > 0) {
+      // 用户已存在
+      const user = userRows[0];
+      
+      if (!user.password) {
+        // 用户存在但没有密码
+        return res.json({
+          success: true,
+          hasAccount: true,
+          needsPassword: true,
+          message: '账户已存在但需要设置密码，请前往登录页面'
+        });
+      } else {
+        // 用户已存在且有密码
+        return res.json({
+          success: true,
+          hasAccount: true,
+          needsPassword: false,
+          message: '账户已存在，请直接登录'
+        });
+      }
     }
     
-    res.json(result);
+    if (result.success) {
+      // 学生存在但没有账户，创建一个没有密码的账户
+      await auth.createUserAccount(studentId);
+      
+      return res.json({
+        success: true,
+        hasAccount: false,
+        needsPassword: true,
+        message: '验证成功，账户已创建。请前往登录页面设置密码'
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: result.message || '学生ID验证失败'
+      });
+    }
   } catch (error) {
-    console.error('Verify student error:', error);
+    console.error('验证学生ID时出错:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error verifying student ID' 
+      message: '服务器错误，请稍后再试' 
     });
   }
 });
 
-// 注册新用户
+// 不再需要注册端点，改用verify-student和set-password的组合
+// 保留以兼容旧前端逻辑
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { studentId, password } = req.body;
@@ -182,13 +296,52 @@ app.post('/api/auth/register', async (req, res) => {
       });
     }
     
-    const result = await registerUser(studentId, password);
+    // 先验证学生ID
+    const verifyResult = await verifyStudentId(studentId);
     
-    if (!result.success) {
-      return res.status(400).json(result);
+    if (!verifyResult.success) {
+      return res.status(400).json(verifyResult);
     }
     
-    res.json(result);
+    // 如果已有账户但需要设置密码
+    if (verifyResult.hasAccount && verifyResult.needsPasswordSetup) {
+      // 获取用户信息
+      const connection = await mysql.createConnection(config.DB_CONFIG);
+      const [users] = await connection.query(
+        `SELECT u.id FROM users u 
+         JOIN students s ON u.student_id = s.id 
+         WHERE s.index_number = ?`,
+        [studentId.toLowerCase()]
+      );
+      await connection.end();
+      
+      if (users.length > 0) {
+        // 设置密码
+        const setPasswordResult = await setUserPassword(users[0].id, password);
+        return res.json(setPasswordResult);
+      }
+    }
+    
+    // 如果没有账户，创建账户并设置密码
+    if (!verifyResult.hasAccount) {
+      // 先创建账户
+      const createResult = await createUserAccount(studentId);
+      
+      if (!createResult.success) {
+        return res.status(400).json(createResult);
+      }
+      
+      // 然后设置密码
+      const setPasswordResult = await setUserPassword(createResult.user.id, password);
+      return res.json(setPasswordResult);
+    }
+    
+    // 不应该到达这里，但以防万一
+    return res.status(400).json({ 
+      success: false, 
+      message: 'Account already exists and has a password set' 
+    });
+    
   } catch (error) {
     console.error('Register error:', error);
     res.status(500).json({ 
@@ -198,6 +351,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
+// 用户登出
 app.post('/api/auth/logout', authenticate, async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -205,14 +359,13 @@ app.post('/api/auth/logout', authenticate, async (req, res) => {
     
     const success = await revokeToken(token);
     
-    if (success) {
-      res.json({ success: true, message: 'Logged out successfully' });
-    } else {
-      res.status(500).json({ success: false, message: 'Failed to logout' });
-    }
+    res.json({ success });
   } catch (error) {
     console.error('Logout error:', error);
-    res.status(500).json({ success: false, message: 'Logout failed' });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Logout failed' 
+    });
   }
 });
 
@@ -422,10 +575,23 @@ app.get('/api/export-attendance', authenticate, authorize(['admin', 'teacher']),
 // Get student detail (for student or admin)
 app.get('/api/students/:id', authenticate, async (req, res) => {
   try {
-    const studentId = req.params.id;
+    const paramId = req.params.id;
+    let studentId = paramId;
     
-    // Check if user is authorized to access this student's data
-    if (req.user.role !== 'admin' && req.user.id !== parseInt(studentId)) {
+    // 检查ID类型并转换 - 用户ID可能与学生ID不同
+    // 如果是用户ID，先查询对应的学生ID
+    if (req.user.role === 'student' && req.user.id.toString() === paramId) {
+      // 如果是当前登录用户查询自己的信息，直接使用token中的用户ID
+      const [userStudentMapping] = await pool.query(
+        'SELECT student_id FROM users WHERE id = ?',
+        [paramId]
+      );
+      
+      if (userStudentMapping.length > 0) {
+        studentId = userStudentMapping[0].student_id;
+      }
+    } else if (req.user.role !== 'admin' && req.user.id !== parseInt(paramId)) {
+      // 如果不是管理员，且不是查询自己的信息，则拒绝访问
       return res.status(403).json({ 
         success: false, 
         message: 'You do not have permission to access this student data' 
@@ -434,7 +600,7 @@ app.get('/api/students/:id', authenticate, async (req, res) => {
     
     // Get student details
     const [students] = await pool.query(
-      `SELECT s.*, u.username, u.role
+      `SELECT s.*, u.username, u.role, u.id as user_id
        FROM students s
        JOIN users u ON s.id = u.student_id
        WHERE s.id = ?`,
@@ -464,10 +630,23 @@ app.get('/api/students/:id', authenticate, async (req, res) => {
 // Get student attendance records
 app.get('/api/students/:id/attendance', authenticate, async (req, res) => {
   try {
-    const studentId = req.params.id;
+    const paramId = req.params.id;
+    let studentId = paramId;
     
-    // Check if user is authorized to access this student's data
-    if (req.user.role !== 'admin' && req.user.id !== parseInt(studentId)) {
+    // 检查ID类型并转换 - 用户ID可能与学生ID不同
+    // 如果是用户ID，先查询对应的学生ID
+    if (req.user.role === 'student' && req.user.id.toString() === paramId) {
+      // 如果是当前登录用户查询自己的信息
+      const [userStudentMapping] = await pool.query(
+        'SELECT student_id FROM users WHERE id = ?',
+        [paramId]
+      );
+      
+      if (userStudentMapping.length > 0) {
+        studentId = userStudentMapping[0].student_id;
+      }
+    } else if (req.user.role !== 'admin' && req.user.id !== parseInt(paramId)) {
+      // 如果不是管理员，且不是查询自己的信息，则拒绝访问
       return res.status(403).json({ 
         success: false, 
         message: 'You do not have permission to access this student attendance records' 
@@ -507,5 +686,6 @@ initializeDatabase().then(() => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Environment: ${config.NODE_ENV}`);
     console.log(`Database: ${config.DB_CONFIG.database}`);
+    console.log('Note: Default password policy has been updated - all users now use their student ID as password');
   });
 }); 
