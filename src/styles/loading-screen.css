@@ -1,0 +1,155 @@
+/* 加载页面样式 */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
+
+/* 全屏容器 */
+.splash-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  background: #000;
+}
+
+/* 内容区包含LOGO和文字 */
+.content-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  position: relative;
+  margin-bottom: 80px; /* 减小与进度条的距离 */
+}
+
+/* TPMS内容容器 */
+.tpms-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0; /* 移除默认间距 */
+  position: relative; /* 使用相对定位便于精确控制内部元素 */
+}
+
+/* T字母样式 */
+.t-letter {
+  font-size: min(28vw, 220px);
+  font-weight: bold;
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  opacity: 0;
+  transform: scale(0);
+}
+
+/* 骑士(马)样式 */
+.knight {
+  font-size: min(28vw, 220px);
+  color: #fff;
+  line-height: 0.9;
+  margin-left: -2px; /* 向左微调 */
+  margin-right: -2px; /* 向右微调 */
+  margin-top: 15px; /* 微调垂直位置 */
+  transform: scale(0);
+  opacity: 0;
+  position: relative;
+  display: inline-block;
+}
+
+/* MS文字样式 */
+.ms-text {
+  font-size: min(28vw, 220px);
+  font-weight: bold;
+  color: #fff;
+  letter-spacing: 0.19em; /* 增加字母间距 */
+  font-family: 'Montserrat', sans-serif;
+  opacity: 0;
+  transform: scale(0);
+}
+
+/* 欢迎文字区 */
+.welcome-area {
+  opacity: 0;
+  position: absolute;
+  right: -60px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* 欢迎文字 */
+.welcome-text {
+  color: #fff;
+  font-size: min(3vw, 16px);
+  text-align: left;
+  font-weight: normal;
+  font-family: 'Arial', sans-serif;
+  white-space: nowrap;
+}
+
+/* 进度信息区域 */
+.progress-info {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #fff;
+  font-family: 'Arial', sans-serif;
+}
+
+/* 进度文本 */
+.progress-text {
+  font-size: 14px;
+  margin-bottom: 5px;
+  opacity: 0.8;
+}
+
+/* 进度百分比 */
+.progress-percentage {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* 加载进度条容器 */
+.progress-container {
+  position: relative;
+  width: min(30vw, 300px);
+  height: 4px;
+  background-color: rgba(155, 155, 155, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+  opacity: 0;
+  margin-bottom: 40px; /* 在底部添加一些空间 */
+}
+
+/* 加载进度条 */
+.progress-bar {
+  width: 0;
+  height: 100%;
+  background-color: #3b82f6; /* 改为蓝色，与主题颜色更匹配 */
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); /* 添加发光效果 */
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .content-area {
+    flex-direction: column;
+    margin-bottom: 60px;
+  }
+  
+  .welcome-area {
+    position: static;
+    margin-top: 20px;
+    transform: none;
+    opacity: 0;
+  }
+  
+  .welcome-text {
+    text-align: center;
+  }
+  
+  .progress-container {
+    width: min(60vw, 250px);
+  }
+} 
