@@ -10,15 +10,20 @@ This is the official website for the Temasek Polytechnic CCA (Co-Curricular Acti
 - **News Section**: Highlight club achievements and announcements
 - **Member Management**: Import/export member data using Excel spreadsheets
 - **Authentication System**: Secure student login with student ID verification
+- **Interactive Animations**: Advanced animations and transitions for enhanced user experience
+- **Instagram Integration**: Promotional popup for the TPMS Instagram account
 
 ## Technical Implementation
 
 - **Frontend Framework**: React.js
+- **Backend**: Node.js with Express
+- **Database**: MySQL for data persistence
+- **Authentication**: JSON Web Tokens (JWT) for secure authentication
 - **Styling**: Tailwind CSS with custom color theming
 - **Animations**: Framer Motion for smooth transitions and effects
 - **Data Handling**: 
   - Excel integration using XLSX library
-  - Local storage for persistent data without backend dependency
+  - MySQL database for persistent data storage
 - **Icons**: React Icons (FI set)
 - **Package Management**: npm
 
@@ -28,8 +33,14 @@ This is the official website for the Temasek Polytechnic CCA (Co-Curricular Acti
 # Install dependencies
 npm install
 
-# Start development server
-npm start
+# Start both frontend and backend in development mode
+npm run dev
+
+# Start only the backend server
+npm run server
+
+# Start only the frontend client
+npm run client
 
 # Build for production
 npm run build
@@ -39,18 +50,33 @@ npm run build
 
 ```
 /
-├── src/
+├── src/                      # Frontend source code
 │   ├── components/           # React components
 │   │   ├── ui/               # UI components
 │   │   │   ├── button/       # Button components
 │   │   │   ├── card/         # Card components
-│   │   │   └── layout/       # Layout components
+│   │   │   ├── layout/       # Layout components
+│   │   │   ├── PageTransition.jsx # Page transition animations
+│   │   │   ├── PageAnimations.jsx # Animation components
+│   │   │   └── LoadingScreen.jsx  # Loading screen component
 │   │   └── pages/            # Page components
-│   ├── lib/                  # Utility functions
+│   ├── lib/                  # Utility functions and libraries
+│   │   ├── auth.js           # Authentication library
+│   │   └── authMiddleware.js # Authentication middleware
+│   ├── hooks/                # Custom React hooks
 │   ├── styles/               # Global styles
 │   └── App.jsx               # Main application component
 ├── public/                   # Static assets
-└── config/                   # Configuration files
+├── server.js                 # Express server and API endpoints
+├── config.js                 # Server configuration
+├── tools/                    # Maintenance and utility tools
+│   ├── test-auth.js          # Authentication testing
+│   ├── clear-account.js      # Account management tools
+│   ├── migrate-db.js         # Database migration tools
+│   ├── reset-passwords.js    # Password reset tool
+│   └── README.md             # Tools documentation
+├── tests/                    # Test scripts
+└── setup-db.sql              # Database schema setup script
 ```
 
 ## Requirements
@@ -58,6 +84,7 @@ npm run build
 ### Environment Requirements
 - Node.js 16.0 or higher
 - npm 7.0 or higher
+- MySQL 5.7 or higher
 
 ### Installation Steps
 
@@ -72,19 +99,38 @@ cd tpms
 npm install
 ```
 
-3. Start development server
+3. Configure database
 ```bash
-npm start
+# Set up your MySQL database using the setup-db.sql script
+mysql -u username -p < setup-db.sql
+
+# Configure your .env file with database credentials
 ```
 
-4. Build for production
+4. Start development server
+```bash
+npm run dev
+```
+
+5. Build for production
 ```bash
 npm run build
 ```
 
 ### Configuration Details
 
-1. Location Service Configuration
+1. Environment Configuration
+Create a `.env` file in the root directory:
+```
+DB_HOST=localhost
+DB_USER=your_mysql_username
+DB_PASSWORD=your_mysql_password
+DB_NAME=tpms_db
+JWT_SECRET=your_jwt_secret_key
+PORT=5000
+```
+
+2. Location Service Configuration
 Set campus coordinates in `src/App.jsx`:
 ```javascript
 const tpLocation = { 
@@ -93,7 +139,7 @@ const tpLocation = {
 };
 ```
 
-2. Check-in Range Settings
+3. Check-in Range Settings
 Adjust in `src/components/pages/CheckinPage.jsx`:
 ```javascript
 const CHECKIN_RADIUS = 0.5; // unit: kilometers
@@ -125,14 +171,94 @@ chore: build process or auxiliary tool changes
 npm run build
 ```
 
-2. Deploy files from the `build` directory to your server
+2. Set up the production database using the setup-db.sql script
 
-### Environment Variables Configuration
-Create a `.env` file:
-```env
-REACT_APP_API_URL=your_API_address
-REACT_APP_GOOGLE_MAPS_KEY=your_Google_Maps_API_key
+3. Configure your production environment variables
+
+4. Start the server
+```bash
+NODE_ENV=production node server.js
 ```
+
+## Authentication System
+
+The system uses a two-step authentication process:
+
+1. **Student ID Verification**: Students enter their student ID which is verified against the database
+2. **Password Setting**: First-time users are prompted to set a password
+3. **Login**: Returning users can log in with their student ID and password
+
+### Authentication Flow
+
+1. Student enters their student ID for verification
+2. System checks if the student exists in the database
+3. If the student exists but has no password set, they are prompted to set one
+4. After setting a password or if they already have one, they can log in
+
+## Maintenance Tools
+
+The project includes various maintenance tools located in the `tools/` directory to help with system administration:
+
+### Authentication Tools
+
+1. **Test Authentication System**
+   ```bash
+   node tools/test-auth.js
+   ```
+   Tests the student verification and registration process
+
+2. **Clear Student Account**
+   ```bash
+   node tools/clear-account.js <student_id>
+   ```
+   Removes user accounts associated with a specific student ID
+
+3. **Reset Passwords**
+   ```bash
+   # Reset a specific student's password
+   node tools/reset-passwords.js <student_id>
+   
+   # Reset all student passwords
+   node tools/reset-passwords.js
+   ```
+   Resets passwords to trigger the password setup flow on next login
+
+### Database Tools
+
+1. **Database Migration**
+   ```bash
+   node tools/migrate-db.js
+   ```
+   Migrates data from Excel spreadsheets to the MySQL database
+
+2. **Check Password Status**
+   ```bash
+   node tools/check-passwords.js
+   ```
+   Checks the password status for all user accounts
+
+3. **Fix User Accounts**
+   ```bash
+   node tools/fix-user-accounts.js
+   ```
+   Identifies and repairs inconsistent user accounts
+
+## Recent Updates
+
+### UI Enhancements
+- Added advanced animations using Framer Motion
+- Implemented 3D flip card effects for eco activities
+- Added loading screen with animated logo
+- Enhanced page transitions and scroll animations
+
+### Authentication Improvements
+- Implemented two-step authentication process
+- Added password reset functionality
+- Improved user guidance for first-time users
+
+### Instagram Integration
+- Added promotional popup for TPMS Instagram
+- Automatic dismissal after 10 seconds
 
 ## Maintainers
 
