@@ -1,5 +1,4 @@
 const express = require('express');
-const mysql = require('mysql2/promise');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const multer = require('multer');
@@ -7,6 +6,7 @@ const XLSX = require('xlsx');
 const path = require('path');
 const fs = require('fs');
 const config = require('./config'); // 使用新的配置系统
+const db = require('./database'); // 引入统一的数据库连接模块
 const { authenticateUser, revokeToken, verifyStudentId, registerUser, setUserPassword, createUserAccount } = require('./src/lib/auth');
 const { authenticate, authorize } = require('./src/lib/authMiddleware');
 
@@ -18,14 +18,6 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'build')));
-
-// Create MySQL connection pool
-const pool = mysql.createPool({
-  ...config.DB_CONFIG,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
 
 // Upload configuration
 const storage = multer.diskStorage({
@@ -42,63 +34,133 @@ const upload = multer({ storage });
 // Initialize database
 async function initializeDatabase() {
   try {
-    const connection = await pool.getConnection();
+    const connection = await db.getConnection();
     
-    // Create students table
-    await connection.query(`
-      CREATE TABLE IF NOT EXISTS students (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        course VARCHAR(255),
-        index_number VARCHAR(50) UNIQUE NOT NULL,
-        email VARCHAR(255),
-        total_sessions INT DEFAULT 0,
-        attended_sessions INT DEFAULT 0,
-        attendance_rate DECIMAL(5,2) DEFAULT 0.00,
-        last_attendance TIMESTAMP NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    
-    // Create attendance table
-    await connection.query(`
-      CREATE TABLE IF NOT EXISTS attendance (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        student_id INT NOT NULL,
-        check_in_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        location_lat DECIMAL(10, 8),
-        location_lng DECIMAL(11, 8),
-        session_id INT,
-        FOREIGN KEY (student_id) REFERENCES students(id)
-      )
-    `);
-    
-    // Create users table
-    await connection.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        username VARCHAR(50) UNIQUE NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
-        student_id INT NOT NULL,
-        email VARCHAR(255),
-        role ENUM('admin', 'student', 'teacher') NOT NULL DEFAULT 'student',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        last_login TIMESTAMP NULL,
-        FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
-      )
-    `);
-    
-    // Create revoked tokens table
-    await connection.query(`
-      CREATE TABLE IF NOT EXISTS revoked_tokens (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        token_id VARCHAR(255) NOT NULL,
-        expiry TIMESTAMP NOT NULL,
-        revoked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        INDEX (token_id),
-        INDEX (expiry)
-      )
-    `);
+    if (db.isPostgres) {
+      // PostgreSQL initialization
+      await connection.beginTransaction();
+      
+      // Create students table - Postgres version
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS students (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          course VARCHAR(255),
+          index_number VARCHAR(50) UNIQUE NOT NULL,
+          email VARCHAR(255),
+          total_sessions INT DEFAULT 0,
+          attended_sessions INT DEFAULT 0,
+          attendance_rate DECIMAL(5,2) DEFAULT 0.00,
+          last_attendance TIMESTAMP NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      
+      // Create attendance table - Postgres version
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS attendance (
+          id SERIAL PRIMARY KEY,
+          student_id INT NOT NULL,
+          check_in_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          location_lat DECIMAL(10, 8),
+          location_lng DECIMAL(11, 8),
+          session_id INT,
+          FOREIGN KEY (student_id) REFERENCES students(id)
+        )
+      `);
+      
+      // Create users table - Postgres version
+      // Note: Postgres doesn't support ENUM the same way, so using VARCHAR with CHECK constraint
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          username VARCHAR(50) UNIQUE NOT NULL,
+          password_hash VARCHAR(255) NOT NULL,
+          student_id INT NOT NULL,
+          email VARCHAR(255),
+          role VARCHAR(10) NOT NULL DEFAULT 'student' CHECK (role IN ('admin', 'student', 'teacher')),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          last_login TIMESTAMP NULL,
+          FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+        )
+      `);
+      
+      // Create revoked tokens table - Postgres version
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS revoked_tokens (
+          id SERIAL PRIMARY KEY,
+          token_id VARCHAR(255) NOT NULL,
+          expiry TIMESTAMP NOT NULL,
+          revoked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      
+      // Add indexes for revoked tokens - Postgres version
+      await connection.query(`
+        CREATE INDEX IF NOT EXISTS idx_token_id ON revoked_tokens (token_id);
+        CREATE INDEX IF NOT EXISTS idx_expiry ON revoked_tokens (expiry);
+      `);
+      
+      await connection.commit();
+    } else {
+      // MySQL initialization
+      
+      // Create students table
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS students (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          course VARCHAR(255),
+          index_number VARCHAR(50) UNIQUE NOT NULL,
+          email VARCHAR(255),
+          total_sessions INT DEFAULT 0,
+          attended_sessions INT DEFAULT 0,
+          attendance_rate DECIMAL(5,2) DEFAULT 0.00,
+          last_attendance TIMESTAMP NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      
+      // Create attendance table
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS attendance (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          student_id INT NOT NULL,
+          check_in_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          location_lat DECIMAL(10, 8),
+          location_lng DECIMAL(11, 8),
+          session_id INT,
+          FOREIGN KEY (student_id) REFERENCES students(id)
+        )
+      `);
+      
+      // Create users table
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          username VARCHAR(50) UNIQUE NOT NULL,
+          password_hash VARCHAR(255) NOT NULL,
+          student_id INT NOT NULL,
+          email VARCHAR(255),
+          role ENUM('admin', 'student', 'teacher') NOT NULL DEFAULT 'student',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          last_login TIMESTAMP NULL,
+          FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+        )
+      `);
+      
+      // Create revoked tokens table
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS revoked_tokens (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          token_id VARCHAR(255) NOT NULL,
+          expiry TIMESTAMP NOT NULL,
+          revoked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          INDEX (token_id),
+          INDEX (expiry)
+        )
+      `);
+    }
     
     connection.release();
     console.log('Database initialized successfully');
@@ -177,10 +239,11 @@ app.post('/api/auth/set-password', async (req, res) => {
       result = await auth.setUserPassword(userId, password);
     } else {
       // 使用学生ID设置密码 - 查找对应的用户ID
-      const [userRows] = await pool.execute(
-        'SELECT u.id FROM users u JOIN students s ON u.student_id = s.id WHERE s.index_number = ?',
-        [studentId]
-      );
+      const userQuery = db.isPostgres
+        ? 'SELECT u.id FROM users u JOIN students s ON u.student_id = s.id WHERE s.index_number = $1'
+        : 'SELECT u.id FROM users u JOIN students s ON u.student_id = s.id WHERE s.index_number = ?';
+      
+      const userRows = await db.query(userQuery, [studentId]);
       
       if (userRows.length === 0) {
         return res.status(400).json({
@@ -230,10 +293,11 @@ app.post('/api/auth/verify-student', async (req, res) => {
     const result = await auth.verifyStudentId(studentId);
     
     // 检查学生是否已有账户
-    const [userRows] = await pool.execute(
-      'SELECT * FROM users WHERE student_id = ?',
-      [studentId]
-    );
+    const userQuery = db.isPostgres
+      ? 'SELECT * FROM users WHERE student_id = $1'
+      : 'SELECT * FROM users WHERE student_id = ?';
+    
+    const userRows = await db.query(userQuery, [studentId]);
     
     if (userRows.length > 0) {
       // 用户已存在
@@ -306,14 +370,15 @@ app.post('/api/auth/register', async (req, res) => {
     // 如果已有账户但需要设置密码
     if (verifyResult.hasAccount && verifyResult.needsPasswordSetup) {
       // 获取用户信息
-      const connection = await mysql.createConnection(config.DB_CONFIG);
-      const [users] = await connection.query(
-        `SELECT u.id FROM users u 
-         JOIN students s ON u.student_id = s.id 
-         WHERE s.index_number = ?`,
-        [studentId.toLowerCase()]
-      );
-      await connection.end();
+      const userQuery = db.isPostgres
+        ? `SELECT u.id FROM users u 
+           JOIN students s ON u.student_id = s.id 
+           WHERE s.index_number = $1`
+        : `SELECT u.id FROM users u 
+           JOIN students s ON u.student_id = s.id 
+           WHERE s.index_number = ?`;
+      
+      const users = await db.query(userQuery, [studentId.toLowerCase()]);
       
       if (users.length > 0) {
         // 设置密码
@@ -373,13 +438,17 @@ app.post('/api/auth/logout', authenticate, async (req, res) => {
 app.get('/api/users/profile', authenticate, async (req, res) => {
   try {
     // Get user details
-    const [users] = await pool.query(
-      `SELECT u.id, u.username, u.role, s.name, s.index_number, s.email, s.course
-       FROM users u
-       JOIN students s ON u.student_id = s.id
-       WHERE u.id = ?`,
-      [req.user.id]
-    );
+    const userQuery = db.isPostgres
+      ? `SELECT u.id, u.username, u.role, s.name, s.index_number, s.email, s.course
+         FROM users u
+         JOIN students s ON u.student_id = s.id
+         WHERE u.id = $1`
+      : `SELECT u.id, u.username, u.role, s.name, s.index_number, s.email, s.course
+         FROM users u
+         JOIN students s ON u.student_id = s.id
+         WHERE u.id = ?`;
+    
+    const users = await db.query(userQuery, [req.user.id]);
     
     if (users.length === 0) {
       return res.status(404).json({ 
@@ -406,11 +475,11 @@ app.get('/api/users/profile', authenticate, async (req, res) => {
 // Get all students (admin only)
 app.get('/api/students', authenticate, authorize(['admin', 'teacher']), async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      `SELECT id, name, course, index_number, email, 
-              total_sessions, attended_sessions, attendance_rate
-       FROM students`
-    );
+    const studentsQuery = `SELECT id, name, course, index_number, email, 
+            total_sessions, attended_sessions, attendance_rate
+     FROM students`;
+    
+    const rows = await db.query(studentsQuery);
     res.json(rows);
   } catch (error) {
     console.error('Error fetching students:', error);
@@ -436,49 +505,61 @@ app.post('/api/import-students', authenticate, authorize(['admin']), upload.sing
     }
 
     // Process and insert data
-    const connection = await pool.getConnection();
+    const connection = await db.getConnection();
     let inserted = 0;
     let errors = 0;
 
-    for (const row of jsonData) {
-      const name = row['Name'] || '';
-      const course = row['Course'] || '';
-      const indexNumber = (row['index number'] || '').toString().trim();
-      
-      if (!name || !indexNumber) {
-        errors++;
-        continue;
-      }
+    try {
+      await connection.beginTransaction();
 
-      try {
-        // Check if student already exists
-        const [existing] = await connection.query(
-          'SELECT id FROM students WHERE index_number = ?', 
-          [indexNumber]
-        );
+      for (const row of jsonData) {
+        const name = row['Name'] || '';
+        const course = row['Course'] || '';
+        const indexNumber = (row['index number'] || '').toString().trim();
         
-        if (existing.length === 0) {
-          // Insert new student
-          await connection.query(
-            'INSERT INTO students (name, course, index_number) VALUES (?, ?, ?)',
-            [name, course, indexNumber]
-          );
-          inserted++;
-        } else {
-          // Update existing student
-          await connection.query(
-            'UPDATE students SET name = ?, course = ? WHERE index_number = ?',
-            [name, course, indexNumber]
-          );
-          inserted++;
+        if (!name || !indexNumber) {
+          errors++;
+          continue;
         }
-      } catch (error) {
-        console.error('Error inserting/updating student:', error);
-        errors++;
-      }
-    }
 
-    connection.release();
+        try {
+          // Check if student already exists
+          const existingQuery = db.isPostgres
+            ? 'SELECT id FROM students WHERE index_number = $1'
+            : 'SELECT id FROM students WHERE index_number = ?';
+          
+          const existing = await connection.query(existingQuery, [indexNumber]);
+          
+          if (existing.length === 0) {
+            // Insert new student
+            const insertQuery = db.isPostgres
+              ? 'INSERT INTO students (name, course, index_number) VALUES ($1, $2, $3)'
+              : 'INSERT INTO students (name, course, index_number) VALUES (?, ?, ?)';
+            
+            await connection.query(insertQuery, [name, course, indexNumber]);
+            inserted++;
+          } else {
+            // Update existing student
+            const updateQuery = db.isPostgres
+              ? 'UPDATE students SET name = $1, course = $2 WHERE index_number = $3'
+              : 'UPDATE students SET name = ?, course = ? WHERE index_number = ?';
+            
+            await connection.query(updateQuery, [name, course, indexNumber]);
+            inserted++;
+          }
+        } catch (error) {
+          console.error('Error inserting/updating student:', error);
+          errors++;
+        }
+      }
+
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
     
     // Clean up uploaded file
     fs.unlinkSync(req.file.path);

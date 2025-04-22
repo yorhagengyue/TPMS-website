@@ -6,7 +6,7 @@
 
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const mysql = require('mysql2/promise');
+const db = require('../../database');
 const config = require('../../config');
 
 // JWT Secret - should be in environment variables in production
@@ -40,12 +40,16 @@ const verifyToken = async (token) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     
     // Check if token has been revoked
-    const connection = await mysql.createConnection(config.DB_CONFIG);
-    const [revoked] = await connection.query(
-      'SELECT id FROM revoked_tokens WHERE token_id = ?',
-      [decoded.jti]
-    );
-    await connection.end();
+    const connection = await db.getConnection();
+    
+    // Use query parameters according to the database type
+    const sql = db.isPostgres 
+      ? 'SELECT id FROM revoked_tokens WHERE token_id = $1'
+      : 'SELECT id FROM revoked_tokens WHERE token_id = ?';
+    
+    const revoked = await connection.query(sql, [decoded.jti]);
+    
+    connection.release();
     
     if (revoked.length > 0) {
       return null; // Token has been revoked
@@ -66,13 +70,14 @@ const verifyStudentId = async (studentId) => {
   let connection;
   
   try {
-    connection = await mysql.createConnection(config.DB_CONFIG);
+    connection = await db.getConnection();
     
     // Find student by index_number
-    const [students] = await connection.query(
-      'SELECT * FROM students WHERE index_number = ?',
-      [studentId.toLowerCase()]
-    );
+    const studentSql = db.isPostgres
+      ? 'SELECT * FROM students WHERE index_number = $1'
+      : 'SELECT * FROM students WHERE index_number = ?';
+    
+    const students = await connection.query(studentSql, [studentId.toLowerCase()]);
     
     if (students.length === 0) {
       return { success: false, message: 'Student ID not found' };
@@ -81,10 +86,11 @@ const verifyStudentId = async (studentId) => {
     const student = students[0];
     
     // Check if student already has a user account
-    const [users] = await connection.query(
-      'SELECT id, password_hash FROM users WHERE student_id = ?',
-      [student.id]
-    );
+    const userSql = db.isPostgres
+      ? 'SELECT id, password_hash FROM users WHERE student_id = $1'
+      : 'SELECT id, password_hash FROM users WHERE student_id = ?';
+    
+    const users = await connection.query(userSql, [student.id]);
     
     if (users.length > 0) {
       // If account exists, check if password is set
@@ -120,7 +126,7 @@ const verifyStudentId = async (studentId) => {
     return { success: false, message: error.message };
   } finally {
     if (connection) {
-      await connection.end();
+      connection.release();
     }
   }
 };
@@ -134,13 +140,14 @@ const createUserAccount = async (studentId) => {
   let connection;
   
   try {
-    connection = await mysql.createConnection(config.DB_CONFIG);
+    connection = await db.getConnection();
     
     // Find student by index_number
-    const [students] = await connection.query(
-      'SELECT * FROM students WHERE index_number = ?',
-      [studentId.toLowerCase()]
-    );
+    const studentSql = db.isPostgres
+      ? 'SELECT * FROM students WHERE index_number = $1'
+      : 'SELECT * FROM students WHERE index_number = ?';
+    
+    const students = await connection.query(studentSql, [studentId.toLowerCase()]);
     
     if (students.length === 0) {
       return { success: false, message: 'Student ID not found' };
@@ -149,34 +156,47 @@ const createUserAccount = async (studentId) => {
     const student = students[0];
     
     // Check if student already has a user account
-    const [existingUsers] = await connection.query(
-      'SELECT id FROM users WHERE student_id = ?',
-      [student.id]
-    );
+    const checkUserSql = db.isPostgres
+      ? 'SELECT id FROM users WHERE student_id = $1'
+      : 'SELECT id FROM users WHERE student_id = ?';
+    
+    const existingUsers = await connection.query(checkUserSql, [student.id]);
     
     if (existingUsers.length > 0) {
       return { success: false, message: 'Student already has an account' };
     }
     
     // Create user account with empty password (will be set during first login)
-    // Use placeholder for password_hash that indicates it needs to be set
-    const [result] = await connection.query(
-      'INSERT INTO users (username, password_hash, student_id, role) VALUES (?, ?, ?, ?)',
-      [studentId.toLowerCase(), '', student.id, 'student']
-    );
+    let newUserId;
     
-    if (!result.insertId) {
+    if (db.isPostgres) {
+      // PostgreSQL insert returns the inserted id
+      const insertSql = 'INSERT INTO users (username, password_hash, student_id, role) VALUES ($1, $2, $3, $4) RETURNING id';
+      const result = await connection.query(insertSql, [studentId.toLowerCase(), '', student.id, 'student']);
+      newUserId = result[0].id;
+    } else {
+      // MySQL insert
+      const insertSql = 'INSERT INTO users (username, password_hash, student_id, role) VALUES (?, ?, ?, ?)';
+      const result = await connection.query(insertSql, [studentId.toLowerCase(), '', student.id, 'student']);
+      newUserId = result.insertId;
+    }
+    
+    if (!newUserId) {
       return { success: false, message: 'Failed to create user account' };
     }
     
     // Get new user details
-    const [users] = await connection.query(
-      `SELECT u.*, s.name, s.course, s.email, s.index_number 
-       FROM users u 
-       JOIN students s ON u.student_id = s.id 
-       WHERE u.id = ?`,
-      [result.insertId]
-    );
+    const getUserSql = db.isPostgres
+      ? `SELECT u.*, s.name, s.course, s.email, s.index_number 
+         FROM users u 
+         JOIN students s ON u.student_id = s.id 
+         WHERE u.id = $1`
+      : `SELECT u.*, s.name, s.course, s.email, s.index_number 
+         FROM users u 
+         JOIN students s ON u.student_id = s.id 
+         WHERE u.id = ?`;
+    
+    const users = await connection.query(getUserSql, [newUserId]);
     
     if (users.length === 0) {
       return { success: false, message: 'User created but failed to retrieve details' };
@@ -204,7 +224,7 @@ const createUserAccount = async (studentId) => {
     return { success: false, message: error.message };
   } finally {
     if (connection) {
-      await connection.end();
+      connection.release();
     }
   }
 };
@@ -219,16 +239,20 @@ const setUserPassword = async (userId, password) => {
   let connection;
   
   try {
-    connection = await mysql.createConnection(config.DB_CONFIG);
+    connection = await db.getConnection();
     
     // Validate user exists
-    const [users] = await connection.query(
-      `SELECT u.*, s.name, s.course, s.email, s.index_number 
-       FROM users u 
-       JOIN students s ON u.student_id = s.id 
-       WHERE u.id = ?`,
-      [userId]
-    );
+    const getUserSql = db.isPostgres
+      ? `SELECT u.*, s.name, s.course, s.email, s.index_number 
+         FROM users u 
+         JOIN students s ON u.student_id = s.id 
+         WHERE u.id = $1`
+      : `SELECT u.*, s.name, s.course, s.email, s.index_number 
+         FROM users u 
+         JOIN students s ON u.student_id = s.id 
+         WHERE u.id = ?`;
+    
+    const users = await connection.query(getUserSql, [userId]);
     
     if (users.length === 0) {
       return { success: false, message: 'User not found' };
@@ -240,10 +264,11 @@ const setUserPassword = async (userId, password) => {
     const passwordHash = await bcrypt.hash(password, 10);
     
     // Update password
-    await connection.query(
-      'UPDATE users SET password_hash = ? WHERE id = ?',
-      [passwordHash, userId]
-    );
+    const updateSql = db.isPostgres
+      ? 'UPDATE users SET password_hash = $1 WHERE id = $2'
+      : 'UPDATE users SET password_hash = ? WHERE id = ?';
+    
+    await connection.query(updateSql, [passwordHash, userId]);
     
     // Generate token
     const token = generateToken(user);
@@ -269,7 +294,7 @@ const setUserPassword = async (userId, password) => {
     return { success: false, message: error.message };
   } finally {
     if (connection) {
-      await connection.end();
+      connection.release();
     }
   }
 };
@@ -284,23 +309,28 @@ const authenticateUser = async (username, password) => {
   let connection;
   
   try {
-    connection = await mysql.createConnection(config.DB_CONFIG);
+    connection = await db.getConnection();
     
     // Find user by username
-    const [users] = await connection.query(
-      `SELECT u.*, s.name, s.course, s.email, s.index_number 
-       FROM users u 
-       JOIN students s ON u.student_id = s.id 
-       WHERE u.username = ?`,
-      [username.toLowerCase()]
-    );
+    const getUserSql = db.isPostgres
+      ? `SELECT u.*, s.name, s.course, s.email, s.index_number 
+         FROM users u 
+         JOIN students s ON u.student_id = s.id 
+         WHERE u.username = $1`
+      : `SELECT u.*, s.name, s.course, s.email, s.index_number 
+         FROM users u 
+         JOIN students s ON u.student_id = s.id 
+         WHERE u.username = ?`;
+    
+    const users = await connection.query(getUserSql, [username.toLowerCase()]);
     
     if (users.length === 0) {
       // Check if student exists but no account yet
-      const [students] = await connection.query(
-        'SELECT * FROM students WHERE index_number = ?',
-        [username.toLowerCase()]
-      );
+      const studentSql = db.isPostgres
+        ? 'SELECT * FROM students WHERE index_number = $1'
+        : 'SELECT * FROM students WHERE index_number = ?';
+      
+      const students = await connection.query(studentSql, [username.toLowerCase()]);
       
       if (students.length > 0) {
         // Student exists but no account - create account and require password setup
@@ -370,7 +400,7 @@ const authenticateUser = async (username, password) => {
     return { success: false, message: error.message };
   } finally {
     if (connection) {
-      await connection.end();
+      connection.release();
     }
   }
 };
@@ -390,20 +420,21 @@ const revokeToken = async (token) => {
       return false;
     }
     
-    connection = await mysql.createConnection(config.DB_CONFIG);
+    connection = await db.getConnection();
     
     // Add token to blacklist
-    await connection.query(
-      'INSERT INTO revoked_tokens (token_id, expiry) VALUES (?, FROM_UNIXTIME(?))',
-      [decoded.jti, decoded.exp]
-    );
+    const insertSql = db.isPostgres
+      ? 'INSERT INTO revoked_tokens (token_id, expiry) VALUES ($1, to_timestamp($2))'
+      : 'INSERT INTO revoked_tokens (token_id, expiry) VALUES (?, FROM_UNIXTIME(?))';
+    
+    await connection.query(insertSql, [decoded.jti, decoded.exp]);
     
     return true;
   } catch (error) {
     return false;
   } finally {
     if (connection) {
-      await connection.end();
+      connection.release();
     }
   }
 };

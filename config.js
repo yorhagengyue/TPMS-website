@@ -34,20 +34,39 @@ function loadEnv() {
     console.warn(`Warning: ${envPath} file not found, using process.env and defaults`);
   }
   
+  // Extract database environment variables
+  const {
+    DATABASE_URL,
+    DB_HOST,
+    DB_PORT,
+    DB_USER,
+    DB_PASSWORD,
+    DB_NAME,
+  } = process.env;
+  
+  // Configure database connection - prioritize DATABASE_URL if present
+  const DB_CONFIG = DATABASE_URL
+    ? { connectionString: DATABASE_URL }
+    : {
+        host: DB_HOST || 'localhost',
+        port: Number(DB_PORT || 3306),
+        user: DB_USER || 'root',
+        password: DB_PASSWORD || '',
+        database: DB_NAME || (NODE_ENV === 'test' ? 'tpms_test_db' : 'tpms_db')
+      };
+  
   return {
     NODE_ENV,
     PORT: process.env.PORT || 5000,
-    DB_CONFIG: {
-      host: process.env.DB_HOST || 'localhost',
-      user: process.env.DB_USER || 'root',
-      password: process.env.DB_PASSWORD || '',
-      database: process.env.DB_NAME || (NODE_ENV === 'test' ? 'tpms_test_db' : 'tpms_db')
-    }
+    DB_CONFIG
   };
 }
 
 const config = loadEnv();
 console.log(`Environment: ${config.NODE_ENV}`);
-console.log(`Database: ${config.DB_CONFIG.database}`);
+console.log(`Database connection type: ${config.DB_CONFIG.connectionString ? 'PostgreSQL (URL)' : 'MySQL (Direct)'}`);
+if (!config.DB_CONFIG.connectionString) {
+  console.log(`Database: ${config.DB_CONFIG.database}`);
+}
 
 module.exports = config; 
