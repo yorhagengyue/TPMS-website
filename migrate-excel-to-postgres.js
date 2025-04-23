@@ -158,7 +158,7 @@ async function importStudentsFromExcel(pgClient) {
   console.log(`Excel文件包含的工作表: ${workbook.SheetNames.join(', ')}`);
   
   // 优先使用包含学生信息的工作表
-  const targetSheets = ['AY2425Members', 'Orientation Form'];
+  const targetSheets = ['Attendance', 'AY2425Members', 'Orientation Form'];
   let sheetName = null;
   
   for (const sheet of targetSheets) {
@@ -198,10 +198,10 @@ async function importStudentsFromExcel(pgClient) {
     // 处理姓名
     const name = student['Name'] || student['name'] || '';
     
-    // 处理学号 - 在CCA系统中可能是"Admission Numbers"或"Admission Number"
+    // 处理学号 - 在Attendance表中是"Admission Numbers"
     let indexNumber = (
-      student['Admission Number'] || 
       student['Admission Numbers'] || 
+      student['Admission Number'] || 
       student['index number'] || 
       student['index_number'] || 
       student['Student ID'] || 
@@ -211,7 +211,7 @@ async function importStudentsFromExcel(pgClient) {
       ''
     ).toString().trim();
     
-    // 处理课程/班级
+    // 处理课程/班级 - Attendance表可能没有课程信息
     const course = (
       student['Course'] || 
       student['course'] || 
@@ -225,11 +225,17 @@ async function importStudentsFromExcel(pgClient) {
     // 处理邮箱
     const email = student['Email'] || student['email'] || student['Email Address'] || student['email address'] || '';
     
-    // 处理电话号码 - 在CCA系统中有该字段
+    // 处理电话号码 - Attendance表中可能没有电话号码
     const phoneNumber = student['Phone Number'] || '';
     
-    // 处理出勤率 - 可能存在于数据中
+    // 处理出勤率 - 在Attendance表中是"Percentage for Attendance"
     const attendanceRate = parseFloat(student['Percentage for Attendance'] || 0);
+    
+    // 处理总培训课程数 - 在Attendance表中是"Total Number Training Sessions"
+    const totalSessions = parseInt(student['Total Number Training Sessions'] || 0);
+    
+    // 计算已参加课程数 - 可以基于出勤率和总课程数计算
+    const attendedSessions = Math.round((attendanceRate / 100) * totalSessions) || 0;
     
     // 如果没有姓名或学号，则跳过
     if (!name || !indexNumber) {
@@ -244,10 +250,10 @@ async function importStudentsFromExcel(pgClient) {
     const emailToUse = email || `${indexNumber.toLowerCase()}@student.tp.edu.sg`;
     
     try {
-      // 插入学生信息 - 新增phone_number字段
+      // 插入学生信息 - 使用Attendance表中的字段
       const result = await pgClient.query(
         'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-        [name, course, indexNumber, emailToUse, phoneNumber, 0, 0, attendanceRate || 0]
+        [name, course, indexNumber, emailToUse, phoneNumber, totalSessions, attendedSessions, attendanceRate || 0]
       );
       
       importedStudents.push(result.rows[0]);
