@@ -108,6 +108,11 @@ export const CheckinPage = ({ user }) => {
             setError('An unknown error occurred');
             break;
         }
+      },
+      {
+        enableHighAccuracy: true,  // Enable high accuracy (GPS if available)
+        timeout: 10000,           // 10 seconds timeout
+        maximumAge: 0              // Don't use cached position
       }
     );
   };
