@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS students (
   course VARCHAR(255),
   index_number VARCHAR(50) UNIQUE NOT NULL,
   email VARCHAR(255),
+  phone_number VARCHAR(50),
   total_sessions INT DEFAULT 0,
   attended_sessions INT DEFAULT 0,
   attendance_rate DECIMAL(5,2) DEFAULT 0.00,
