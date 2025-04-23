@@ -122,11 +122,7 @@ async function createTables(pgClient) {
 async function importStudentsFromExcel(pgClient) {
   // 检查Excel文件是否存在
   const excelFiles = [
-    'src/cca attendance system.xlsx',
-    'cca attendance system.xlsx',
-    'src/name list.xlsx', 
-    'name list.xlsx', 
-    'students.xlsx'
+    'cca attendance system.xlsx'
   ];
   let excelFile = null;
   
