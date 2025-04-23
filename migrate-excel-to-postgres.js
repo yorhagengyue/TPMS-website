@@ -85,6 +85,17 @@ async function migrateDataFromExcel() {
 // 创建表结构
 async function createTables(pgClient) {
   try {
+    // 先删除现有表，确保使用最新结构
+    try {
+      await pgClient.query('DROP TABLE IF EXISTS users CASCADE');
+      await pgClient.query('DROP TABLE IF EXISTS students CASCADE');
+      await pgClient.query('DROP TABLE IF EXISTS attendance CASCADE');
+      await pgClient.query('DROP TABLE IF EXISTS revoked_tokens CASCADE');
+      console.log('已删除旧表，准备创建新表结构');
+    } catch (dropError) {
+      console.warn('删除表时出现警告:', dropError.message);
+    }
+    
     // 创建students表
     await pgClient.query(`
       CREATE TABLE IF NOT EXISTS students (
