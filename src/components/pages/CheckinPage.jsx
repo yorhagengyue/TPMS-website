@@ -41,10 +41,18 @@ export const CheckinPage = ({ user }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // TP Campus location
+  // TP Campus location - updated with precise coordinates
   const tpLocation = { 
-    lat: 1.3445291,   // latitude
-    lng: 103.9326429  // longitude
+    lat: 1.34498,   // latitude
+    lng: 103.9317  // longitude
+  };
+
+  // TP Campus boundaries (bounding box)
+  const tpBoundary = {
+    minLat: 1.3425,
+    maxLat: 1.3474,
+    minLng: 103.9292,
+    maxLng: 103.9342
   };
 
   // Distance calculation (Haversine formula)
@@ -58,6 +66,22 @@ export const CheckinPage = ({ user }) => {
       Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c; // Distance in km
+  };
+
+  // Check if location is within or near campus boundaries
+  const isWithinCampusArea = (lat, lng) => {
+    // First check if directly within boundary box
+    const withinBoundary = 
+      lat >= tpBoundary.minLat && 
+      lat <= tpBoundary.maxLat && 
+      lng >= tpBoundary.minLng && 
+      lng <= tpBoundary.maxLng;
+    
+    if (withinBoundary) return true;
+    
+    // If not directly within boundary, check distance from campus center
+    const distance = calculateDistance(lat, lng, tpLocation.lat, tpLocation.lng);
+    return distance <= 1.5; // Within 1.5km of campus center
   };
 
   // Get user's current location
@@ -78,9 +102,8 @@ export const CheckinPage = ({ user }) => {
         };
         
         setLocation(userLocation);
-        setLocationStatus('success');
         
-        // Calculate distance from TP
+        // Calculate distance from TP center
         const distance = calculateDistance(
           userLocation.lat, 
           userLocation.lng, 
@@ -88,7 +111,10 @@ export const CheckinPage = ({ user }) => {
           tpLocation.lng
         );
         
-        if (distance > 1.0) { // More than 1 kilometer away
+        // Check if within campus area
+        if (isWithinCampusArea(userLocation.lat, userLocation.lng)) {
+          setLocationStatus('success');
+        } else {
           setLocationStatus('warning');
         }
       },
@@ -278,6 +304,22 @@ export const CheckinPage = ({ user }) => {
                         <span className="text-gray-500">Longitude:</span>
                         <span className="font-mono">{location.lng.toFixed(6)}</span>
                       </div>
+                      <div className="flex justify-between mt-1 pt-1 border-t border-gray-200">
+                        <span className="text-gray-500">Distance from campus:</span>
+                        <span className="font-mono">{calculateDistance(
+                          location.lat,
+                          location.lng,
+                          tpLocation.lat,
+                          tpLocation.lng
+                        ).toFixed(2)} km</span>
+                      </div>
+                      
+                      <div className="flex justify-between mt-1">
+                        <span className="text-gray-500">Location status:</span>
+                        <span className={`font-mono ${isWithinCampusArea(location.lat, location.lng) ? 'text-green-600' : 'text-amber-600'}`}>
+                          {isWithinCampusArea(location.lat, location.lng) ? 'Within campus area' : 'Outside campus area'}
+                        </span>
+                      </div>
                       
                       {locationStatus === 'warning' && (
                         <div className="mt-2 text-amber-600 text-xs flex items-start">
@@ -344,7 +386,7 @@ export const CheckinPage = ({ user }) => {
           <p>
             Note: Your location is only used to verify you are at the CCA venue.
             <br />
-            You must be within 1 kilometer of the TP campus to check in.
+            You must be within campus boundaries or within 1.5 kilometers of the campus center to check in.
             <br />
             CCA sessions are only on Fridays from 6:00 PM to 9:00 PM.
           </p>

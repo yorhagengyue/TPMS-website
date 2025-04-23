@@ -708,10 +708,18 @@ app.post('/api/attendance', authenticate, async (req, res) => {
       });
     }
     
-    // 检查位置是否在允许范围内（距离TP校园1公里内）
+    // 检查位置是否在允许范围内（德马塞克理工学院校园边界内或附近）
     const tpLocation = { 
-      lat: 1.3445291,
-      lng: 103.9326429
+      lat: 1.34498,
+      lng: 103.9317
+    };
+    
+    // 校园边界框
+    const tpBoundary = {
+      minLat: 1.3425,
+      maxLat: 1.3474,
+      minLng: 103.9292,
+      maxLng: 103.9342
     };
     
     // 计算用户位置与TP校园的距离
@@ -727,17 +735,40 @@ app.post('/api/attendance', authenticate, async (req, res) => {
       return R * c; // 距离，单位km
     }
     
-    const distance = calculateDistance(
-      parseFloat(locationLat), 
-      parseFloat(locationLng), 
-      tpLocation.lat, 
-      tpLocation.lng
-    );
+    // 检查是否在校园边界内或附近
+    function isWithinCampusArea(lat, lng) {
+      // 首先检查是否直接在边界框内
+      const withinBoundary = 
+        lat >= tpBoundary.minLat && 
+        lat <= tpBoundary.maxLat && 
+        lng >= tpBoundary.minLng && 
+        lng <= tpBoundary.maxLng;
+      
+      if (withinBoundary) return true;
+      
+      // 如果不在边界框内，检查与校园中心的距离
+      const distance = calculateDistance(lat, lng, tpLocation.lat, tpLocation.lng);
+      return distance <= 1.5; // 距离校园中心1.5公里以内
+    }
     
-    // 如果距离超过1公里，拒绝签到
-    if (distance > 1.0) {
-      const errorMsg = `Check-in failed: Your location is ${distance.toFixed(2)} km away from campus. You must be within 1 km to check in.`;
-      console.log(`Attendance rejected for ${indexNumber}: Too far from campus (${distance.toFixed(2)} km)`);
+    const userLat = parseFloat(locationLat);
+    const userLng = parseFloat(locationLng);
+    
+    // 检查位置有效性
+    if (isNaN(userLat) || isNaN(userLng)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid location coordinates',
+        message: 'Invalid location coordinates'
+      });
+    }
+    
+    const distance = calculateDistance(userLat, userLng, tpLocation.lat, tpLocation.lng);
+    
+    // 如果不在校园区域内，拒绝签到
+    if (!isWithinCampusArea(userLat, userLng)) {
+      const errorMsg = `Check-in failed: Your location (${distance.toFixed(2)} km from campus center) is outside the allowed area. You must be within campus boundaries or within 1.5 km of the campus center to check in.`;
+      console.log(`Attendance rejected for ${indexNumber}: Not in campus area (${distance.toFixed(2)} km from center)`);
       return res.status(403).json({
         success: false,
         error: errorMsg,
