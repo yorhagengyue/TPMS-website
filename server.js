@@ -692,6 +692,22 @@ app.post('/api/attendance', authenticate, async (req, res) => {
       return res.status(400).json({ error: 'Student index number is required' });
     }
     
+    // 检查当前时间是否在允许签到的时间范围内 (仅周五18:00-21:00)
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0是周日，5是周五
+    const hour = now.getHours();
+    const isValidTime = dayOfWeek === 5 && hour >= 18 && hour < 21;
+    
+    if (!isValidTime) {
+      const errorMsg = '签到失败：CCA活动仅在每周五18:00-21:00之间进行，请在活动时间内签到';
+      console.log(`Attendance rejected for ${indexNumber}: Not within allowed time window`);
+      return res.status(403).json({ 
+        success: false, 
+        error: errorMsg,
+        message: errorMsg
+      });
+    }
+    
     // Find student by index number
     const studentQuery = db.isPostgres
       ? 'SELECT id FROM students WHERE index_number = $1'

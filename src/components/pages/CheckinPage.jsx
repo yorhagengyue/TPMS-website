@@ -17,6 +17,29 @@ export const CheckinPage = ({ user }) => {
   const [location, setLocation] = useState(null);
   const [locationStatus, setLocationStatus] = useState('idle');
   const [successMessage, setSuccessMessage] = useState('');
+  
+  // Check if current time is within allowed check-in times
+  const [isWithinCheckinHours, setIsWithinCheckinHours] = useState(false);
+  
+  // Update check-in time validity every minute
+  useEffect(() => {
+    const checkValidTime = () => {
+      const now = new Date();
+      const dayOfWeek = now.getDay(); // 0 = Sunday, 5 = Friday
+      const hour = now.getHours();
+      
+      // CCA is on Friday 6pm-9pm only
+      setIsWithinCheckinHours(dayOfWeek === 5 && hour >= 18 && hour < 21);
+    };
+    
+    // Check immediately
+    checkValidTime();
+    
+    // Then check every minute
+    const interval = setInterval(checkValidTime, 60000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   // TP Campus location
   const tpLocation = { 
@@ -129,7 +152,7 @@ export const CheckinPage = ({ user }) => {
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to record attendance');
+        throw new Error(data.error || data.message || 'Failed to record attendance');
       }
       
       // Success
@@ -165,6 +188,15 @@ export const CheckinPage = ({ user }) => {
           <p className="text-gray-600">
             Record your attendance at TP Mindsport Club activities
           </p>
+          <div className={`mt-2 text-sm font-medium ${isWithinCheckinHours ? 'text-green-600' : 'text-amber-600'}`}>
+            <span className="font-semibold">签到时间：</span> 仅限每周五 18:00-21:00
+            {!isWithinCheckinHours && (
+              <div className="mt-1 text-amber-600">
+                <FiAlertTriangle className="inline mr-1" />
+                <span>当前不在可签到时段内</span>
+              </div>
+            )}
+          </div>
         </div>
         
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -275,9 +307,9 @@ export const CheckinPage = ({ user }) => {
                 
                 <button
                   onClick={handleCheckIn}
-                  disabled={isLoading || locationStatus !== 'success' || !user}
+                  disabled={isLoading || locationStatus !== 'success' || !user || !isWithinCheckinHours}
                   className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-white ${
-                    !user || locationStatus !== 'success' ? 'bg-gray-400 cursor-not-allowed' :
+                    !user || locationStatus !== 'success' || !isWithinCheckinHours ? 'bg-gray-400 cursor-not-allowed' :
                     isLoading ? 'bg-green-500' : 'bg-green-600 hover:bg-green-700'
                   } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
                 >
@@ -285,6 +317,11 @@ export const CheckinPage = ({ user }) => {
                     <>
                       <FiLoader className="animate-spin mr-2" />
                       Recording attendance...
+                    </>
+                  ) : !isWithinCheckinHours ? (
+                    <>
+                      <FiClock className="mr-2" />
+                      不在签到时间内
                     </>
                   ) : (
                     <>
@@ -303,6 +340,8 @@ export const CheckinPage = ({ user }) => {
             Note: Your location is only used to verify you are at the CCA venue.
             <br />
             You must be within 500 meters of the TP campus to check in.
+            <br />
+            CCA sessions are only on Fridays from 6:00 PM to 9:00 PM.
           </p>
         </div>
       </motion.div>
