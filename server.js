@@ -885,6 +885,107 @@ app.get('/api/students/:id/attendance', authenticate, async (req, res) => {
   }
 });
 
+// Temporary diagnostic endpoint - REMOVE AFTER DEBUGGING
+app.get('/api/debug/check-account/:studentId', async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    
+    console.log(`[DEBUG API] Checking account for: ${studentId}`);
+    
+    // Normalize the student ID
+    const normalizedId = studentId.toLowerCase().replace(/\s+/g, '');
+    
+    // Find student record
+    const studentQuery = db.isPostgres
+      ? 'SELECT * FROM students WHERE LOWER(index_number) = $1'
+      : 'SELECT * FROM students WHERE LOWER(index_number) = ?';
+    
+    const students = await db.query(studentQuery, [normalizedId]);
+    
+    if (students.length === 0) {
+      // Try fuzzy search
+      const fuzzyQuery = db.isPostgres
+        ? 'SELECT * FROM students WHERE LOWER(TRIM(index_number)) = $1'
+        : 'SELECT * FROM students WHERE LOWER(TRIM(index_number)) = ?';
+      
+      const fuzzyStudents = await db.query(fuzzyQuery, [normalizedId]);
+      
+      if (fuzzyStudents.length === 0) {
+        return res.json({
+          status: 'error',
+          message: 'Student not found in database',
+          search_term: normalizedId
+        });
+      }
+      
+      // Use fuzzy match result
+      const student = fuzzyStudents[0];
+      const userQuery = db.isPostgres
+        ? 'SELECT * FROM users WHERE student_id = $1'
+        : 'SELECT * FROM users WHERE student_id = ?';
+      
+      const users = await db.query(userQuery, [student.id]);
+      
+      return res.json({
+        status: 'success',
+        message: 'Student found with fuzzy search',
+        student: {
+          id: student.id,
+          index_number: student.index_number,
+          name: student.name,
+          email: student.email,
+          course: student.course
+        },
+        account: users.length > 0 ? {
+          exists: true,
+          id: users[0].id,
+          username: users[0].username,
+          has_password: !!(users[0].password_hash && users[0].password_hash.length > 0),
+          password_length: users[0].password_hash?.length || 0
+        } : {
+          exists: false
+        }
+      });
+    }
+    
+    // Student found directly
+    const student = students[0];
+    const userQuery = db.isPostgres
+      ? 'SELECT * FROM users WHERE student_id = $1'
+      : 'SELECT * FROM users WHERE student_id = ?';
+    
+    const users = await db.query(userQuery, [student.id]);
+    
+    return res.json({
+      status: 'success',
+      message: 'Student found',
+      student: {
+        id: student.id,
+        index_number: student.index_number,
+        name: student.name,
+        email: student.email,
+        course: student.course
+      },
+      account: users.length > 0 ? {
+        exists: true,
+        id: users[0].id,
+        username: users[0].username,
+        has_password: !!(users[0].password_hash && users[0].password_hash.length > 0),
+        password_length: users[0].password_hash?.length || 0
+      } : {
+        exists: false
+      }
+    });
+  } catch (error) {
+    console.error('Debug API error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Server error',
+      error: error.message
+    });
+  }
+});
+
 // Serve React app
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
