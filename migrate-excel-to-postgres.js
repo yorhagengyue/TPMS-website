@@ -84,28 +84,56 @@ async function migrateDataFromExcel() {
 
 // 创建表结构
 async function createTables(pgClient) {
-  // 读取初始化SQL脚本
-  const sqlScript = fs.readFileSync(path.join(__dirname, 'postgres-schema.sql'), 'utf8');
-  
-  // 分割并执行SQL语句
-  const statements = sqlScript.split(';').filter(stmt => stmt.trim() !== '');
-  
-  for (const stmt of statements) {
-    await pgClient.query(stmt);
+  try {
+    // 创建students表
+    await pgClient.query(`
+      CREATE TABLE IF NOT EXISTS students (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        course VARCHAR(255),
+        index_number VARCHAR(50) UNIQUE NOT NULL,
+        email VARCHAR(255),
+        phone_number VARCHAR(50),
+        total_sessions INTEGER DEFAULT 0,
+        attended_sessions INTEGER DEFAULT 0,
+        attendance_rate NUMERIC(5, 2) DEFAULT 0
+      )
+    `);
+    console.log('确保students表已创建');
+
+    // 读取初始化SQL脚本
+    const sqlScript = fs.readFileSync(path.join(__dirname, 'postgres-schema.sql'), 'utf8');
+    
+    // 分割并执行SQL语句
+    const statements = sqlScript.split(';').filter(stmt => stmt.trim() !== '');
+    
+    for (const stmt of statements) {
+      await pgClient.query(stmt);
+    }
+    
+    console.log('表结构创建完成');
+  } catch (error) {
+    console.error('创建表时出错:', error);
+    throw error;
   }
-  
-  console.log('表结构创建完成');
 }
 
 // 从Excel导入学生数据
 async function importStudentsFromExcel(pgClient) {
   // 检查Excel文件是否存在
-  const excelFiles = ['src/name list.xlsx', 'name list.xlsx', 'students.xlsx'];
+  const excelFiles = [
+    'src/cca attendance system.xlsx',
+    'cca attendance system.xlsx',
+    'src/name list.xlsx', 
+    'name list.xlsx', 
+    'students.xlsx'
+  ];
   let excelFile = null;
   
   for (const file of excelFiles) {
     if (fs.existsSync(file)) {
       excelFile = file;
+      console.log(`找到Excel文件: ${file}`);
       break;
     }
   }
@@ -117,13 +145,36 @@ async function importStudentsFromExcel(pgClient) {
   // 读取Excel文件
   console.log(`从文件导入: ${excelFile}`);
   const workbook = XLSX.readFile(excelFile);
-  const sheetName = workbook.SheetNames[0];
+  
+  // 打印工作表名称
+  console.log(`Excel文件包含的工作表: ${workbook.SheetNames.join(', ')}`);
+  
+  // 优先使用包含学生信息的工作表
+  const targetSheets = ['AY2425Members', 'Orientation Form'];
+  let sheetName = null;
+  
+  for (const sheet of targetSheets) {
+    if (workbook.SheetNames.includes(sheet)) {
+      sheetName = sheet;
+      break;
+    }
+  }
+  
+  if (!sheetName) {
+    sheetName = workbook.SheetNames[0];
+  }
+  
+  console.log(`使用工作表: ${sheetName}`);
   const worksheet = workbook.Sheets[sheetName];
   const studentsData = XLSX.utils.sheet_to_json(worksheet);
   
   if (studentsData.length === 0) {
     throw new Error('Excel文件中没有学生数据');
   }
+  
+  console.log(`成功从Excel读取了 ${studentsData.length} 条记录`);
+  console.log(`第一条记录示例:`, JSON.stringify(studentsData[0], null, 2));
+  console.log(`可用的列名:`, Object.keys(studentsData[0]).join(', '));
   
   // 清空students表
   await pgClient.query('TRUNCATE students CASCADE');
@@ -135,28 +186,75 @@ async function importStudentsFromExcel(pgClient) {
     const student = studentsData[i];
     
     // 提取学生信息，根据Excel文件的实际列名进行调整
-    const name = student['Name'] || student['name'] || '';
-    let indexNumber = (student['index number'] || student['index_number'] || student['student_id'] || '').toString().trim();
-    const course = student['Course'] || student['course'] || '';
-    const email = student['Email'] || student['email'] || `${indexNumber.toLowerCase()}@student.tp.edu.sg`;
     
+    // 处理姓名
+    const name = student['Name'] || student['name'] || '';
+    
+    // 处理学号 - 在CCA系统中可能是"Admission Numbers"或"Admission Number"
+    let indexNumber = (
+      student['Admission Number'] || 
+      student['Admission Numbers'] || 
+      student['index number'] || 
+      student['index_number'] || 
+      student['Student ID'] || 
+      student['student_id'] || 
+      student['ID'] || 
+      student['id'] || 
+      ''
+    ).toString().trim();
+    
+    // 处理课程/班级
+    const course = (
+      student['Course'] || 
+      student['course'] || 
+      student['Course Of Study'] || 
+      student['Course of Study'] || 
+      student['Class'] || 
+      student['class'] || 
+      ''
+    );
+    
+    // 处理邮箱
+    const email = student['Email'] || student['email'] || student['Email Address'] || student['email address'] || '';
+    
+    // 处理电话号码 - 在CCA系统中有该字段
+    const phoneNumber = student['Phone Number'] || '';
+    
+    // 处理出勤率 - 可能存在于数据中
+    const attendanceRate = parseFloat(student['Percentage for Attendance'] || 0);
+    
+    // 如果没有姓名或学号，则跳过
     if (!name || !indexNumber) {
       console.warn(`警告: 第 ${i+1} 行的学生信息不完整，已跳过`);
       continue;
     }
     
-    // 统一格式化学生ID (转小写)
-    indexNumber = indexNumber.toLowerCase();
+    // 统一格式化学生ID (移除空格)
+    indexNumber = indexNumber.replace(/\s+/g, '');
     
-    // 插入学生信息
-    const result = await pgClient.query(
-      'INSERT INTO students (name, course, index_number, email, total_sessions, attended_sessions, attendance_rate) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [name, course, indexNumber, email, 0, 0, 0]
-    );
+    // 如果没有邮箱，尝试根据学号生成
+    const emailToUse = email || `${indexNumber.toLowerCase()}@student.tp.edu.sg`;
     
-    importedStudents.push(result.rows[0]);
+    try {
+      // 插入学生信息 - 新增phone_number字段
+      const result = await pgClient.query(
+        'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+        [name, course, indexNumber, emailToUse, phoneNumber, 0, 0, attendanceRate || 0]
+      );
+      
+      importedStudents.push(result.rows[0]);
+      
+      // 每插入50条记录打印一次进度
+      if (importedStudents.length % 50 === 0) {
+        console.log(`已处理 ${importedStudents.length}/${studentsData.length} 条记录...`);
+      }
+    } catch (error) {
+      console.error(`插入学生 "${name}" (${indexNumber}) 时出错:`, error.message);
+      // 继续处理下一个学生
+    }
   }
   
+  console.log(`成功导入 ${importedStudents.length} 名学生数据`);
   return importedStudents;
 }
 
@@ -173,13 +271,23 @@ async function createUserAccounts(pgClient, students) {
     const defaultPassword = student.index_number;
     const passwordHash = await bcrypt.hash(defaultPassword, 10);
     
-    // 创建用户账户
-    const result = await pgClient.query(
-      'INSERT INTO users (username, password_hash, student_id, role) VALUES ($1, $2, $3, $4) RETURNING *',
-      [username, passwordHash, student.id, 'student']
-    );
-    
-    createdUsers.push(result.rows[0]);
+    try {
+      // 创建用户账户
+      const result = await pgClient.query(
+        'INSERT INTO users (username, password_hash, student_id, role) VALUES ($1, $2, $3, $4) RETURNING *',
+        [username, passwordHash, student.id, 'student']
+      );
+      
+      createdUsers.push(result.rows[0]);
+      
+      // 每创建100个用户打印一次进度
+      if (createdUsers.length % 100 === 0) {
+        console.log(`已创建 ${createdUsers.length}/${students.length} 个用户账户...`);
+      }
+    } catch (error) {
+      console.error(`为学生 "${student.name}" (${student.index_number}) 创建用户账户时出错:`, error.message);
+      // 继续处理下一个学生
+    }
   }
   
   return createdUsers;
