@@ -74,27 +74,77 @@ const verifyStudentId = async (studentId) => {
     
     // Find student by index_number
     const studentSql = db.isPostgres
-      ? 'SELECT * FROM students WHERE index_number = $1'
-      : 'SELECT * FROM students WHERE index_number = ?';
+      ? 'SELECT * FROM students WHERE LOWER(index_number) = $1'
+      : 'SELECT * FROM students WHERE LOWER(index_number) = ?';
     
     const students = await connection.query(studentSql, [studentId.toLowerCase()]);
     
     if (students.length === 0) {
-      return { success: false, message: 'Student ID not found' };
+      // Try with less strict matching
+      const fuzzyStudentSql = db.isPostgres
+        ? 'SELECT * FROM students WHERE LOWER(TRIM(index_number)) = $1'
+        : 'SELECT * FROM students WHERE LOWER(TRIM(index_number)) = ?';
+      
+      const fuzzyStudents = await connection.query(fuzzyStudentSql, [studentId.toLowerCase()]);
+      
+      if (fuzzyStudents.length === 0) {
+        return { success: false, message: 'Student ID not found' };
+      }
+      
+      // Use the fuzzy match result
+      const student = fuzzyStudents[0];
+      
+      // Check if student already has a user account
+      const userSql = db.isPostgres
+        ? 'SELECT id, password_hash FROM users WHERE student_id = $1'
+        : 'SELECT id, password_hash FROM users WHERE student_id = ?';
+      
+      const users = await connection.query(userSql, [student.id]);
+      
+      if (users.length > 0) {
+        // If account exists, check if password is set
+        const hasPassword = users[0].password_hash && users[0].password_hash.length > 0;
+        
+        return { 
+          success: true, 
+          hasAccount: true, 
+          needsPasswordSetup: !hasPassword,
+          student: {
+            id: student.id,
+            name: student.name,
+            index_number: student.index_number,
+            email: student.email,
+            course: student.course
+          }
+        };
+      }
+      
+      // Return student info
+      return {
+        success: true,
+        hasAccount: false,
+        student: {
+          id: student.id,
+          name: student.name,
+          index_number: student.index_number,
+          email: student.email,
+          course: student.course
+        }
+      };
     }
     
     const student = students[0];
     
     // Check if student already has a user account
-    const userSql = db.isPostgres
-      ? 'SELECT id, password_hash FROM users WHERE student_id = $1'
-      : 'SELECT id, password_hash FROM users WHERE student_id = ?';
+    const checkUserSql = db.isPostgres
+      ? 'SELECT id FROM users WHERE student_id = $1'
+      : 'SELECT id FROM users WHERE student_id = ?';
     
-    const users = await connection.query(userSql, [student.id]);
+    const existingUsers = await connection.query(checkUserSql, [student.id]);
     
-    if (users.length > 0) {
+    if (existingUsers.length > 0) {
       // If account exists, check if password is set
-      const hasPassword = users[0].password_hash && users[0].password_hash.length > 0;
+      const hasPassword = existingUsers[0].password_hash && existingUsers[0].password_hash.length > 0;
       
       return { 
         success: true, 
@@ -144,13 +194,87 @@ const createUserAccount = async (studentId) => {
     
     // Find student by index_number
     const studentSql = db.isPostgres
-      ? 'SELECT * FROM students WHERE index_number = $1'
-      : 'SELECT * FROM students WHERE index_number = ?';
+      ? 'SELECT * FROM students WHERE LOWER(index_number) = $1'
+      : 'SELECT * FROM students WHERE LOWER(index_number) = ?';
     
     const students = await connection.query(studentSql, [studentId.toLowerCase()]);
     
     if (students.length === 0) {
-      return { success: false, message: 'Student ID not found' };
+      // Try with less strict matching
+      const fuzzyStudentSql = db.isPostgres
+        ? 'SELECT * FROM students WHERE LOWER(TRIM(index_number)) = $1'
+        : 'SELECT * FROM students WHERE LOWER(TRIM(index_number)) = ?';
+      
+      const fuzzyStudents = await connection.query(fuzzyStudentSql, [studentId.toLowerCase()]);
+      
+      if (fuzzyStudents.length === 0) {
+        return { success: false, message: 'Student ID not found' };
+      }
+      
+      // Use the fuzzy match result
+      const student = fuzzyStudents[0];
+      
+      // Check if student already has a user account
+      const checkUserSql = db.isPostgres
+        ? 'SELECT id FROM users WHERE student_id = $1'
+        : 'SELECT id FROM users WHERE student_id = ?';
+      
+      const existingUsers = await connection.query(checkUserSql, [student.id]);
+      
+      if (existingUsers.length > 0) {
+        return { success: false, message: 'Student already has an account' };
+      }
+      
+      // Create user account with empty password (will be set during first login)
+      let newUserId;
+      
+      if (db.isPostgres) {
+        // PostgreSQL insert returns the inserted id
+        const insertSql = 'INSERT INTO users (username, password_hash, student_id, role) VALUES ($1, $2, $3, $4) RETURNING id';
+        const result = await connection.query(insertSql, [studentId.toLowerCase(), '', student.id, 'student']);
+        newUserId = result[0].id;
+      } else {
+        // MySQL insert
+        const insertSql = 'INSERT INTO users (username, password_hash, student_id, role) VALUES (?, ?, ?, ?)';
+        const result = await connection.query(insertSql, [studentId.toLowerCase(), '', student.id, 'student']);
+        newUserId = result.insertId;
+      }
+      
+      // Get new user details
+      const getUserSql = db.isPostgres
+        ? `SELECT u.*, s.name, s.course, s.email, s.index_number 
+           FROM users u 
+           JOIN students s ON u.student_id = s.id 
+           WHERE u.id = $1`
+        : `SELECT u.*, s.name, s.course, s.email, s.index_number 
+           FROM users u 
+           JOIN students s ON u.student_id = s.id 
+           WHERE u.id = ?`;
+      
+      const users = await connection.query(getUserSql, [newUserId]);
+      
+      if (users.length === 0) {
+        return { success: false, message: 'User created but failed to retrieve details' };
+      }
+      
+      const user = users[0];
+      
+      // Return user info without token (since password not set yet)
+      const userInfo = {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        index_number: user.index_number,
+        email: user.email,
+        role: user.role,
+        course: user.course,
+        needsPasswordSetup: true
+      };
+      
+      return {
+        success: true,
+        user: userInfo
+      };
     }
     
     const student = students[0];
@@ -316,21 +440,47 @@ const authenticateUser = async (username, password) => {
       ? `SELECT u.*, s.name, s.course, s.email, s.index_number 
          FROM users u 
          JOIN students s ON u.student_id = s.id 
-         WHERE u.username = $1`
+         WHERE LOWER(u.username) = $1`
       : `SELECT u.*, s.name, s.course, s.email, s.index_number 
          FROM users u 
          JOIN students s ON u.student_id = s.id 
-         WHERE u.username = ?`;
+         WHERE LOWER(u.username) = ?`;
     
     const users = await connection.query(getUserSql, [username.toLowerCase()]);
     
     if (users.length === 0) {
       // Check if student exists but no account yet
       const studentSql = db.isPostgres
-        ? 'SELECT * FROM students WHERE index_number = $1'
-        : 'SELECT * FROM students WHERE index_number = ?';
+        ? 'SELECT * FROM students WHERE LOWER(index_number) = $1'
+        : 'SELECT * FROM students WHERE LOWER(index_number) = ?';
       
       const students = await connection.query(studentSql, [username.toLowerCase()]);
+      
+      if (students.length === 0) {
+        // Try with fuzzy matching
+        const fuzzyStudentSql = db.isPostgres
+          ? 'SELECT * FROM students WHERE LOWER(TRIM(index_number)) = $1'
+          : 'SELECT * FROM students WHERE LOWER(TRIM(index_number)) = ?';
+        
+        const fuzzyStudents = await connection.query(fuzzyStudentSql, [username.toLowerCase()]);
+        
+        if (fuzzyStudents.length > 0) {
+          // Student found with fuzzy match, create account
+          const createResult = await createUserAccount(username);
+          if (createResult.success) {
+            return { 
+              success: true, 
+              needsPasswordSetup: true,
+              user: createResult.user,
+              message: 'Account created. Please set your password.'
+            };
+          } else {
+            return { success: false, message: createResult.message };
+          }
+        } else {
+          return { success: false, message: 'User not found' };
+        }
+      }
       
       if (students.length > 0) {
         // Student exists but no account - create account and require password setup

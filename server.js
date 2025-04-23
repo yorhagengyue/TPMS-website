@@ -195,22 +195,42 @@ app.post('/api/auth/login', async (req, res) => {
       });
     }
     
+    // Clean and normalize the username (student ID)
+    const normalizedUsername = username.toLowerCase().replace(/\s+/g, '');
+    
+    console.log(`DEBUG: Login attempt with username: '${username}', normalized: '${normalizedUsername}'`);
+    
     // First check if the student exists (by student ID)
     const studentQuery = db.isPostgres
-      ? 'SELECT id FROM students WHERE index_number = $1'
-      : 'SELECT id FROM students WHERE index_number = ?';
+      ? 'SELECT id FROM students WHERE LOWER(index_number) = $1'
+      : 'SELECT id FROM students WHERE LOWER(index_number) = ?';
       
-    const students = await db.query(studentQuery, [username.toLowerCase()]);
+    const students = await db.query(studentQuery, [normalizedUsername]);
+    
+    console.log(`DEBUG: Login student query result: ${JSON.stringify(students)}`);
     
     if (students.length === 0) {
-      return res.status(401).json({
-        success: false,
-        message: 'Student ID not found'
-      });
+      // Try with less strict matching
+      const fuzzyStudentQuery = db.isPostgres
+        ? "SELECT id FROM students WHERE LOWER(TRIM(index_number)) = $1"
+        : "SELECT id FROM students WHERE LOWER(TRIM(index_number)) = ?";
+        
+      const fuzzyStudents = await db.query(fuzzyStudentQuery, [normalizedUsername]);
+      
+      console.log(`DEBUG: Login fuzzy query result: ${JSON.stringify(fuzzyStudents)}`);
+      
+      if (fuzzyStudents.length === 0) {
+        return res.status(401).json({
+          success: false,
+          message: 'Student ID not found'
+        });
+      }
+      
+      // Continue with the fuzzy match result
     }
     
     // Then call authenticateUser to attempt login
-    const result = await authenticateUser(username, password);
+    const result = await authenticateUser(normalizedUsername, password);
     
     // Return different responses depending on whether password setup is needed
     if (result.success && result.needsPasswordSetup) {
