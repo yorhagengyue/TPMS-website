@@ -6,6 +6,7 @@ import { CheckinPage } from './components/pages/CheckinPage';
 import { HomePage } from './components/pages/HomePage';
 import LoginPage from './components/pages/LoginPage';
 import RegisterPage from './components/pages/RegisterPage';
+import JoinUsPage from './components/pages/JoinUsPage';
 import { StudentDashboard } from './components/pages/StudentDashboard';
 import { NewsPage } from './components/pages/NewsPage';
 import { IntroSection } from './components/ui/layout/IntroSection';
@@ -186,7 +187,7 @@ const TPMSApp = () => {
 
           {/* 主要内容区域 */}
           <main className={`animate-fade-in ${
-            currentPage === 'login' || currentPage === 'register' 
+            currentPage === 'login' || currentPage === 'register' || currentPage === 'joinus'
             ? 'pt-32' 
             : currentPage === 'home'
             ? 'pt-0' // 首页不需要额外的padding，因为IntroSection已经包含了
@@ -212,6 +213,7 @@ const TPMSApp = () => {
               } />
               <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
               <Route path="/register" element={<RegisterPage onLogin={handleLogin} />} />
+              <Route path="/joinus" element={<JoinUsPage />} />
               <Route path="/news" element={<NewsPage />} />
               <Route path="/events" element={
                 <AuthGuard requiredAuth={true}>

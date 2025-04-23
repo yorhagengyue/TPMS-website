@@ -7,9 +7,9 @@ const RegisterPage = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState(1); // 简化为只有1个步骤: 验证学生ID
+  const [step, setStep] = useState(1); // Simplified to only 1 step: verify student ID
 
-  // 验证学生ID并自动创建账户
+  // Verify student ID and automatically create account
   const verifyStudentId = async () => {
     setError('');
     setMessage('');
@@ -33,24 +33,34 @@ const RegisterPage = ({ onLogin }) => {
       const data = await response.json();
 
       if (!data.success) {
-        setError(data.message || 'Student ID verification failed');
+        // If student ID doesn't exist, redirect to join us page
+        if (data.message === 'Student ID does not exist') {
+          setMessage('Redirecting to registration form...');
+          setTimeout(() => {
+            window.history.pushState(null, '', '/joinus');
+            window.dispatchEvent(new Event('popstate'));
+          }, 1500);
+        } else {
+          // For other errors, show the error message
+          setError(data.message || 'Student ID verification failed');
+        }
         setIsLoading(false);
         return;
       }
 
-      // 学生ID验证成功，可能已经创建了账户
+      // Student ID verification successful, account may have been created
       if (data.needsPasswordSetup) {
-        // 账户已存在或已创建，但需要设置密码
+        // Account exists or has been created, but needs password setup
         setMessage('Account verified! Please proceed to login page to set your password.');
       } else if (data.hasAccount) {
-        // 已有账户且已设置密码
+        // Already has an account with password set
         setMessage('You already have an account. Please proceed to login page.');
       } else {
-        // 其他成功情况
+        // Other success cases
         setMessage('Verification successful! Please proceed to login page.');
       }
       
-      // 3秒后重定向到登录页面
+      // Redirect to login page after 3 seconds
       setTimeout(() => {
         window.history.pushState(null, '', '/login');
         window.dispatchEvent(new Event('popstate'));
@@ -69,7 +79,7 @@ const RegisterPage = ({ onLogin }) => {
     await verifyStudentId();
   };
 
-  // 跳转到登录页面
+  // Navigate to login page
   const goToLogin = () => {
     window.history.pushState(null, '', '/login');
     window.dispatchEvent(new Event('popstate'));

@@ -10,7 +10,7 @@ const LoginPage = ({ onLogin }) => {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  // 新增状态用于处理密码设置
+  // State for password setup handling
   const [needsPasswordSetup, setNeedsPasswordSetup] = useState(false);
   const [tempUserData, setTempUserData] = useState(null);
 
@@ -37,7 +37,7 @@ const LoginPage = ({ onLogin }) => {
 
       const data = await response.json();
 
-      // 处理需要设置密码的情况
+      // Handle password setup requirement
       if (data.success && data.needsPasswordSetup) {
         setNeedsPasswordSetup(true);
         setTempUserData(data.user);
@@ -52,7 +52,7 @@ const LoginPage = ({ onLogin }) => {
         return;
       }
 
-      // 正常登录成功
+      // Normal successful login
       // Save token and user data to local storage
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
@@ -70,7 +70,7 @@ const LoginPage = ({ onLogin }) => {
     }
   };
 
-  // 处理密码设置
+  // Handle password setup
   const handleSetPassword = async (e) => {
     e.preventDefault();
     setError('');
@@ -115,14 +115,14 @@ const LoginPage = ({ onLogin }) => {
         return;
       }
 
-      // 密码设置成功，保存登录状态
+      // Password set successfully, save login state
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      // 设置成功消息
+      // Set success message
       setMessage('Password set successfully!');
       
-      // 短暂延迟后调用登录回调
+      // Short delay before calling login callback
       setTimeout(() => {
         if (onLogin) {
           onLogin(data.user);
