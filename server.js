@@ -5,8 +5,8 @@ const multer = require('multer');
 const XLSX = require('xlsx');
 const path = require('path');
 const fs = require('fs');
-const config = require('./config'); // 使用新的配置系统
-const db = require('./database'); // 引入统一的数据库连接模块
+const config = require('./config'); // Use the new configuration system
+const db = require('./database'); // Import unified database connection module
 const { authenticateUser, revokeToken, verifyStudentId, registerUser, setUserPassword, createUserAccount } = require('./src/lib/auth');
 const { authenticate, authorize } = require('./src/lib/authMiddleware');
 
@@ -178,7 +178,7 @@ if (!fs.existsSync('uploads')) {
 
 // API Endpoints
 
-// 健康检查端点
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
 });
@@ -195,7 +195,7 @@ app.post('/api/auth/login', async (req, res) => {
       });
     }
     
-    // 先检查学生是否存在（根据学号）
+    // First check if the student exists (by student ID)
     const studentQuery = db.isPostgres
       ? 'SELECT id FROM students WHERE index_number = $1'
       : 'SELECT id FROM students WHERE index_number = ?';
@@ -209,10 +209,10 @@ app.post('/api/auth/login', async (req, res) => {
       });
     }
     
-    // 然后调用authenticateUser尝试登录
+    // Then call authenticateUser to attempt login
     const result = await authenticateUser(username, password);
     
-    // 返回不同的响应，取决于是否需要设置密码
+    // Return different responses depending on whether password setup is needed
     if (result.success && result.needsPasswordSetup) {
       return res.json({
         success: true,
@@ -236,7 +236,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// 设置用户密码
+// Set user password
 app.post('/api/auth/set-password', async (req, res) => {
   try {
     const { userId, studentId, password } = req.body;
@@ -244,7 +244,7 @@ app.post('/api/auth/set-password', async (req, res) => {
     if ((!studentId && !userId) || !password) {
       return res.status(400).json({ 
         success: false, 
-        message: '学生ID/用户ID和密码不能为空' 
+        message: 'Student ID/User ID and password cannot be empty' 
       });
     }
     
@@ -252,10 +252,10 @@ app.post('/api/auth/set-password', async (req, res) => {
     let result;
     
     if (userId) {
-      // 使用用户ID设置密码
+      // Set password using user ID
       result = await auth.setUserPassword(userId, password);
     } else {
-      // 使用学生ID设置密码 - 需要先查找学生表获取数字ID，再查找对应的用户ID
+      // Set password using student ID - need to find the numeric ID from student table first, then find the corresponding user ID
       const studentQuery = db.isPostgres
         ? 'SELECT id FROM students WHERE index_number = $1'
         : 'SELECT id FROM students WHERE index_number = ?';
@@ -265,13 +265,13 @@ app.post('/api/auth/set-password', async (req, res) => {
       if (studentRows.length === 0) {
         return res.status(400).json({
           success: false,
-          message: '学生不存在'
+          message: 'Student does not exist'
         });
       }
       
       const studentDbId = studentRows[0].id;
       
-      // 使用学生数字ID查询用户表
+      // Query user table using student numeric ID
       const userQuery = db.isPostgres
         ? 'SELECT id FROM users WHERE student_id = $1'
         : 'SELECT id FROM users WHERE student_id = ?';
@@ -281,7 +281,7 @@ app.post('/api/auth/set-password', async (req, res) => {
       if (userRows.length === 0) {
         return res.status(400).json({
           success: false,
-          message: '用户不存在'
+          message: 'User does not exist'
         });
       }
       
@@ -291,26 +291,26 @@ app.post('/api/auth/set-password', async (req, res) => {
     if (result.success) {
       return res.json({
         success: true,
-        message: '密码设置成功',
+        message: 'Password set successfully',
         token: result.token,
         user: result.user
       });
     } else {
       return res.status(400).json({
         success: false,
-        message: result.message || '设置密码失败'
+        message: result.message || 'Password setting failed'
       });
     }
   } catch (error) {
-    console.error('设置密码时出错:', error);
+    console.error('Error setting password:', error);
     res.status(500).json({ 
       success: false, 
-      message: '服务器错误，请稍后再试' 
+      message: 'Server error, please try again later' 
     });
   }
 });
 
-// 验证学生ID
+// Verify student ID
 app.post('/api/auth/verify-student', async (req, res) => {
   try {
     const { studentId } = req.body;
@@ -318,86 +318,109 @@ app.post('/api/auth/verify-student', async (req, res) => {
     if (!studentId) {
       return res.status(400).json({ 
         success: false, 
-        message: '学生ID不能为空' 
+        message: 'Student ID cannot be empty' 
       });
     }
     
-    // 先查找学生记录，获取数字id
+    // Clean and normalize the student ID
+    const normalizedStudentId = studentId.toLowerCase().replace(/\s+/g, '');
+    
+    console.log(`DEBUG: Verifying student ID: '${studentId}', normalized: '${normalizedStudentId}'`);
+    
+    // First find student record to get the numeric ID - use normalized ID
     const studentQuery = db.isPostgres
-      ? 'SELECT id FROM students WHERE index_number = $1'
-      : 'SELECT id FROM students WHERE index_number = ?';
+      ? 'SELECT id FROM students WHERE LOWER(index_number) = $1'
+      : 'SELECT id FROM students WHERE LOWER(index_number) = ?';
       
-    const studentRows = await db.query(studentQuery, [studentId.toLowerCase()]);
+    const studentRows = await db.query(studentQuery, [normalizedStudentId]);
+    
+    console.log(`DEBUG: Query result: ${JSON.stringify(studentRows)}`);
     
     if (studentRows.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: '学生ID不存在'
-      });
-    }
-    
-    const studentDbId = studentRows[0].id;
-    
-    const auth = require('./src/lib/auth');
-    const result = await auth.verifyStudentId(studentId);
-    
-    // 检查学生是否已有账户 - 使用数字id查询
-    const userQuery = db.isPostgres
-      ? 'SELECT * FROM users WHERE student_id = $1'
-      : 'SELECT * FROM users WHERE student_id = ?';
-    
-    const userRows = await db.query(userQuery, [studentDbId]);
-    
-    if (userRows.length > 0) {
-      // 用户已存在
-      const user = userRows[0];
+      // Try one more time with less strict comparison (for databases that might have trailing spaces)
+      const fuzzyStudentQuery = db.isPostgres
+        ? "SELECT id FROM students WHERE LOWER(TRIM(index_number)) = $1"
+        : "SELECT id FROM students WHERE LOWER(TRIM(index_number)) = ?";
+        
+      const fuzzyStudentRows = await db.query(fuzzyStudentQuery, [normalizedStudentId]);
       
-      if (!user.password_hash || user.password_hash === '') {
-        // 用户存在但没有密码
+      console.log(`DEBUG: Fuzzy query result: ${JSON.stringify(fuzzyStudentRows)}`);
+      
+      if (fuzzyStudentRows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Student ID does not exist'
+        });
+      }
+      
+      // We found a match with the fuzzy query
+      const studentDbId = fuzzyStudentRows[0].id;
+      // Proceed with the rest of the function using this ID...
+    } else {
+      // A direct match was found
+      const studentDbId = studentRows[0].id;
+      
+      const auth = require('./src/lib/auth');
+      const result = await auth.verifyStudentId(normalizedStudentId);
+      
+      // Check if student already has an account - query using numeric ID
+      const userQuery = db.isPostgres
+        ? 'SELECT * FROM users WHERE student_id = $1'
+        : 'SELECT * FROM users WHERE student_id = ?';
+      
+      const userRows = await db.query(userQuery, [studentDbId]);
+      
+      if (userRows.length > 0) {
+        // User already exists
+        const user = userRows[0];
+        
+        if (!user.password_hash || user.password_hash === '') {
+          // User exists but has no password
+          return res.json({
+            success: true,
+            hasAccount: true,
+            needsPasswordSetup: true,
+            message: 'Account exists but requires password setup. Please go to the login page.'
+          });
+        } else {
+          // User already exists and has a password
+          return res.json({
+            success: true,
+            hasAccount: true,
+            needsPasswordSetup: false,
+            message: 'Account already exists. Please log in directly.'
+          });
+        }
+      }
+      
+      if (result.success) {
+        // Student exists but has no account, create an account without a password
+        await auth.createUserAccount(normalizedStudentId);
+        
         return res.json({
           success: true,
-          hasAccount: true,
+          hasAccount: false,
           needsPasswordSetup: true,
-          message: '账户已存在但需要设置密码，请前往登录页面'
+          message: 'Verification successful, account has been created. Please go to the login page to set your password'
         });
       } else {
-        // 用户已存在且有密码
-        return res.json({
-          success: true,
-          hasAccount: true,
-          needsPasswordSetup: false,
-          message: '账户已存在，请直接登录'
+        return res.status(400).json({
+          success: false,
+          message: result.message || 'Student ID verification failed'
         });
       }
     }
-    
-    if (result.success) {
-      // 学生存在但没有账户，创建一个没有密码的账户
-      await auth.createUserAccount(studentId);
-      
-      return res.json({
-        success: true,
-        hasAccount: false,
-        needsPasswordSetup: true,
-        message: '验证成功，账户已创建。请前往登录页面设置密码'
-      });
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: result.message || '学生ID验证失败'
-      });
-    }
   } catch (error) {
-    console.error('验证学生ID时出错:', error);
+    console.error('Error verifying student ID:', error);
     res.status(500).json({ 
       success: false, 
-      message: '服务器错误，请稍后再试' 
+      message: 'Server error, please try again later' 
     });
   }
 });
 
-// 不再需要注册端点，改用verify-student和set-password的组合
-// 保留以兼容旧前端逻辑
+// No longer need registration endpoint, use combination of verify-student and set-password instead
+// Keep for backward compatibility with old frontend logic
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { studentId, password } = req.body;
@@ -409,16 +432,16 @@ app.post('/api/auth/register', async (req, res) => {
       });
     }
     
-    // 先验证学生ID
+    // First verify student ID
     const verifyResult = await verifyStudentId(studentId);
     
     if (!verifyResult.success) {
       return res.status(400).json(verifyResult);
     }
     
-    // 检查是否已有账户
+    // Check if account already exists
     if (verifyResult.hasAccount) {
-      // 获取用户信息 - 通过学生ID (index_number) 查找学生，再查找用户
+      // Get user info - find student by ID (index_number), then find user
       const studentQuery = db.isPostgres
         ? 'SELECT id FROM students WHERE index_number = $1'
         : 'SELECT id FROM students WHERE index_number = ?';
@@ -439,27 +462,27 @@ app.post('/api/auth/register', async (req, res) => {
       const users = await db.query(userQuery, [students[0].id]);
       
       if (users.length > 0) {
-        // 设置密码
+        // Set password
         const setPasswordResult = await setUserPassword(users[0].id, password);
         return res.json(setPasswordResult);
       }
     }
     
-    // 如果没有账户，创建账户并设置密码
+    // If no account exists, create an account and set password
     if (!verifyResult.hasAccount) {
-      // 先创建账户
+      // First create the account
       const createResult = await createUserAccount(studentId);
       
       if (!createResult.success) {
         return res.status(400).json(createResult);
       }
       
-      // 然后设置密码
+      // Then set the password
       const setPasswordResult = await setUserPassword(createResult.user.id, password);
       return res.json(setPasswordResult);
     }
     
-    // 不应该到达这里，但以防万一
+    // Should not reach here, but just in case
     return res.status(400).json({ 
       success: false, 
       message: 'Account already exists and has a password set' 
@@ -474,7 +497,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// 用户登出
+// User logout
 app.post('/api/auth/logout', authenticate, async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -735,10 +758,10 @@ app.get('/api/students/:id', authenticate, async (req, res) => {
     const paramId = req.params.id;
     let studentId = paramId;
     
-    // 检查ID类型并转换 - 用户ID可能与学生ID不同
-    // 如果是用户ID，先查询对应的学生ID
+    // Check ID type and convert - user ID may be different from student ID
+    // If it's a user ID, first query the corresponding student ID
     if (req.user.role === 'student' && req.user.id.toString() === paramId) {
-      // 如果是当前登录用户查询自己的信息，直接使用token中的用户ID
+      // If it's the current logged-in user querying their own information, use the user ID from token
       const userQuery = db.isPostgres
         ? 'SELECT student_id FROM users WHERE id = $1'
         : 'SELECT student_id FROM users WHERE id = ?';
@@ -749,7 +772,7 @@ app.get('/api/students/:id', authenticate, async (req, res) => {
         studentId = userRows[0].student_id;
       }
     } else if (req.user.role !== 'admin' && req.user.id !== parseInt(paramId)) {
-      // 如果不是管理员，且不是查询自己的信息，则拒绝访问
+      // If not admin and not querying own information, deny access
       return res.status(403).json({ 
         success: false, 
         message: 'You do not have permission to access this student data' 
@@ -795,10 +818,10 @@ app.get('/api/students/:id/attendance', authenticate, async (req, res) => {
     const paramId = req.params.id;
     let studentId = paramId;
     
-    // 检查ID类型并转换 - 用户ID可能与学生ID不同
-    // 如果是用户ID，先查询对应的学生ID
+    // Check ID type and convert - user ID may be different from student ID
+    // If it's a user ID, first query the corresponding student ID
     if (req.user.role === 'student' && req.user.id.toString() === paramId) {
-      // 如果是当前登录用户查询自己的信息
+      // If it's the current logged-in user querying their own information, use the user ID from token
       const userQuery = db.isPostgres
         ? 'SELECT student_id FROM users WHERE id = $1'
         : 'SELECT student_id FROM users WHERE id = ?';
@@ -809,7 +832,7 @@ app.get('/api/students/:id/attendance', authenticate, async (req, res) => {
         studentId = userRows[0].student_id;
       }
     } else if (req.user.role !== 'admin' && req.user.id !== parseInt(paramId)) {
-      // 如果不是管理员，且不是查询自己的信息，则拒绝访问
+      // If not admin and not querying own information, deny access
       return res.status(403).json({ 
         success: false, 
         message: 'You do not have permission to access this student attendance records' 

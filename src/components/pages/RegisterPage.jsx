@@ -34,7 +34,7 @@ const RegisterPage = ({ onLogin }) => {
 
       if (!data.success) {
         // If student ID doesn't exist, redirect to join us page
-        if (data.message === 'Student ID does not exist') {
+        if (data.message === 'Student ID does not exist' || data.message === '学生ID不存在') {
           setMessage('Redirecting to registration form...');
           setTimeout(() => {
             window.history.pushState(null, '', '/joinus');
@@ -42,7 +42,12 @@ const RegisterPage = ({ onLogin }) => {
           }, 1500);
         } else {
           // For other errors, show the error message
-          setError(data.message || 'Student ID verification failed');
+          // Replace any Chinese error messages with English equivalents
+          let errorMessage = data.message || 'Student ID verification failed';
+          if (errorMessage === '学生ID不存在') {
+            errorMessage = 'Student ID does not exist';
+          }
+          setError(errorMessage);
         }
         setIsLoading(false);
         return;
