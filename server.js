@@ -195,6 +195,21 @@ app.post('/api/auth/login', async (req, res) => {
       });
     }
     
+    // 先检查学生是否存在（根据学号）
+    const studentQuery = db.isPostgres
+      ? 'SELECT id FROM students WHERE index_number = $1'
+      : 'SELECT id FROM students WHERE index_number = ?';
+      
+    const students = await db.query(studentQuery, [username.toLowerCase()]);
+    
+    if (students.length === 0) {
+      return res.status(401).json({
+        success: false,
+        message: 'Student ID not found'
+      });
+    }
+    
+    // 然后调用authenticateUser尝试登录
     const result = await authenticateUser(username, password);
     
     // 返回不同的响应，取决于是否需要设置密码
@@ -240,12 +255,28 @@ app.post('/api/auth/set-password', async (req, res) => {
       // 使用用户ID设置密码
       result = await auth.setUserPassword(userId, password);
     } else {
-      // 使用学生ID设置密码 - 查找对应的用户ID
-      const userQuery = db.isPostgres
-        ? 'SELECT u.id FROM users u JOIN students s ON u.student_id = s.id WHERE s.index_number = $1'
-        : 'SELECT u.id FROM users u JOIN students s ON u.student_id = s.id WHERE s.index_number = ?';
+      // 使用学生ID设置密码 - 需要先查找学生表获取数字ID，再查找对应的用户ID
+      const studentQuery = db.isPostgres
+        ? 'SELECT id FROM students WHERE index_number = $1'
+        : 'SELECT id FROM students WHERE index_number = ?';
       
-      const userRows = await db.query(userQuery, [studentId]);
+      const studentRows = await db.query(studentQuery, [studentId.toLowerCase()]);
+      
+      if (studentRows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: '学生不存在'
+        });
+      }
+      
+      const studentDbId = studentRows[0].id;
+      
+      // 使用学生数字ID查询用户表
+      const userQuery = db.isPostgres
+        ? 'SELECT id FROM users WHERE student_id = $1'
+        : 'SELECT id FROM users WHERE student_id = ?';
+      
+      const userRows = await db.query(userQuery, [studentDbId]);
       
       if (userRows.length === 0) {
         return res.status(400).json({
@@ -291,26 +322,42 @@ app.post('/api/auth/verify-student', async (req, res) => {
       });
     }
     
+    // 先查找学生记录，获取数字id
+    const studentQuery = db.isPostgres
+      ? 'SELECT id FROM students WHERE index_number = $1'
+      : 'SELECT id FROM students WHERE index_number = ?';
+      
+    const studentRows = await db.query(studentQuery, [studentId.toLowerCase()]);
+    
+    if (studentRows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: '学生ID不存在'
+      });
+    }
+    
+    const studentDbId = studentRows[0].id;
+    
     const auth = require('./src/lib/auth');
     const result = await auth.verifyStudentId(studentId);
     
-    // 检查学生是否已有账户
+    // 检查学生是否已有账户 - 使用数字id查询
     const userQuery = db.isPostgres
       ? 'SELECT * FROM users WHERE student_id = $1'
       : 'SELECT * FROM users WHERE student_id = ?';
     
-    const userRows = await db.query(userQuery, [studentId]);
+    const userRows = await db.query(userQuery, [studentDbId]);
     
     if (userRows.length > 0) {
       // 用户已存在
       const user = userRows[0];
       
-      if (!user.password) {
+      if (!user.password_hash || user.password_hash === '') {
         // 用户存在但没有密码
         return res.json({
           success: true,
           hasAccount: true,
-          needsPassword: true,
+          needsPasswordSetup: true,
           message: '账户已存在但需要设置密码，请前往登录页面'
         });
       } else {
@@ -318,7 +365,7 @@ app.post('/api/auth/verify-student', async (req, res) => {
         return res.json({
           success: true,
           hasAccount: true,
-          needsPassword: false,
+          needsPasswordSetup: false,
           message: '账户已存在，请直接登录'
         });
       }
@@ -331,7 +378,7 @@ app.post('/api/auth/verify-student', async (req, res) => {
       return res.json({
         success: true,
         hasAccount: false,
-        needsPassword: true,
+        needsPasswordSetup: true,
         message: '验证成功，账户已创建。请前往登录页面设置密码'
       });
     } else {
@@ -369,18 +416,27 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json(verifyResult);
     }
     
-    // 如果已有账户但需要设置密码
-    if (verifyResult.hasAccount && verifyResult.needsPasswordSetup) {
-      // 获取用户信息
-      const userQuery = db.isPostgres
-        ? `SELECT u.id FROM users u 
-           JOIN students s ON u.student_id = s.id 
-           WHERE s.index_number = $1`
-        : `SELECT u.id FROM users u 
-           JOIN students s ON u.student_id = s.id 
-           WHERE s.index_number = ?`;
+    // 检查是否已有账户
+    if (verifyResult.hasAccount) {
+      // 获取用户信息 - 通过学生ID (index_number) 查找学生，再查找用户
+      const studentQuery = db.isPostgres
+        ? 'SELECT id FROM students WHERE index_number = $1'
+        : 'SELECT id FROM students WHERE index_number = ?';
       
-      const users = await db.query(userQuery, [studentId.toLowerCase()]);
+      const students = await db.query(studentQuery, [studentId.toLowerCase()]);
+      
+      if (students.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Student not found'
+        });
+      }
+      
+      const userQuery = db.isPostgres
+        ? 'SELECT id FROM users WHERE student_id = $1'
+        : 'SELECT id FROM users WHERE student_id = ?';
+      
+      const users = await db.query(userQuery, [students[0].id]);
       
       if (users.length > 0) {
         // 设置密码
@@ -594,29 +650,37 @@ app.post('/api/attendance', authenticate, async (req, res) => {
     }
     
     // Find student by index number
-    const [students] = await pool.query(
-      'SELECT id FROM students WHERE index_number = ?',
-      [indexNumber]
-    );
+    const studentQuery = db.isPostgres
+      ? 'SELECT id FROM students WHERE index_number = $1'
+      : 'SELECT id FROM students WHERE index_number = ?';
+    
+    const students = await db.query(studentQuery, [indexNumber]);
     
     if (students.length === 0) {
       return res.status(404).json({ error: 'Student not found' });
     }
     
     // Record attendance
-    await pool.query(
-      'INSERT INTO attendance (student_id, location_lat, location_lng) VALUES (?, ?, ?)',
-      [students[0].id, locationLat, locationLng]
-    );
+    const insertQuery = db.isPostgres
+      ? 'INSERT INTO attendance (student_id, location_lat, location_lng) VALUES ($1, $2, $3)'
+      : 'INSERT INTO attendance (student_id, location_lat, location_lng) VALUES (?, ?, ?)';
+    
+    await db.query(insertQuery, [students[0].id, locationLat, locationLng]);
 
     // Update student attendance stats
-    await pool.query(`
-      UPDATE students SET 
-        attended_sessions = attended_sessions + 1,
-        attendance_rate = (attended_sessions + 1) / (CASE WHEN total_sessions = 0 THEN 1 ELSE total_sessions END) * 100,
-        last_attendance = NOW()
-      WHERE id = ?
-    `, [students[0].id]);
+    const updateQuery = db.isPostgres
+      ? `UPDATE students SET 
+          attended_sessions = attended_sessions + 1,
+          attendance_rate = (attended_sessions + 1) / (CASE WHEN total_sessions = 0 THEN 1 ELSE total_sessions END) * 100,
+          last_attendance = NOW()
+         WHERE id = $1`
+      : `UPDATE students SET 
+          attended_sessions = attended_sessions + 1,
+          attendance_rate = (attended_sessions + 1) / (CASE WHEN total_sessions = 0 THEN 1 ELSE total_sessions END) * 100,
+          last_attendance = NOW()
+         WHERE id = ?`;
+    
+    await db.query(updateQuery, [students[0].id]);
     
     res.json({ success: true, message: 'Attendance recorded successfully' });
   } catch (error) {
@@ -629,12 +693,17 @@ app.post('/api/attendance', authenticate, async (req, res) => {
 app.get('/api/export-attendance', authenticate, authorize(['admin', 'teacher']), async (req, res) => {
   try {
     // Get attendance data with student info
-    const [rows] = await pool.query(`
-      SELECT s.name, s.course, s.index_number, a.check_in_time, a.location_lat, a.location_lng
-      FROM attendance a
-      JOIN students s ON a.student_id = s.id
-      ORDER BY a.check_in_time DESC
-    `);
+    const attendanceQuery = db.isPostgres
+      ? `SELECT s.name, s.course, s.index_number, a.check_in_time, a.location_lat, a.location_lng
+         FROM attendance a
+         JOIN students s ON a.student_id = s.id
+         ORDER BY a.check_in_time DESC`
+      : `SELECT s.name, s.course, s.index_number, a.check_in_time, a.location_lat, a.location_lng
+         FROM attendance a
+         JOIN students s ON a.student_id = s.id
+         ORDER BY a.check_in_time DESC`;
+    
+    const rows = await db.query(attendanceQuery);
     
     // Create Excel file
     const worksheet = XLSX.utils.json_to_sheet(rows);
@@ -670,13 +739,14 @@ app.get('/api/students/:id', authenticate, async (req, res) => {
     // 如果是用户ID，先查询对应的学生ID
     if (req.user.role === 'student' && req.user.id.toString() === paramId) {
       // 如果是当前登录用户查询自己的信息，直接使用token中的用户ID
-      const [userStudentMapping] = await pool.query(
-        'SELECT student_id FROM users WHERE id = ?',
-        [paramId]
-      );
+      const userQuery = db.isPostgres
+        ? 'SELECT student_id FROM users WHERE id = $1'
+        : 'SELECT student_id FROM users WHERE id = ?';
       
-      if (userStudentMapping.length > 0) {
-        studentId = userStudentMapping[0].student_id;
+      const userRows = await db.query(userQuery, [paramId]);
+      
+      if (userRows.length > 0) {
+        studentId = userRows[0].student_id;
       }
     } else if (req.user.role !== 'admin' && req.user.id !== parseInt(paramId)) {
       // 如果不是管理员，且不是查询自己的信息，则拒绝访问
@@ -687,13 +757,17 @@ app.get('/api/students/:id', authenticate, async (req, res) => {
     }
     
     // Get student details
-    const [students] = await pool.query(
-      `SELECT s.*, u.username, u.role, u.id as user_id
-       FROM students s
-       JOIN users u ON s.id = u.student_id
-       WHERE s.id = ?`,
-      [studentId]
-    );
+    const studentQuery = db.isPostgres
+      ? `SELECT s.*, u.username, u.role, u.id as user_id
+         FROM students s
+         JOIN users u ON s.id = u.student_id
+         WHERE s.id = $1`
+      : `SELECT s.*, u.username, u.role, u.id as user_id
+         FROM students s
+         JOIN users u ON s.id = u.student_id
+         WHERE s.id = ?`;
+    
+    const students = await db.query(studentQuery, [studentId]);
     
     if (students.length === 0) {
       return res.status(404).json({ 
@@ -725,13 +799,14 @@ app.get('/api/students/:id/attendance', authenticate, async (req, res) => {
     // 如果是用户ID，先查询对应的学生ID
     if (req.user.role === 'student' && req.user.id.toString() === paramId) {
       // 如果是当前登录用户查询自己的信息
-      const [userStudentMapping] = await pool.query(
-        'SELECT student_id FROM users WHERE id = ?',
-        [paramId]
-      );
+      const userQuery = db.isPostgres
+        ? 'SELECT student_id FROM users WHERE id = $1'
+        : 'SELECT student_id FROM users WHERE id = ?';
       
-      if (userStudentMapping.length > 0) {
-        studentId = userStudentMapping[0].student_id;
+      const userRows = await db.query(userQuery, [paramId]);
+      
+      if (userRows.length > 0) {
+        studentId = userRows[0].student_id;
       }
     } else if (req.user.role !== 'admin' && req.user.id !== parseInt(paramId)) {
       // 如果不是管理员，且不是查询自己的信息，则拒绝访问
@@ -742,13 +817,17 @@ app.get('/api/students/:id/attendance', authenticate, async (req, res) => {
     }
     
     // Get attendance records
-    const [attendance] = await pool.query(
-      `SELECT * FROM attendance 
-       WHERE student_id = ? 
-       ORDER BY check_in_time DESC 
-       LIMIT 10`,
-      [studentId]
-    );
+    const attendanceQuery = db.isPostgres
+      ? `SELECT * FROM attendance 
+         WHERE student_id = $1 
+         ORDER BY check_in_time DESC 
+         LIMIT 10`
+      : `SELECT * FROM attendance 
+         WHERE student_id = ? 
+         ORDER BY check_in_time DESC 
+         LIMIT 10`;
+    
+    const attendance = await db.query(attendanceQuery, [studentId]);
     
     res.json({ 
       success: true, 
