@@ -20,6 +20,8 @@
     "update:db:prod": "cross-env NODE_ENV=production node update-db-schema.js",
     "migrate:prod": "cross-env NODE_ENV=production node migrate-excel.js",
     "migrate:test": "cross-env NODE_ENV=test node migrate-excel.js",
+    "migrate:to-postgres": "node migrate-to-postgres.js",
+    "migrate:excel-to-postgres": "node migrate-excel-to-postgres.js",
     "check:prod": "cross-env NODE_ENV=production node check-db.js",
     "check:test": "cross-env NODE_ENV=test node check-db.js",
     "check:attendance": "node check-attendance-analysis.js",
