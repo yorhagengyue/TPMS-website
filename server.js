@@ -48,6 +48,7 @@ async function initializeDatabase() {
           course VARCHAR(255),
           index_number VARCHAR(50) UNIQUE NOT NULL,
           email VARCHAR(255),
+          phone_number VARCHAR(50),
           total_sessions INT DEFAULT 0,
           attended_sessions INT DEFAULT 0,
           attendance_rate DECIMAL(5,2) DEFAULT 0.00,
@@ -113,6 +114,7 @@ async function initializeDatabase() {
           course VARCHAR(255),
           index_number VARCHAR(50) UNIQUE NOT NULL,
           email VARCHAR(255),
+          phone_number VARCHAR(50),
           total_sessions INT DEFAULT 0,
           attended_sessions INT DEFAULT 0,
           attendance_rate DECIMAL(5,2) DEFAULT 0.00,
@@ -475,7 +477,7 @@ app.get('/api/users/profile', authenticate, async (req, res) => {
 // Get all students (admin only)
 app.get('/api/students', authenticate, authorize(['admin', 'teacher']), async (req, res) => {
   try {
-    const studentsQuery = `SELECT id, name, course, index_number, email, 
+    const studentsQuery = `SELECT id, name, course, index_number, email, phone_number, 
             total_sessions, attended_sessions, attendance_rate
      FROM students`;
     
@@ -515,7 +517,12 @@ app.post('/api/import-students', authenticate, authorize(['admin']), upload.sing
       for (const row of jsonData) {
         const name = row['Name'] || '';
         const course = row['Course'] || '';
-        const indexNumber = (row['index number'] || '').toString().trim();
+        const indexNumber = (row['index number'] || row['Admission Numbers'] || row['Admission Number'] || '').toString().trim();
+        const email = row['Email'] || '';
+        const phoneNumber = row['Phone Number'] || '';
+        const totalSessions = parseInt(row['Total Number Training Sessions'] || 0);
+        const attendanceRate = parseFloat(row['Percentage for Attendance'] || 0);
+        const attendedSessions = Math.round((attendanceRate / 100) * totalSessions) || 0;
         
         if (!name || !indexNumber) {
           errors++;
@@ -533,18 +540,18 @@ app.post('/api/import-students', authenticate, authorize(['admin']), upload.sing
           if (existing.length === 0) {
             // Insert new student
             const insertQuery = db.isPostgres
-              ? 'INSERT INTO students (name, course, index_number) VALUES ($1, $2, $3)'
-              : 'INSERT INTO students (name, course, index_number) VALUES (?, ?, ?)';
+              ? 'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)'
+              : 'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
             
-            await connection.query(insertQuery, [name, course, indexNumber]);
+            await connection.query(insertQuery, [name, course, indexNumber, email, phoneNumber, totalSessions, attendedSessions, attendanceRate]);
             inserted++;
           } else {
             // Update existing student
             const updateQuery = db.isPostgres
-              ? 'UPDATE students SET name = $1, course = $2 WHERE index_number = $3'
-              : 'UPDATE students SET name = ?, course = ? WHERE index_number = ?';
+              ? 'UPDATE students SET name = $1, course = $2, email = $3, phone_number = $4, total_sessions = $5, attended_sessions = $6, attendance_rate = $7 WHERE index_number = $8'
+              : 'UPDATE students SET name = ?, course = ?, email = ?, phone_number = ?, total_sessions = ?, attended_sessions = ?, attendance_rate = ? WHERE index_number = ?';
             
-            await connection.query(updateQuery, [name, course, indexNumber]);
+            await connection.query(updateQuery, [name, course, email, phoneNumber, totalSessions, attendedSessions, attendanceRate, indexNumber]);
             inserted++;
           }
         } catch (error) {
