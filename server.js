@@ -699,10 +699,47 @@ app.post('/api/attendance', authenticate, async (req, res) => {
     const isValidTime = dayOfWeek === 5 && hour >= 18 && hour < 21;
     
     if (!isValidTime) {
-      const errorMsg = '签到失败：CCA活动仅在每周五18:00-21:00之间进行，请在活动时间内签到';
+      const errorMsg = 'Check-in failed: CCA activities are only held on Fridays from 6:00 PM to 9:00 PM. Please check in during activity hours.';
       console.log(`Attendance rejected for ${indexNumber}: Not within allowed time window`);
       return res.status(403).json({ 
         success: false, 
+        error: errorMsg,
+        message: errorMsg
+      });
+    }
+    
+    // 检查位置是否在允许范围内（距离TP校园1公里内）
+    const tpLocation = { 
+      lat: 1.3445291,
+      lng: 103.9326429
+    };
+    
+    // 计算用户位置与TP校园的距离
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371; // 地球半径，单位km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c; // 距离，单位km
+    }
+    
+    const distance = calculateDistance(
+      parseFloat(locationLat), 
+      parseFloat(locationLng), 
+      tpLocation.lat, 
+      tpLocation.lng
+    );
+    
+    // 如果距离超过1公里，拒绝签到
+    if (distance > 1.0) {
+      const errorMsg = `Check-in failed: Your location is ${distance.toFixed(2)} km away from campus. You must be within 1 km to check in.`;
+      console.log(`Attendance rejected for ${indexNumber}: Too far from campus (${distance.toFixed(2)} km)`);
+      return res.status(403).json({
+        success: false,
         error: errorMsg,
         message: errorMsg
       });

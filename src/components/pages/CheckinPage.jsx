@@ -43,8 +43,8 @@ export const CheckinPage = ({ user }) => {
 
   // TP Campus location
   const tpLocation = { 
-    lat: 1.3456,   // latitude
-    lng: 103.9321  // longitude
+    lat: 1.3445291,   // latitude
+    lng: 103.9326429  // longitude
   };
 
   // Distance calculation (Haversine formula)
@@ -88,7 +88,7 @@ export const CheckinPage = ({ user }) => {
           tpLocation.lng
         );
         
-        if (distance > 0.5) { // More than 500 meters away
+        if (distance > 1.0) { // More than 1 kilometer away
           setLocationStatus('warning');
         }
       },
@@ -189,11 +189,11 @@ export const CheckinPage = ({ user }) => {
             Record your attendance at TP Mindsport Club activities
           </p>
           <div className={`mt-2 text-sm font-medium ${isWithinCheckinHours ? 'text-green-600' : 'text-amber-600'}`}>
-            <span className="font-semibold">签到时间：</span> 仅限每周五 18:00-21:00
+            <span className="font-semibold">Check-in time:</span> Only on Fridays 18:00-21:00
             {!isWithinCheckinHours && (
               <div className="mt-1 text-amber-600">
                 <FiAlertTriangle className="inline mr-1" />
-                <span>当前不在可签到时段内</span>
+                <span>Currently outside check-in hours</span>
               </div>
             )}
           </div>
@@ -321,7 +321,7 @@ export const CheckinPage = ({ user }) => {
                   ) : !isWithinCheckinHours ? (
                     <>
                       <FiClock className="mr-2" />
-                      不在签到时间内
+                      Outside check-in hours
                     </>
                   ) : (
                     <>
@@ -339,7 +339,7 @@ export const CheckinPage = ({ user }) => {
           <p>
             Note: Your location is only used to verify you are at the CCA venue.
             <br />
-            You must be within 500 meters of the TP campus to check in.
+            You must be within 1 kilometer of the TP campus to check in.
             <br />
             CCA sessions are only on Fridays from 6:00 PM to 9:00 PM.
           </p>
