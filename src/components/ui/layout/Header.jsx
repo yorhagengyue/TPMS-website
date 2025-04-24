@@ -141,14 +141,21 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
             )}
           </nav>
 
-          {/* Mobile menu button */}
-          <button
-            className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors"
-            onClick={() => setIsOpen(!isOpen)}
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-          </button>
+          {/* Mobile menu button with tooltip for non-logged in users */}
+          <div className="md:hidden flex items-center">
+            {!user && (
+              <div className="mr-2 bg-primary-50 text-primary-700 text-xs py-1 px-2 rounded-full border border-primary-200 animate-pulse">
+                Login to take attendance
+              </div>
+            )}
+            <button
+              className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+              onClick={() => setIsOpen(!isOpen)}
+              aria-label="Toggle menu"
+            >
+              {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+            </button>
+          </div>
         </div>
       </div>
 
