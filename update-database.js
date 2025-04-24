@@ -2,7 +2,7 @@
 const { Pool } = require('pg');
 const mysql = require('mysql2/promise');
 const config = require('./config');
-const db = require('./db');
+const db = require('./database');
 
 async function updateDatabase() {
   try {
