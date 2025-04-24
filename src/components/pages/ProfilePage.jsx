@@ -76,7 +76,12 @@ export const ProfilePage = ({ user }) => {
         setUserData(prev => ({
           ...prev,
           chess_username: data.chess_username,
-          chess_rating: data.chess_rating
+          chess_rating: data.chess_rating,
+          chess_rapid_rating: data.chess_rapid_rating,
+          chess_bullet_rating: data.chess_bullet_rating,
+          chess_daily_rating: data.chess_daily_rating,
+          chess_tactics_rating: data.chess_tactics_rating,
+          chess_puzzle_rush_rating: data.chess_puzzle_rush_rating
         }));
       } else {
         setBindStatus('error');
@@ -147,9 +152,47 @@ export const ProfilePage = ({ user }) => {
                 </div>
                 
                 {userData.chess_rating && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="text-lg font-medium mb-2">Current Blitz Rating</h3>
-                    <div className="text-3xl font-bold text-blue-700">{userData.chess_rating}</div>
+                  <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                    <h3 className="text-lg font-medium mb-4">Chess.com Ratings</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {userData.chess_rating > 0 && (
+                        <div className="bg-blue-50 p-3 rounded-lg">
+                          <div className="text-sm text-blue-600 mb-1">Blitz</div>
+                          <div className="text-2xl font-bold text-blue-700">{userData.chess_rating}</div>
+                        </div>
+                      )}
+                      {userData.chess_rapid_rating > 0 && (
+                        <div className="bg-green-50 p-3 rounded-lg">
+                          <div className="text-sm text-green-600 mb-1">Rapid</div>
+                          <div className="text-2xl font-bold text-green-700">{userData.chess_rapid_rating}</div>
+                        </div>
+                      )}
+                      {userData.chess_bullet_rating > 0 && (
+                        <div className="bg-purple-50 p-3 rounded-lg">
+                          <div className="text-sm text-purple-600 mb-1">Bullet</div>
+                          <div className="text-2xl font-bold text-purple-700">{userData.chess_bullet_rating}</div>
+                        </div>
+                      )}
+                      {userData.chess_daily_rating > 0 && (
+                        <div className="bg-yellow-50 p-3 rounded-lg">
+                          <div className="text-sm text-yellow-600 mb-1">Daily</div>
+                          <div className="text-2xl font-bold text-yellow-700">{userData.chess_daily_rating}</div>
+                        </div>
+                      )}
+                      {userData.chess_tactics_rating > 0 && (
+                        <div className="bg-red-50 p-3 rounded-lg">
+                          <div className="text-sm text-red-600 mb-1">Tactics</div>
+                          <div className="text-2xl font-bold text-red-700">{userData.chess_tactics_rating}</div>
+                        </div>
+                      )}
+                      {userData.chess_puzzle_rush_rating > 0 && (
+                        <div className="bg-indigo-50 p-3 rounded-lg">
+                          <div className="text-sm text-indigo-600 mb-1">Puzzle Rush</div>
+                          <div className="text-2xl font-bold text-indigo-700">{userData.chess_puzzle_rush_rating}</div>
+                        </div>
+                      )}
+                    </div>
+                    <p className="mt-4 text-xs text-gray-500">Last updated: {new Date().toLocaleDateString()}</p>
                   </div>
                 )}
               </div>

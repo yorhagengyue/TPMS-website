@@ -543,11 +543,19 @@ app.get('/api/users/profile', authenticate, async (req, res) => {
   try {
     // Get user details
     const userQuery = db.isPostgres
-      ? `SELECT u.id, u.username, u.role, u.chess_username, u.chess_rating, s.name, s.index_number, s.email, s.course
-       FROM users u
-       JOIN students s ON u.student_id = s.id
+      ? `SELECT u.id, u.username, u.role, 
+             u.chess_username, u.chess_rating, u.chess_rapid_rating, 
+             u.chess_bullet_rating, u.chess_daily_rating, 
+             u.chess_tactics_rating, u.chess_puzzle_rush_rating,
+             s.name, s.index_number, s.email, s.course
+         FROM users u
+         JOIN students s ON u.student_id = s.id
          WHERE u.id = $1`
-      : `SELECT u.id, u.username, u.role, u.chess_username, u.chess_rating, s.name, s.index_number, s.email, s.course
+      : `SELECT u.id, u.username, u.role, 
+             u.chess_username, u.chess_rating, u.chess_rapid_rating, 
+             u.chess_bullet_rating, u.chess_daily_rating, 
+             u.chess_tactics_rating, u.chess_puzzle_rush_rating,
+             s.name, s.index_number, s.email, s.course
          FROM users u
          JOIN students s ON u.student_id = s.id
          WHERE u.id = ?`;
@@ -1085,13 +1093,16 @@ app.post('/api/user/link-chess', authenticate, async (req, res) => {
       });
     }
 
-    console.log(`Attempting to link Chess.com account for user ${req.user.id} with username: ${chessUsername}`);
+    // Trim the username to avoid spaces
+    const trimmedUsername = chessUsername.trim();
+
+    console.log(`Attempting to link Chess.com account for user ${req.user.id} with username: ${trimmedUsername}`);
 
     // Validate Chess.com username by calling their API
     try {
       // Try to fetch player data from Chess.com
-      console.log(`Fetching player data from Chess.com for username: ${chessUsername}`);
-      const playerUrl = `https://api.chess.com/pub/player/${chessUsername}`;
+      console.log(`Fetching player data from Chess.com for username: ${trimmedUsername}`);
+      const playerUrl = `https://api.chess.com/pub/player/${trimmedUsername}`;
       console.log(`API URL: ${playerUrl}`);
       
       const chessComResponse = await fetch(playerUrl, { 
@@ -1110,11 +1121,11 @@ app.post('/api/user/link-chess', authenticate, async (req, res) => {
       }
       
       const userData = await chessComResponse.json();
-      console.log(`Successfully fetched player data for ${chessUsername}`);
+      console.log(`Successfully fetched player data for ${trimmedUsername}`);
       
       // Get chess rating from Stats API
-      console.log(`Fetching stats for player ${chessUsername}`);
-      const statsUrl = `https://api.chess.com/pub/player/${chessUsername}/stats`;
+      console.log(`Fetching stats for player ${trimmedUsername}`);
+      const statsUrl = `https://api.chess.com/pub/player/${trimmedUsername}/stats`;
       console.log(`Stats API URL: ${statsUrl}`);
       
       const statsResponse = await fetch(statsUrl, {
@@ -1127,52 +1138,91 @@ app.post('/api/user/link-chess', authenticate, async (req, res) => {
       if (!statsResponse.ok) {
         console.log(`Failed to fetch Chess.com stats: ${statsResponse.statusText}`);
         // Still proceed, but with rating 0
-        console.log(`Proceeding with rating 0 for ${chessUsername}`);
+        console.log(`Proceeding with rating 0 for ${trimmedUsername}`);
         
-        // Save username with 0 rating
+        // Save username with 0 rating for all rating types
         const updateQuery = db.isPostgres
           ? `UPDATE users 
-             SET chess_username = $1, chess_rating = $2
+             SET chess_username = $1, chess_rating = $2,
+                 chess_rapid_rating = 0, chess_bullet_rating = 0, chess_daily_rating = 0,
+                 chess_tactics_rating = 0, chess_puzzle_rush_rating = 0
              WHERE id = $3`
           : `UPDATE users 
-             SET chess_username = ?, chess_rating = ?
+             SET chess_username = ?, chess_rating = ?,
+                 chess_rapid_rating = 0, chess_bullet_rating = 0, chess_daily_rating = 0,
+                 chess_tactics_rating = 0, chess_puzzle_rush_rating = 0
              WHERE id = ?`;
         
-        await db.query(updateQuery, [chessUsername, 0, req.user.id]);
+        await db.query(updateQuery, [trimmedUsername, 0, req.user.id]);
         
         return res.json({
           success: true,
-          message: 'Chess.com account linked successfully, but rating could not be retrieved',
-          chess_username: chessUsername,
-          chess_rating: 0
+          message: 'Chess.com account linked successfully, but ratings could not be retrieved',
+          chess_username: trimmedUsername,
+          chess_rating: 0,
+          chess_rapid_rating: 0,
+          chess_bullet_rating: 0,
+          chess_daily_rating: 0,
+          chess_tactics_rating: 0,
+          chess_puzzle_rush_rating: 0
         });
       }
       
       const statsData = await statsResponse.json();
-      console.log(`Successfully fetched stats for ${chessUsername}`);
+      console.log(`Successfully fetched stats for ${trimmedUsername}`);
       
-      // Extract blitz rating or use 0 if not available
+      // Extract all ratings or use 0 if not available
       const blitzRating = statsData.chess_blitz?.last?.rating || 0;
-      console.log(`Blitz rating for ${chessUsername}: ${blitzRating}`);
+      const rapidRating = statsData.chess_rapid?.last?.rating || 0;
+      const bulletRating = statsData.chess_bullet?.last?.rating || 0;
+      const dailyRating = statsData.chess_daily?.last?.rating || 0;
+      const tacticsRating = statsData.tactics?.highest?.rating || 0;
+      const puzzleRushRating = statsData.puzzle_rush?.best?.score || 0;
       
-      // Save username and rating to user record
+      console.log(`Ratings for ${trimmedUsername}:`);
+      console.log(`Blitz: ${blitzRating}`);
+      console.log(`Rapid: ${rapidRating}`);
+      console.log(`Bullet: ${bulletRating}`);
+      console.log(`Daily: ${dailyRating}`);
+      console.log(`Tactics: ${tacticsRating}`);
+      console.log(`Puzzle Rush: ${puzzleRushRating}`);
+      
+      // Save username and all ratings to user record
       const updateQuery = db.isPostgres
         ? `UPDATE users 
-           SET chess_username = $1, chess_rating = $2
-           WHERE id = $3`
+           SET chess_username = $1, chess_rating = $2,
+               chess_rapid_rating = $3, chess_bullet_rating = $4, chess_daily_rating = $5,
+               chess_tactics_rating = $6, chess_puzzle_rush_rating = $7
+           WHERE id = $8`
         : `UPDATE users 
-           SET chess_username = ?, chess_rating = ?
+           SET chess_username = ?, chess_rating = ?,
+               chess_rapid_rating = ?, chess_bullet_rating = ?, chess_daily_rating = ?,
+               chess_tactics_rating = ?, chess_puzzle_rush_rating = ?
            WHERE id = ?`;
       
-      console.log(`Updating database for user ID ${req.user.id} with username ${chessUsername} and rating ${blitzRating}`);
-      await db.query(updateQuery, [chessUsername, blitzRating, req.user.id]);
+      console.log(`Updating database for user ID ${req.user.id} with username ${trimmedUsername} and all ratings`);
+      await db.query(updateQuery, [
+        trimmedUsername, 
+        blitzRating, 
+        rapidRating, 
+        bulletRating, 
+        dailyRating,
+        tacticsRating,
+        puzzleRushRating,
+        req.user.id
+      ]);
       console.log(`Database update successful`);
       
       return res.json({
         success: true,
         message: 'Chess.com account linked successfully',
-        chess_username: chessUsername,
-        chess_rating: blitzRating
+        chess_username: trimmedUsername,
+        chess_rating: blitzRating,
+        chess_rapid_rating: rapidRating,
+        chess_bullet_rating: bulletRating,
+        chess_daily_rating: dailyRating,
+        chess_tactics_rating: tacticsRating,
+        chess_puzzle_rush_rating: puzzleRushRating
       });
     } catch (error) {
       console.error('Error checking Chess.com API:', error);
@@ -1196,11 +1246,15 @@ app.post('/api/user/link-chess', authenticate, async (req, res) => {
 app.get('/api/users/chess-ratings', async (req, res) => {
   try {
     const usersQuery = db.isPostgres
-      ? `SELECT u.id, s.name, s.index_number as student_id, u.chess_username, u.chess_rating
+      ? `SELECT u.id, s.name, s.index_number as student_id, u.chess_username, 
+             u.chess_rating, u.chess_rapid_rating, u.chess_bullet_rating, 
+             u.chess_daily_rating, u.chess_tactics_rating, u.chess_puzzle_rush_rating
          FROM users u
          JOIN students s ON u.student_id = s.id
          ORDER BY u.chess_rating DESC NULLS LAST`
-      : `SELECT u.id, s.name, s.index_number as student_id, u.chess_username, u.chess_rating
+      : `SELECT u.id, s.name, s.index_number as student_id, u.chess_username, 
+             u.chess_rating, u.chess_rapid_rating, u.chess_bullet_rating, 
+             u.chess_daily_rating, u.chess_tactics_rating, u.chess_puzzle_rush_rating
          FROM users u
          JOIN students s ON u.student_id = s.id
          ORDER BY u.chess_rating IS NULL, u.chess_rating DESC`;
