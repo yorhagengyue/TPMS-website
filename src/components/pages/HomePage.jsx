@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { FiChevronRight, FiUsers, FiCalendar, FiAward, FiStar, FiArrowRight, FiCheckSquare, FiActivity, FiInstagram, FiMapPin, FiClock, FiX } from 'react-icons/fi';
+import { FiChevronRight, FiUsers, FiCalendar, FiAward, FiStar, FiArrowRight, FiCheckSquare, FiActivity, FiInstagram, FiMapPin, FiClock, FiX, FiUser } from 'react-icons/fi';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import PageTransition from '../ui/PageTransition';
 import { useInView } from "react-intersection-observer";
@@ -333,119 +333,6 @@ export const HomePage = ({ user }) => {
                     </motion.button>
                   </Link>
                 </motion.div>
-                
-                <motion.div 
-                  variants={itemVariants}
-                  className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6"
-                >
-                  {/* Activity Summary Card */}
-                  <motion.div
-                    whileHover={{ y: -5, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" }}
-                    className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-white border-opacity-20"
-                  >
-                    <div className="flex items-center mb-4">
-                      <div className="w-10 h-10 rounded-full bg-blue-600 bg-opacity-30 flex items-center justify-center mr-4">
-                        <FiActivity className="text-white" />
-                      </div>
-                      <h3 className="text-xl font-bold">Your Activity</h3>
-                    </div>
-                    
-                    <div className="text-blue-100 mb-4">
-                      <div className="flex justify-between mb-2">
-                        <span>Sessions Attended</span>
-                        <span className="font-medium">{user.attended_sessions || 0}</span>
-                      </div>
-                      <div className="flex justify-between mb-2">
-                        <span>Attendance Rate</span>
-                        <span className="font-medium">{user.attendance_rate || 0}%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Last Check-in</span>
-                        <span className="font-medium">{user.last_attendance ? new Date(user.last_attendance).toLocaleDateString() : 'Never'}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="w-full bg-white bg-opacity-10 h-2 rounded-full overflow-hidden">
-                      <motion.div 
-                        className="h-full bg-gradient-to-r from-green-400 to-green-500"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${user.attendance_rate || 0}%` }}
-                        transition={{ duration: 1, delay: 0.5 }}
-                      />
-                    </div>
-                  </motion.div>
-                  
-                  {/* Upcoming Events Card */}
-                  <motion.div
-                    whileHover={{ y: -5, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" }}
-                    className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-white border-opacity-20"
-                  >
-                    <div className="flex items-center mb-4">
-                      <div className="w-10 h-10 rounded-full bg-purple-600 bg-opacity-30 flex items-center justify-center mr-4">
-                        <FiCalendar className="text-white" />
-                      </div>
-                      <h3 className="text-xl font-bold">Upcoming Events</h3>
-                    </div>
-                    
-                    <ul className="text-blue-100 mb-3">
-                      <li className="mb-3 pb-3 border-b border-white border-opacity-10">
-                        <div className="font-medium">Eco Festival</div>
-                        <div className="text-sm opacity-80">April 27, 2025 • 9:00 AM</div>
-                      </li>
-                      <li className="mb-3 pb-3 border-b border-white border-opacity-10">
-                        <div className="font-medium">Beach Cleanup</div>
-                        <div className="text-sm opacity-80">May 15, 2025 • 4:00 PM</div>
-                      </li>
-                      <li>
-                        <div className="font-medium">Workshop: Recycling</div>
-                        <div className="text-sm opacity-80">June 5, 2025 • 2:30 PM</div>
-                      </li>
-                    </ul>
-                    
-                    <Link to="/events" className="text-green-300 hover:text-green-200 transition-colors text-sm flex items-center">
-                      View all events
-                      <FiChevronRight className="ml-1" />
-                    </Link>
-                  </motion.div>
-                  
-                  {/* Recent Achievements Card */}
-                  <motion.div
-                    whileHover={{ y: -5, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" }}
-                    className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-white border-opacity-20"
-                  >
-                    <div className="flex items-center mb-4">
-                      <div className="w-10 h-10 rounded-full bg-yellow-600 bg-opacity-30 flex items-center justify-center mr-4">
-                        <FiAward className="text-white" />
-                      </div>
-                      <h3 className="text-xl font-bold">Achievements</h3>
-                    </div>
-                    
-                    <ul className="text-blue-100 mb-3">
-                      <li className="flex items-center mb-3">
-                        <div className="w-8 h-8 rounded-full bg-yellow-500 bg-opacity-20 flex items-center justify-center mr-3 text-yellow-300 text-xs">
-                          🌟
-                        </div>
-                        <div>First Check-in</div>
-                      </li>
-                      <li className="flex items-center mb-3">
-                        <div className="w-8 h-8 rounded-full bg-green-500 bg-opacity-20 flex items-center justify-center mr-3 text-green-300 text-xs">
-                          🌱
-                        </div>
-                        <div>Eco Learner</div>
-                      </li>
-                      <li className="flex items-center opacity-50">
-                        <div className="w-8 h-8 rounded-full bg-gray-500 bg-opacity-20 flex items-center justify-center mr-3 text-gray-300 text-xs">
-                          🔒
-                        </div>
-                        <div>Eco Warrior (Locked)</div>
-                      </li>
-                    </ul>
-                    
-                    <div className="text-sm text-blue-200">
-                      Complete 5 check-ins to unlock more achievements!
-                    </div>
-                  </motion.div>
-                </motion.div>
               </>
             ) : (
               /* Original content for non-logged-in users */
@@ -495,7 +382,7 @@ export const HomePage = ({ user }) => {
         </motion.section>
         
         {/* Featured event section - Only show if user is NOT logged in */}
-        {!user && (
+        {(!user || Object.keys(user).length === 0) && (
           <motion.section 
             ref={featuredRef}
             initial="hidden"
@@ -666,6 +553,7 @@ export const HomePage = ({ user }) => {
         )}
         
         {/* Eco activities section with 3D flip cards */}
+        {(!user || Object.keys(user).length === 0) && (
         <motion.section 
           ref={ecoRef}
           initial="hidden"
@@ -764,9 +652,10 @@ export const HomePage = ({ user }) => {
             </div>
           </div>
         </motion.section>
+        )}
         
         {/* Statistics & achievements section - Only show if user is NOT logged in */}
-        {!user && (
+        {(!user || Object.keys(user).length === 0) && (
           <motion.section 
             ref={statsRef}
             initial="hidden"
