@@ -44,7 +44,10 @@ export const ProfilePage = ({ user }) => {
   const handleBindChessAccount = async (e) => {
     e.preventDefault();
     
-    if (!chessUsername.trim()) {
+    // Trim the username to avoid spaces
+    const trimmedUsername = chessUsername.trim();
+    
+    if (!trimmedUsername) {
       setBindStatus('error');
       setErrorMessage('Please enter a Chess.com username');
       return;
@@ -60,7 +63,7 @@ export const ProfilePage = ({ user }) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ chessUsername })
+        body: JSON.stringify({ chessUsername: trimmedUsername })
       });
 
       const data = await response.json();

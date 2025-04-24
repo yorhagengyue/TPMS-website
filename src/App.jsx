@@ -145,7 +145,8 @@ const TPMSApp = () => {
     }
     
     if (requiredAuth && !user) {
-      navigate('/login');
+      // Redirect to login, but save the current location
+      navigate('/login', { state: { from: location.pathname } });
       return null;
     }
     

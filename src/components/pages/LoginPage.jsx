@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiUser, FiLock, FiLogIn, FiAlertCircle, FiCheck, FiKey, FiInfo } from 'react-icons/fi';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const LoginPage = ({ onLogin }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Get redirect path from location state if available
+  const from = location.state?.from || '/';
   
   // State for password setup handling
   const [needsPasswordSetup, setNeedsPasswordSetup] = useState(false);
@@ -61,6 +67,9 @@ const LoginPage = ({ onLogin }) => {
       if (onLogin) {
         onLogin(data.user);
       }
+
+      // Navigate back to the original page or home
+      navigate(from);
 
       setIsLoading(false);
     } catch (error) {
@@ -122,11 +131,12 @@ const LoginPage = ({ onLogin }) => {
       // Set success message
       setMessage('Password set successfully!');
       
-      // Short delay before calling login callback
+      // Short delay before calling login callback and redirecting
       setTimeout(() => {
         if (onLogin) {
           onLogin(data.user);
         }
+        navigate(from);
       }, 1500);
 
       setIsLoading(false);

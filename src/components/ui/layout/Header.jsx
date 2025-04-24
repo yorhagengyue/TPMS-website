@@ -44,7 +44,7 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
   const handleNavigation = (pageId, path) => {
     // Handle authentication requirements
     if (pageId === 'login' || (!user && navItems.find(item => item.id === pageId)?.requiresAuth)) {
-      navigate('/login');
+      navigate('/login', { state: { from: path } });
     } else {
       navigate(path);
     }
