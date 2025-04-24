@@ -238,45 +238,107 @@ export const StudentDashboard = ({ user }) => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-xl font-semibold mb-6 text-gray-800">Attendance Date Record</h3>
           
-          <div className="grid grid-cols-7 gap-2">
-            {/* Generate the last 41 days from today */}
-            {Array.from({ length: 41 }).map((_, index) => {
-              // Calculate dates starting from today and going backward
-              const date = new Date();
-              date.setDate(date.getDate() - (40 - index)); // This makes the rightmost date today, and counts backwards
+          {/* Calendar view */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Show current month and previous month */}
+            {[0, 1].map((monthOffset) => {
+              // Create date for this month view
+              const currentDate = new Date();
+              currentDate.setMonth(currentDate.getMonth() - monthOffset);
               
-              // Format date as DD (day of month)
-              const dayOfMonth = date.getDate();
+              // Get year and month
+              const year = currentDate.getFullYear();
+              const month = currentDate.getMonth();
               
-              // Check if this date is in the attendance records
-              const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
-              const isAttended = attendanceData.some(record => {
-                const recordDate = new Date(record.check_in_time).toISOString().split('T')[0];
-                return recordDate === dateStr;
-              });
+              // Get first day of month and total days in month
+              const firstDayOfMonth = new Date(year, month, 1);
+              const lastDayOfMonth = new Date(year, month + 1, 0);
+              const daysInMonth = lastDayOfMonth.getDate();
+              
+              // Get day of week for first day (0 = Sunday, 1 = Monday, etc.)
+              const firstDayWeekday = firstDayOfMonth.getDay();
+              
+              // Month names for header
+              const monthNames = [
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+              ];
               
               return (
-                <div
-                  key={index}
-                  className={`h-10 rounded-md flex items-center justify-center ${
-                    isAttended ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'
-                  }`}
-                  title={date.toLocaleDateString()}
-                >
-                  {dayOfMonth}
+                <div key={`month-${month}-${year}`} className="calendar-month">
+                  <h4 className="text-lg font-medium mb-4 text-center">
+                    {monthNames[month]} {year}
+                  </h4>
+                  
+                  {/* Days of week header */}
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day, i) => (
+                      <div key={day} className="text-center text-sm font-medium text-gray-600">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Calendar grid */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {/* Empty cells for days before the first day of month */}
+                    {Array.from({ length: firstDayWeekday }).map((_, index) => (
+                      <div key={`empty-start-${index}`} className="h-10"></div>
+                    ))}
+                    
+                    {/* Days of the month */}
+                    {Array.from({ length: daysInMonth }).map((_, index) => {
+                      const day = index + 1;
+                      const date = new Date(year, month, day);
+                      const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+                      
+                      // Check if this date is in the attendance records
+                      const isAttended = attendanceData.some(record => {
+                        const recordDate = new Date(record.check_in_time).toISOString().split('T')[0];
+                        return recordDate === dateStr;
+                      });
+                      
+                      // Check if the date is today
+                      const today = new Date();
+                      const isToday = 
+                        today.getDate() === day && 
+                        today.getMonth() === month && 
+                        today.getFullYear() === year;
+                      
+                      return (
+                        <div
+                          key={`day-${day}`}
+                          className={`h-10 rounded-md flex items-center justify-center ${
+                            isToday ? 'ring-2 ring-blue-500 ' : ''
+                          }${
+                            isAttended 
+                              ? 'bg-green-100 text-green-800 font-medium' 
+                              : 'bg-gray-100 text-gray-600'
+                          }`}
+                          title={date.toLocaleDateString()}
+                        >
+                          {day}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}
           </div>
           
-          <div className="flex items-center justify-center mt-4">
+          <div className="flex items-center justify-center mt-6">
             <div className="flex items-center mr-4">
               <div className="w-4 h-4 bg-green-100 rounded mr-2"></div>
               <span className="text-sm text-gray-600">Attended</span>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center mr-4">
               <div className="w-4 h-4 bg-gray-100 rounded mr-2"></div>
               <span className="text-sm text-gray-600">Not Attended</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-4 h-4 bg-white rounded-md ring-2 ring-blue-500 mr-2"></div>
+              <span className="text-sm text-gray-600">Today</span>
             </div>
           </div>
         </div>
