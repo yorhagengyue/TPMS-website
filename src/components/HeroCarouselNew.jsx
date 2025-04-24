@@ -218,6 +218,17 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
     }
   };
   
+  // 格式化内容文本，处理换行符
+  const formatContent = (content) => {
+    if (!content) return null;
+    return content.split('\n').map((line, i) => (
+      <React.Fragment key={i}>
+        {line}
+        {i < content.split('\n').length - 1 && <br />}
+      </React.Fragment>
+    ));
+  };
+  
   const currentSlide = slides[currentIndex];
   const colorClass = currentSlide?.color || 'bg-blue-500';
   
@@ -263,11 +274,11 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
               loading="lazy"
             />
             
-            {/* 渐变叠加层 */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10"></div>
+            {/* 渐变叠加层 - 移动端更强的渐变效果 */}
+            <div className={`absolute inset-0 ${isMobile ? 'bg-gradient-to-t from-black/90 via-black/70 to-black/40' : 'bg-gradient-to-t from-black via-black/40 to-black/10'}`}></div>
             
             {/* 主题色彩叠加 */}
-            <div className={`absolute inset-0 ${colorClass} opacity-10`}></div>
+            <div className={`absolute inset-0 ${colorClass} ${isMobile ? 'opacity-20' : 'opacity-10'}`}></div>
           </motion.div>
           
           {/* 内容叠加层 */}
@@ -277,20 +288,20 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                 variants={contentVariants}
                 initial="hidden"
                 animate="visible"
-                className="max-w-4xl text-center md:text-left"
+                className={`${isMobile ? 'max-w-sm text-center px-4 py-6 bg-black/30 backdrop-blur-sm rounded-2xl' : 'max-w-4xl text-center md:text-left'}`}
               >
                 {/* 主标题 */}
-                <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 md:mb-6 leading-tight">
+                <h2 className={`${isMobile ? 'text-3xl' : 'text-4xl md:text-6xl lg:text-7xl'} font-bold text-white mb-4 md:mb-6 leading-tight`}>
                   {currentSlide.title}
                 </h2>
                 
                 {/* 内容文本 */}
-                <p className="text-lg md:text-xl text-white/90 mb-6 md:mb-8 max-w-2xl">
-                  {currentSlide.content}
+                <p className={`${isMobile ? 'text-base text-white' : 'text-lg md:text-xl text-white/90'} mb-6 md:mb-8 max-w-2xl`}>
+                  {isMobile ? currentSlide.contentShort : currentSlide.content}
                 </p>
                 
-                {/* 详细信息 */}
-                {currentSlide.details && (
+                {/* 详细信息 - 仅在非移动端显示 */}
+                {!isMobile && currentSlide.details && (
                   <p className="text-md md:text-lg text-white/70 mb-8 max-w-2xl">
                     {currentSlide.details}
                   </p>
@@ -298,15 +309,15 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                 
                 {/* 日期和地点信息 */}
                 {(currentSlide.date || currentSlide.location) && (
-                  <div className="flex flex-col md:flex-row gap-4 mb-8 text-white/80">
+                  <div className={`${isMobile ? 'flex flex-col space-y-2 mb-6' : 'flex flex-col md:flex-row gap-4 mb-8'} text-white/80`}>
                     {currentSlide.date && (
-                      <div className="flex items-center">
+                      <div className="flex items-center justify-center md:justify-start">
                         <FiClock className="mr-2" />
                         <span>{currentSlide.date}</span>
                       </div>
                     )}
                     {currentSlide.location && (
-                      <div className="flex items-center">
+                      <div className="flex items-center justify-center md:justify-start">
                         <FiMapPin className="mr-2" />
                         <span>{currentSlide.location}</span>
                       </div>
@@ -316,13 +327,18 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                 
                 {/* 行动按钮 */}
                 {currentSlide.link && (
-                  <motion.div variants={fadeIn} initial="hidden" animate="visible">
+                  <motion.div 
+                    variants={fadeIn} 
+                    initial="hidden" 
+                    animate="visible"
+                    className={`${isMobile ? 'mt-2' : ''}`}
+                  >
                     {currentSlide.isExternal ? (
                       <a 
                         href={currentSlide.link} 
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`inline-flex items-center px-6 py-3 ${colorClass} text-white rounded-full font-medium text-lg transition-transform hover:scale-105 shadow-lg`}
+                        className={`inline-flex items-center px-6 py-3 ${colorClass} text-white rounded-full font-medium ${isMobile ? 'text-base w-full justify-center' : 'text-lg'} transition-transform hover:scale-105 shadow-lg`}
                       >
                         {currentSlide.linkText || 'Learn More'}
                         {currentSlide.isExternal ? <FiInstagram className="ml-2" /> : <FiArrowRight className="ml-2" />}
@@ -330,7 +346,7 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                     ) : (
                       <a 
                         href={currentSlide.link} 
-                        className={`inline-flex items-center px-6 py-3 ${colorClass} text-white rounded-full font-medium text-lg transition-transform hover:scale-105 shadow-lg`}
+                        className={`inline-flex items-center px-6 py-3 ${colorClass} text-white rounded-full font-medium ${isMobile ? 'text-base w-full justify-center' : 'text-lg'} transition-transform hover:scale-105 shadow-lg`}
                       >
                         {currentSlide.linkText || 'Learn More'}
                         <FiArrowRight className="ml-2" />
@@ -344,17 +360,17 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
         </motion.div>
       </AnimatePresence>
       
-      {/* 导航按钮 */}
-      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between items-center px-4 md:px-10 z-10">
+      {/* 导航按钮 - 移动端调整尺寸 */}
+      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between items-center px-2 md:px-10 z-10">
         <motion.button
           onClick={handlePrevious}
           initial={{ opacity: 0.6 }}
           whileHover={{ opacity: 1, scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          className="bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full p-2 md:p-4 transition-all border border-white/20 shadow-lg"
+          className={`bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full ${isMobile ? 'p-1.5' : 'p-2 md:p-4'} transition-all border border-white/20 shadow-lg`}
           aria-label="Previous slide"
         >
-          <FiChevronLeft className="w-6 h-6 text-white" />
+          <FiChevronLeft className={`${isMobile ? 'w-4 h-4' : 'w-6 h-6'} text-white`} />
         </motion.button>
         
         <motion.button
@@ -362,25 +378,25 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
           initial={{ opacity: 0.6 }}
           whileHover={{ opacity: 1, scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          className="bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full p-2 md:p-4 transition-all border border-white/20 shadow-lg"
+          className={`bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full ${isMobile ? 'p-1.5' : 'p-2 md:p-4'} transition-all border border-white/20 shadow-lg`}
           aria-label="Next slide"
         >
-          <FiChevronRight className="w-6 h-6 text-white" />
+          <FiChevronRight className={`${isMobile ? 'w-4 h-4' : 'w-6 h-6'} text-white`} />
         </motion.button>
       </div>
       
-      {/* 底部控制区 */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 z-10">
-        <div className="container mx-auto flex flex-col md:flex-row md:items-center md:justify-between">
+      {/* 底部控制区 - 移动端简化 */}
+      <div className="absolute bottom-0 left-0 right-0 p-3 md:p-8 z-10">
+        <div className={`container mx-auto flex ${isMobile ? 'justify-center' : 'flex-col md:flex-row md:items-center md:justify-between'}`}>
           {/* 分页指示器 */}
-          <div className="flex space-x-3 justify-center md:justify-start">
+          <div className="flex space-x-2 md:space-x-3 justify-center md:justify-start">
             {slides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => handleDotClick(index)}
                 aria-label={`Go to slide ${index + 1}`}
-                className={`group relative h-3 transition-all duration-300 ${
-                  index === currentIndex ? 'w-8' : 'w-3'
+                className={`group relative ${isMobile ? 'h-2' : 'h-3'} transition-all duration-300 ${
+                  index === currentIndex ? (isMobile ? 'w-6' : 'w-8') : (isMobile ? 'w-2' : 'w-3')
                 }`}
               >
                 <span 
@@ -394,22 +410,26 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
             ))}
           </div>
           
-          {/* 进度条 */}
-          <div className="hidden md:block w-64 h-1 bg-white/20 rounded-full overflow-hidden mt-4 md:mt-0">
-            <motion.div 
-              className={`h-full ${colorClass}`}
-              initial={{ width: 0 }}
-              animate={{ width: `${progressWidth}%` }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-            />
-          </div>
+          {/* 进度条 - 仅非移动端显示 */}
+          {!isMobile && (
+            <div className="hidden md:block w-64 h-1 bg-white/20 rounded-full overflow-hidden mt-4 md:mt-0">
+              <motion.div 
+                className={`h-full ${colorClass}`}
+                initial={{ width: 0 }}
+                animate={{ width: `${progressWidth}%` }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              />
+            </div>
+          )}
           
-          {/* 幻灯片计数器 */}
-          <div className="text-white/60 text-sm font-medium hidden md:block">
-            <span className="text-white">{currentIndex + 1}</span>
-            <span className="mx-1">/</span>
-            <span>{slides.length}</span>
-          </div>
+          {/* 幻灯片计数器 - 仅非移动端显示 */}
+          {!isMobile && (
+            <div className="text-white/60 text-sm font-medium hidden md:block">
+              <span className="text-white">{currentIndex + 1}</span>
+              <span className="mx-1">/</span>
+              <span>{slides.length}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
