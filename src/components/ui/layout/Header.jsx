@@ -23,7 +23,7 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
   const navItems = [
     { id: 'home', label: 'Home', icon: <FiHome />, requiresAuth: false, path: '/' },
     { id: 'news', label: 'News', icon: <FiBell />, requiresAuth: false, path: '/news' },
-    { id: 'events', label: 'Events', icon: <FiCalendar />, requiresAuth: true, path: '/events' },
+    { id: 'events', label: 'Chess Rank', icon: <FiCalendar />, requiresAuth: false, path: '/chess-rank' },
     { id: 'check-in', label: 'Check-in', icon: <FiCheckSquare />, requiresAuth: true, path: '/check-in' },
   ];
 
