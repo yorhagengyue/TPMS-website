@@ -9,6 +9,7 @@ import RegisterPage from './components/pages/RegisterPage';
 import JoinUsPage from './components/pages/JoinUsPage';
 import { StudentDashboard } from './components/pages/StudentDashboard';
 import { NewsPage } from './components/pages/NewsPage';
+import ProfilePage from './components/pages/ProfilePage';
 import { BannerSection } from './components/ui/layout/BannerSection';
 import LoadingScreen from './components/ui/LoadingScreen';
 import PageTransition from './components/ui/PageTransition';
@@ -208,6 +209,11 @@ const TPMSApp = () => {
               <Route path="/joinus" element={<JoinUsPage />} />
               <Route path="/news" element={<NewsPage />} />
               <Route path="/chess-rank" element={<ChessRankPage user={user} />} />
+              <Route path="/profile" element={
+                <AuthGuard requiredAuth={true}>
+                  <ProfilePage user={user} />
+                </AuthGuard>
+              } />
               <Route path="/check-in" element={
                 <AuthGuard requiredAuth={true}>
                   <CheckinPage 

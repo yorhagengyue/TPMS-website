@@ -109,6 +109,12 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
                     <div className="font-medium">{user.name}</div>
                     <div className="text-gray-500 truncate">{user.index_number}</div>
                   </div>
+                  <Link
+                    to="/profile"
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center"
+                  >
+                    <FiUser className="mr-2" /> My Profile
+                  </Link>
                   <button
                     onClick={onLogout}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center"
@@ -201,6 +207,14 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
                         </div>
                       </div>
                     </div>
+                    <Link
+                      to="/profile"
+                      onClick={() => setIsOpen(false)}
+                      className="px-4 py-3 rounded-md text-left transition-colors duration-200 flex items-center text-gray-700 hover:bg-gray-100"
+                    >
+                      <span className="mr-3"><FiUser /></span>
+                      My Profile
+                    </Link>
                     <button
                       onClick={onLogout}
                       className="px-4 py-3 rounded-md text-left transition-colors duration-200 flex items-center text-gray-700 hover:bg-gray-100"

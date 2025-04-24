@@ -1070,6 +1070,107 @@ app.get('/api/debug/check-account/:studentId', async (req, res) => {
   }
 });
 
+// Link Chess.com account
+app.post('/api/user/link-chess', authenticate, async (req, res) => {
+  try {
+    const { chessUsername } = req.body;
+    
+    if (!chessUsername || typeof chessUsername !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Chess.com username is required'
+      });
+    }
+
+    // Validate Chess.com username by calling their API
+    try {
+      const chessComResponse = await fetch(`https://api.chess.com/pub/player/${chessUsername}`);
+      
+      if (!chessComResponse.ok) {
+        return res.status(404).json({
+          success: false,
+          message: 'Chess.com username not found. Please check the username and try again.'
+        });
+      }
+      
+      const userData = await chessComResponse.json();
+      
+      // Get chess rating from Stats API
+      const statsResponse = await fetch(`https://api.chess.com/pub/player/${chessUsername}/stats`);
+      
+      if (!statsResponse.ok) {
+        return res.status(500).json({
+          success: false,
+          message: 'Could not retrieve Chess.com stats'
+        });
+      }
+      
+      const statsData = await statsResponse.json();
+      
+      // Extract blitz rating or use 0 if not available
+      const blitzRating = statsData.chess_blitz?.last?.rating || 0;
+      
+      // Save username and rating to user record
+      const updateQuery = db.isPostgres
+        ? `UPDATE users 
+           SET chess_username = $1, chess_rating = $2
+           WHERE id = $3`
+        : `UPDATE users 
+           SET chess_username = ?, chess_rating = ?
+           WHERE id = ?`;
+      
+      await db.query(updateQuery, [chessUsername, blitzRating, req.user.id]);
+      
+      return res.json({
+        success: true,
+        message: 'Chess.com account linked successfully',
+        chess_username: chessUsername,
+        chess_rating: blitzRating
+      });
+    } catch (error) {
+      console.error('Error checking Chess.com API:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Could not connect to Chess.com API. Please try again later.'
+      });
+    }
+  } catch (error) {
+    console.error('Error linking Chess.com account:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error occurred while linking Chess.com account'
+    });
+  }
+});
+
+// Get all users with chess ratings
+app.get('/api/users/chess-ratings', async (req, res) => {
+  try {
+    const usersQuery = db.isPostgres
+      ? `SELECT u.id, s.name, s.index_number as student_id, u.chess_username, u.chess_rating
+         FROM users u
+         JOIN students s ON u.student_id = s.id
+         ORDER BY u.chess_rating DESC NULLS LAST`
+      : `SELECT u.id, s.name, s.index_number as student_id, u.chess_username, u.chess_rating
+         FROM users u
+         JOIN students s ON u.student_id = s.id
+         ORDER BY u.chess_rating IS NULL, u.chess_rating DESC`;
+    
+    const users = await db.query(usersQuery);
+    
+    return res.json({
+      success: true,
+      users: users
+    });
+  } catch (error) {
+    console.error('Error fetching chess ratings:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error occurred while fetching chess ratings'
+    });
+  }
+});
+
 // Serve React app
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));

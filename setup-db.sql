@@ -39,6 +39,8 @@ CREATE TABLE IF NOT EXISTS users (
   student_id INT NOT NULL,
   email VARCHAR(255),
   role ENUM('admin', 'student', 'teacher') NOT NULL DEFAULT 'student',
+  chess_username VARCHAR(50),
+  chess_rating INT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   last_login TIMESTAMP NULL,
   FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
