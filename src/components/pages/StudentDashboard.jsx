@@ -239,17 +239,31 @@ export const StudentDashboard = ({ user }) => {
           <h3 className="text-xl font-semibold mb-6 text-gray-800">Attendance Date Record</h3>
           
           <div className="grid grid-cols-7 gap-2">
+            {/* Generate the last 41 days from today */}
             {Array.from({ length: 41 }).map((_, index) => {
-              // Here we use random data to simulate attendance, in a real application, we should use real data
-              const isAttended = index < attendanceStats.attendedSessions;
+              // Calculate dates starting from today and going backward
+              const date = new Date();
+              date.setDate(date.getDate() - (40 - index)); // This makes the rightmost date today, and counts backwards
+              
+              // Format date as DD (day of month)
+              const dayOfMonth = date.getDate();
+              
+              // Check if this date is in the attendance records
+              const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+              const isAttended = attendanceData.some(record => {
+                const recordDate = new Date(record.check_in_time).toISOString().split('T')[0];
+                return recordDate === dateStr;
+              });
+              
               return (
                 <div
                   key={index}
                   className={`h-10 rounded-md flex items-center justify-center ${
                     isAttended ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'
                   }`}
+                  title={date.toLocaleDateString()}
                 >
-                  {index + 1}
+                  {dayOfMonth}
                 </div>
               );
             })}
