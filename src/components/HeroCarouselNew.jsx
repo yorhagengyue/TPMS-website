@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiChevronLeft, FiChevronRight, FiArrowRight, FiClock, FiMapPin } from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight, FiArrowRight, FiClock, FiMapPin, FiInstagram } from 'react-icons/fi';
 
 // 幻灯片数据
 const slides = [
@@ -13,7 +13,7 @@ const slides = [
     details: 'Make sure to come check us out at the CCA fair on 23-24 April at Horseshoe Plaza!',
     contentShort: 'TPMS opens its doors to you!',
     color: 'bg-indigo-500',
-    link: '/events',
+    link: '/joinus',
     linkText: 'Join Us',
     date: 'April 23-24, 2023',
     location: 'Horseshoe Plaza'
@@ -26,8 +26,9 @@ const slides = [
     content: 'AY24/25 TPMS Maincomm signing off… Welcome new maincomm members in the near future!',
     contentShort: 'Farewell AY24/25 Maincomm!',
     color: 'bg-pink-500',
-    link: '/about',
-    linkText: 'Meet Our Team'
+    link: 'https://www.instagram.com/p/DIwE8TxSOuM/?img_index=1',
+    linkText: 'View on Instagram',
+    isExternal: true
   },
   {
     id: 3,
@@ -38,8 +39,9 @@ const slides = [
     details: 'It\'s been a long and tough journey for us guys, but we\'ve finally made it. We\'d like to thank our outgoing maincomm members for their continuous support!',
     contentShort: 'Welcome our new maincomm members!',
     color: 'bg-emerald-500',
-    link: '/join',
-    linkText: 'Learn More'
+    link: 'https://www.instagram.com/p/DIxB6_HTTTG/?img_index=1',
+    linkText: 'View on Instagram',
+    isExternal: true
   }
 ];
 
@@ -315,13 +317,25 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                 {/* 行动按钮 */}
                 {currentSlide.link && (
                   <motion.div variants={fadeIn} initial="hidden" animate="visible">
-                    <a 
-                      href={currentSlide.link} 
-                      className={`inline-flex items-center px-6 py-3 ${colorClass} text-white rounded-full font-medium text-lg transition-transform hover:scale-105 shadow-lg`}
-                    >
-                      {currentSlide.linkText || 'Learn More'}
-                      <FiArrowRight className="ml-2" />
-                    </a>
+                    {currentSlide.isExternal ? (
+                      <a 
+                        href={currentSlide.link} 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`inline-flex items-center px-6 py-3 ${colorClass} text-white rounded-full font-medium text-lg transition-transform hover:scale-105 shadow-lg`}
+                      >
+                        {currentSlide.linkText || 'Learn More'}
+                        {currentSlide.isExternal ? <FiInstagram className="ml-2" /> : <FiArrowRight className="ml-2" />}
+                      </a>
+                    ) : (
+                      <a 
+                        href={currentSlide.link} 
+                        className={`inline-flex items-center px-6 py-3 ${colorClass} text-white rounded-full font-medium text-lg transition-transform hover:scale-105 shadow-lg`}
+                      >
+                        {currentSlide.linkText || 'Learn More'}
+                        <FiArrowRight className="ml-2" />
+                      </a>
+                    )}
                   </motion.div>
                 )}
               </motion.div>
