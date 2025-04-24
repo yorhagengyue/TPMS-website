@@ -126,7 +126,7 @@ export const HomePage = ({ user }) => {
     if (featuredInView) featuredControls.start("visible");
     if (ecoInView) ecoControls.start("visible");
     if (statsInView) statsControls.start("visible");
-  }, [welcomeInView, featuredInView, ecoInView, statsInView]);
+  }, [welcomeInView, featuredInView, ecoInView, statsInView, welcomeControls, featuredControls, ecoControls, statsControls]);
 
   // Animation variants
   const containerVariants = {
@@ -187,7 +187,7 @@ export const HomePage = ({ user }) => {
 
   // Particle animation for eco activities
   const Particles = ({ color }) => {
-  return (
+    return (
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(6)].map((_, i) => (
           <motion.div
@@ -409,7 +409,7 @@ export const HomePage = ({ user }) => {
                   </motion.div>
                   
                   {/* Recent Achievements Card */}
-              <motion.div
+                  <motion.div
                     whileHover={{ y: -5, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" }}
                     className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-white border-opacity-20"
                   >
@@ -494,176 +494,176 @@ export const HomePage = ({ user }) => {
           </div>
         </motion.section>
         
-        {/* Featured event section */}
-        <motion.section 
-          ref={featuredRef}
-          initial="hidden"
-          animate={featuredControls}
-          variants={containerVariants}
-          className="py-16 bg-white"
-        >
-          <div className="container mx-auto px-4">
-            <motion.div variants={itemVariants} className="mb-12 text-center">
-              <h2 className="text-3xl font-bold mb-4">Featured Event</h2>
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Our flagship environmental event bringing together students, educators, and community members for a day of learning and action.
-              </p>
-            </motion.div>
-            
-            <motion.div
-              variants={itemVariants}
-              className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl shadow-xl overflow-hidden"
-            >
-              <div className="flex flex-col md:flex-row">
-                <div className="md:w-1/2 p-8 md:p-12">
-                  <div className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium mb-4">
-                    April 27, 2025
-                  </div>
-                  
-                  <h3 className="text-2xl md:text-3xl font-bold mb-4">
-                    Eco Festival: Little Hands, Big Impact
-                  </h3>
-                  
-                  <p className="text-gray-600 mb-6">
-                    Join our eco-friendly festival that combines learning, experience, and community involvement. Activities include workshops on sustainability, interactive games, and waste reduction awareness. Free entry for all!
-                  </p>
-                  
-                  <div className="mb-8">
-                    <div className="flex items-center mb-3">
-                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
-                        <FiCalendar className="text-green-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">Sunday, April 27, 2025</div>
-                        <div className="text-sm text-gray-500">9:00 AM - 12:30 PM</div>
-                      </div>
+        {/* Featured event section - Only show if user is NOT logged in */}
+        {!user && (
+          <motion.section 
+            ref={featuredRef}
+            initial="hidden"
+            animate={featuredControls}
+            variants={containerVariants}
+            className="py-16 bg-white"
+          >
+            <div className="container mx-auto px-4">
+              <motion.div variants={itemVariants} className="mb-12 text-center">
+                <h2 className="text-3xl font-bold mb-4">Featured Event</h2>
+                <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                  Our flagship environmental event bringing together students, educators, and community members for a day of learning and action.
+                </p>
+              </motion.div>
+              
+              <motion.div
+                variants={itemVariants}
+                className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl shadow-xl overflow-hidden"
+              >
+                <div className="flex flex-col md:flex-row">
+                  <div className="md:w-1/2 p-8 md:p-12">
+                    <div className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium mb-4">
+                      April 27, 2025
                     </div>
                     
-                    <div className="flex items-start">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3 mt-1">
-                        <FiUsers className="text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">Free entry for all!</div>
-                        <div className="text-sm text-gray-500">All ages welcome. Perfect for families and students.</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                
-                </div>
-                
-                <div className="md:w-1/2 relative overflow-hidden min-h-[300px]">
-                  {/* Animated background elements */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-blue-500 opacity-80"></div>
-                  
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.8 }}
-                    className="absolute inset-0 flex items-center justify-center"
-                  >
-                    <div className="relative w-80 h-80">
-                      <motion.div
-                        animate={{ 
-                          rotate: 360
-                        }}
-                        transition={{ 
-                          duration: 60, 
-                          repeat: Infinity, 
-                          ease: "linear"
-                        }}
-                        className="absolute inset-0"
-                      >
-                        {/* Orbiting elements */}
-                        {[...Array(8)].map((_, i) => {
-                          const angle = (i / 8) * Math.PI * 2;
-                          const x = Math.cos(angle) * 120;
-                          const y = Math.sin(angle) * 120;
-                          
-                          return (
-                            <motion.div
-                              key={i}
-                              className="absolute w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center"
-                              style={{
-                                left: `calc(50% + ${x}px)`,
-                                top: `calc(50% + ${y}px)`,
-                                transformOrigin: "center"
-                              }}
-                              animate={{
-                                scale: [1, 1.1, 1],
-                                rotate: [0, 360]
-                              }}
-                              transition={{
-                                scale: {
-                                  duration: 4,
-                                  repeat: Infinity,
-                                  repeatType: "reverse",
-                                  delay: i * 0.5
-                                },
-                                rotate: {
-                                  duration: 30,
-                                  repeat: Infinity,
-                                  ease: "linear"
-                                }
-                              }}
-                            >
-                              <span className="text-xl">
-                                {["🌱", "🌍", "🌿", "💧", "🌻", "♻️", "🐟", "🦋"][i]}
-                              </span>
-                            </motion.div>
-                          );
-                        })}
-                      </motion.div>
-                      
-                      <motion.div
-                        className="absolute inset-0 flex items-center justify-center"
-                        animate={{
-                          scale: [1, 1.05, 1]
-                        }}
-                        transition={{
-                          duration: 5,
-                          repeat: Infinity,
-                          repeatType: "reverse"
-                        }}
-                      >
-                        <div className="w-40 h-40 rounded-full bg-white flex items-center justify-center shadow-xl">
-                          <span className="text-7xl">🌎</span>
+                    <h3 className="text-2xl md:text-3xl font-bold mb-4">
+                      Eco Festival: Little Hands, Big Impact
+                    </h3>
+                    
+                    <p className="text-gray-600 mb-6">
+                      Join our eco-friendly festival that combines learning, experience, and community involvement. Activities include workshops on sustainability, interactive games, and waste reduction awareness. Free entry for all!
+                    </p>
+                    
+                    <div className="mb-8">
+                      <div className="flex items-center mb-3">
+                        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
+                          <FiCalendar className="text-green-600" />
                         </div>
-                      </motion.div>
+                        <div>
+                          <div className="font-medium">Sunday, April 27, 2025</div>
+                          <div className="text-sm text-gray-500">9:00 AM - 12:30 PM</div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3 mt-1">
+                          <FiUsers className="text-blue-600" />
+                        </div>
+                        <div>
+                          <div className="font-medium">Free entry for all!</div>
+                          <div className="text-sm text-gray-500">All ages welcome. Perfect for families and students.</div>
+                        </div>
+                      </div>
                     </div>
-                  </motion.div>
-                </div>
-              </div>
-              
-              {/* Register button section - Changed from Scan Me to direct Google Form Link */}
-              <div className="p-6 bg-green-50 border-t border-green-100 rounded-b-2xl">
-                <div className="flex flex-col md:flex-row items-center justify-between">
-                  <div className="text-gray-700 mb-4 md:mb-0">
-                    <p className="font-medium text-lg">Ready to join us? Register for the Eco Festival today!</p>
-                    <p className="text-sm text-gray-500">Free entry. Registration helps us prepare for your participation.</p>
                   </div>
                   
-                  <a 
-                    href="https://docs.google.com/forms/d/e/1FAIpQLSeagdLzx5WmfNDoWhFARYWtf9bchkRlV-pOQJpkXKows_KBXw/viewform" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="no-underline"
-                  >
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors duration-300 flex items-center"
+                  <div className="md:w-1/2 relative overflow-hidden min-h-[300px]">
+                    {/* Animated background elements */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-blue-500 opacity-80"></div>
+                    
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ duration: 0.8 }}
+                      className="absolute inset-0 flex items-center justify-center"
                     >
-                      Register Now
-                      <FiChevronRight className="ml-2" />
-                    </motion.button>
-                  </a>
+                      <div className="relative w-80 h-80">
+                        <motion.div
+                          animate={{ 
+                            rotate: 360
+                          }}
+                          transition={{ 
+                            duration: 60, 
+                            repeat: Infinity, 
+                            ease: "linear"
+                          }}
+                          className="absolute inset-0"
+                        >
+                          {/* Orbiting elements */}
+                          {[...Array(8)].map((_, i) => {
+                            const angle = (i / 8) * Math.PI * 2;
+                            const x = Math.cos(angle) * 120;
+                            const y = Math.sin(angle) * 120;
+                            
+                            return (
+                              <motion.div
+                                key={i}
+                                className="absolute w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center"
+                                style={{
+                                  left: `calc(50% + ${x}px)`,
+                                  top: `calc(50% + ${y}px)`,
+                                  transformOrigin: "center"
+                                }}
+                                animate={{
+                                  scale: [1, 1.1, 1],
+                                  rotate: [0, 360]
+                                }}
+                                transition={{
+                                  scale: {
+                                    duration: 4,
+                                    repeat: Infinity,
+                                    repeatType: "reverse",
+                                    delay: i * 0.5
+                                  },
+                                  rotate: {
+                                    duration: 30,
+                                    repeat: Infinity,
+                                    ease: "linear"
+                                  }
+                                }}
+                              >
+                                <span className="text-xl">
+                                  {["🌱", "🌍", "🌿", "💧", "🌻", "♻️", "🐟", "🦋"][i]}
+                                </span>
+                              </motion.div>
+                            );
+                          })}
+                        </motion.div>
+                        
+                        <motion.div
+                          className="absolute inset-0 flex items-center justify-center"
+                          animate={{
+                            scale: [1, 1.05, 1]
+                          }}
+                          transition={{
+                            duration: 5,
+                            repeat: Infinity,
+                            repeatType: "reverse"
+                          }}
+                        >
+                          <div className="w-40 h-40 rounded-full bg-white flex items-center justify-center shadow-xl">
+                            <span className="text-7xl">🌎</span>
+                          </div>
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  </div>
+                </div>
+                
+                {/* Register button section - Changed from Scan Me to direct Google Form Link */}
+                <div className="p-6 bg-green-50 border-t border-green-100 rounded-b-2xl">
+                  <div className="flex flex-col md:flex-row items-center justify-between">
+                    <div className="text-gray-700 mb-4 md:mb-0">
+                      <p className="font-medium text-lg">Ready to join us? Register for the Eco Festival today!</p>
+                      <p className="text-sm text-gray-500">Free entry. Registration helps us prepare for your participation.</p>
+                    </div>
+                    
+                    <a 
+                      href="https://docs.google.com/forms/d/e/1FAIpQLSeagdLzx5WmfNDoWhFARYWtf9bchkRlV-pOQJpkXKows_KBXw/viewform" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="no-underline"
+                    >
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors duration-300 flex items-center"
+                      >
+                        Register Now
+                        <FiChevronRight className="ml-2" />
+                      </motion.button>
+                    </a>
                   </div>
                 </div>
               </motion.div>
-          </div>
-        </motion.section>
+            </div>
+          </motion.section>
+        )}
         
         {/* Eco activities section with 3D flip cards */}
         <motion.section 
@@ -728,8 +728,8 @@ export const HomePage = ({ user }) => {
                         >
                           ↓
                         </motion.div>
-          </div>
-        </div>
+                      </div>
+                    </div>
                     
                     {/* Back of card */}
                     <div className="flip-card-back absolute inset-0 rounded-xl shadow-lg bg-white p-8 flex flex-col text-gray-800">
@@ -748,7 +748,7 @@ export const HomePage = ({ user }) => {
                         
                         <div className="mt-4 text-center">
                           <div className="text-sm text-gray-500">Click to flip back</div>
-              <motion.div
+                          <motion.div
                             animate={{ y: [0, 5, 0] }}
                             transition={{ repeat: Infinity, duration: 1.5 }}
                             className="text-xl mt-1"
@@ -759,92 +759,94 @@ export const HomePage = ({ user }) => {
                       </div>
                     </div>
                   </motion.div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
         </motion.section>
         
-        {/* Statistics & achievements section */}
-        <motion.section 
-          ref={statsRef}
-          initial="hidden"
-          animate={statsControls}
-          variants={containerVariants}
-          className="py-16 bg-white"
-        >
-        <div className="container mx-auto px-4">
-            <motion.div variants={itemVariants} className="mb-12 text-center">
-              <h2 className="text-3xl font-bold mb-4">Our Impact</h2>
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Connecting the TP Mindsports community through social engagement and weekly meetups.
-              </p>
-            </motion.div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {achievementData.map((item) => (
-                <motion.div
-                  key={item.id}
-                  variants={itemVariants}
-                  whileHover={{ y: -10, transition: { type: "spring", stiffness: 300 } }}
-                  className={`relative bg-white rounded-xl shadow-lg p-6 border-t-4 ${
-                    expandedAchievement === item.id ? 'h-auto' : 'h-48'
-                  } overflow-hidden transition-all duration-300 cursor-pointer`}
-                  onClick={() => handleAchievementExpand(item.id)}
-                >
-                  <div className="flex items-center mb-4">
-                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mr-4">
-                      {item.icon}
-                    </div>
-                    <div>
-                      <motion.div 
-                        className="text-2xl md:text-3xl font-bold text-gray-800"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ 
-                          duration: 0.8,
-                          delay: 0.2 
-                        }}
-                      >
-                        {item.value}
-                      </motion.div>
-                      <div className="text-gray-600">{item.label}</div>
-                    </div>
-          </div>
-
-                  <AnimatePresence>
-                    {expandedAchievement === item.id ? (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <p className="text-gray-600 mb-4">{item.description}</p>
-                        <a 
-                          href={item.link} 
-                          className="text-blue-600 font-medium flex items-center hover:text-blue-800"
-                          target={item.link.startsWith('http') ? "_blank" : "_self"}
-                          rel={item.link.startsWith('http') ? "noopener noreferrer" : ""}
-                        >
-                          👉 {item.linkText} <FiChevronRight className="ml-1" />
-                        </a>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        className="absolute bottom-3 left-0 right-0 text-center text-sm text-blue-500"
-                        animate={{ y: [0, 5, 0] }}
-                        transition={{ repeat: Infinity, duration: 1.5 }}
-                      >
-                        Click for details
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+        {/* Statistics & achievements section - Only show if user is NOT logged in */}
+        {!user && (
+          <motion.section 
+            ref={statsRef}
+            initial="hidden"
+            animate={statsControls}
+            variants={containerVariants}
+            className="py-16 bg-white"
+          >
+            <div className="container mx-auto px-4">
+              <motion.div variants={itemVariants} className="mb-12 text-center">
+                <h2 className="text-3xl font-bold mb-4">Our Impact</h2>
+                <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                  Connecting the TP Mindsports community through social engagement and weekly meetups.
+                </p>
               </motion.div>
-            ))}
-          </div>
-        </div>
-        </motion.section>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                {achievementData.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    variants={itemVariants}
+                    whileHover={{ y: -10, transition: { type: "spring", stiffness: 300 } }}
+                    className={`relative bg-white rounded-xl shadow-lg p-6 border-t-4 ${
+                      expandedAchievement === item.id ? 'h-auto' : 'h-48'
+                    } overflow-hidden transition-all duration-300 cursor-pointer`}
+                    onClick={() => handleAchievementExpand(item.id)}
+                  >
+                    <div className="flex items-center mb-4">
+                      <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mr-4">
+                        {item.icon}
+                      </div>
+                      <div>
+                        <motion.div 
+                          className="text-2xl md:text-3xl font-bold text-gray-800"
+                          initial={{ opacity: 0, y: 20 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          transition={{ 
+                            duration: 0.8,
+                            delay: 0.2 
+                          }}
+                        >
+                          {item.value}
+                        </motion.div>
+                        <div className="text-gray-600">{item.label}</div>
+                      </div>
+                    </div>
+
+                    <AnimatePresence>
+                      {expandedAchievement === item.id ? (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <p className="text-gray-600 mb-4">{item.description}</p>
+                          <a 
+                            href={item.link} 
+                            className="text-blue-600 font-medium flex items-center hover:text-blue-800"
+                            target={item.link.startsWith('http') ? "_blank" : "_self"}
+                            rel={item.link.startsWith('http') ? "noopener noreferrer" : ""}
+                          >
+                            👉 {item.linkText} <FiChevronRight className="ml-1" />
+                          </a>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          className="absolute bottom-3 left-0 right-0 text-center text-sm text-blue-500"
+                          animate={{ y: [0, 5, 0] }}
+                          transition={{ repeat: Infinity, duration: 1.5 }}
+                        >
+                          Click for details
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.section>
+        )}
         
         {/* CSS for 3D flip effect */}
         <style jsx>{`
@@ -949,7 +951,7 @@ export const HomePage = ({ user }) => {
             </motion.div>
           )}
         </AnimatePresence>
-        </div>
+      </div>
     </PageTransition>
   );
 }; 
