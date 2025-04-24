@@ -54,31 +54,39 @@ const ecoActivities = [
 const achievementData = [
   { 
     id: 1, 
-    value: "3000+", 
-    label: "Participants", 
+    value: "300+", 
+    label: "Members", 
     icon: <FiUsers className="text-2xl text-green-500" />,
-    description: "Over 3,000 students and community members participated in our eco-events and initiatives last year."
+    description: "Our club has grown to over 300 passionate players and supporters.",
+    link: "https://www.instagram.com/tp_mindsports/",
+    linkText: "Visit: https://www.instagram.com/tp_mindsports/"
   },
   { 
     id: 2, 
-    value: "25+", 
-    label: "Events", 
-    icon: <FiCalendar className="text-2xl text-blue-500" />,
-    description: "We organized more than 25 environmental events, workshops, and activities throughout the year."
+    value: "Venue", 
+    label: "Meeting Location", 
+    icon: <FiMapPin className="text-2xl text-blue-500" />,
+    description: "Every Friday, 6 – 9 PM at the Student Alumni Hub L2 (behind Macs). A dedicated space for practice and tournaments.",
+    link: "#",
+    linkText: "Find us at SAH L2"
   },
   { 
     id: 3, 
-    value: "12", 
-    label: "Awards", 
-    icon: <FiAward className="text-2xl text-purple-500" />,
-    description: "Our programs have received 12 national and regional awards for environmental education excellence."
+    value: "Weekly", 
+    label: "Sessions", 
+    icon: <FiCalendar className="text-2xl text-purple-500" />,
+    description: "Regular Friday meetups to sharpen skills, play friendly matches, and learn new strategies.",
+    link: "/events",
+    linkText: "Check our schedule"
   },
   { 
     id: 4, 
-    value: "85%", 
-    label: "Satisfaction", 
-    icon: <FiStar className="text-2xl text-yellow-500" />,
-    description: "85% of participants rated our eco-festival activities as excellent or very good in post-event surveys."
+    value: "School &", 
+    label: "Community", 
+    icon: <FiActivity className="text-2xl text-yellow-500" />,
+    description: "We partner with TP departments and local clubs to host workshops, exhibitions, and outreach events.",
+    link: "/about",
+    linkText: "Learn about our partnerships"
   }
 ];
 
@@ -94,14 +102,12 @@ export const HomePage = ({ user }) => {
   const featuredControls = useAnimation();
   const ecoControls = useAnimation();
   const statsControls = useAnimation();
-  const newsControls = useAnimation();
   
   // Intersection observers for different sections
   const [welcomeRef, welcomeInView] = useInView({ threshold: 0.3 });
   const [featuredRef, featuredInView] = useInView({ threshold: 0.3 });
   const [ecoRef, ecoInView] = useInView({ threshold: 0.2 });
   const [statsRef, statsInView] = useInView({ threshold: 0.3 });
-  const [newsRef, newsInView] = useInView({ threshold: 0.3 });
 
   // Automatically hide Instagram promo after 10 seconds
   useEffect(() => {
@@ -120,8 +126,7 @@ export const HomePage = ({ user }) => {
     if (featuredInView) featuredControls.start("visible");
     if (ecoInView) ecoControls.start("visible");
     if (statsInView) statsControls.start("visible");
-    if (newsInView) newsControls.start("visible");
-  }, [welcomeInView, featuredInView, ecoInView, statsInView, newsInView]);
+  }, [welcomeInView, featuredInView, ecoInView, statsInView]);
 
   // Animation variants
   const containerVariants = {
@@ -447,7 +452,7 @@ export const HomePage = ({ user }) => {
               <>
                 <motion.div variants={itemVariants}>
                   <h1 className="text-4xl md:text-5xl font-bold mb-6">
-                    Welcome to <span className="text-green-300">Eco Festival 2025</span>
+                    Welcome new members to <span className="text-green-300">TPMS AY25/26</span> !
                   </h1>
                 </motion.div>
                 
@@ -455,14 +460,12 @@ export const HomePage = ({ user }) => {
                   variants={itemVariants}
                   className="text-xl md:text-2xl text-blue-100 max-w-2xl mb-8"
                 >
-                  Join us for a celebration of environmental awareness, sustainability, and community action on April 27, 2025.
+                  Join new year orientation on 2 May 6pm-9pm
                 </motion.p>
                 
                 <motion.div variants={itemVariants}>
                   <a 
-                    href="https://docs.google.com/forms/d/e/1FAIpQLSeagdLzx5WmfNDoWhFARYWtf9bchkRlV-pOQJpkXKows_KBXw/viewform" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
+                    href="#" 
                     className="no-underline"
                   >
                     <motion.button
@@ -547,15 +550,7 @@ export const HomePage = ({ user }) => {
                     </div>
                   </div>
                   
-                  <Link to="/events">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors duration-300"
-                    >
-                      View Details
-                    </motion.button>
-                  </Link>
+                
                 </div>
                 
                 <div className="md:w-1/2 relative overflow-hidden min-h-[300px]">
@@ -782,7 +777,7 @@ export const HomePage = ({ user }) => {
             <motion.div variants={itemVariants} className="mb-12 text-center">
               <h2 className="text-3xl font-bold mb-4">Our Impact</h2>
               <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Measuring the impact of our eco-initiatives through participation, engagement, and recognition.
+                Connecting the TP Mindsports community through social engagement and weekly meetups.
               </p>
             </motion.div>
             
@@ -825,10 +820,18 @@ export const HomePage = ({ user }) => {
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <p className="text-gray-600">{item.description}</p>
+                        <p className="text-gray-600 mb-4">{item.description}</p>
+                        <a 
+                          href={item.link} 
+                          className="text-blue-600 font-medium flex items-center hover:text-blue-800"
+                          target={item.link.startsWith('http') ? "_blank" : "_self"}
+                          rel={item.link.startsWith('http') ? "noopener noreferrer" : ""}
+                        >
+                          👉 {item.linkText} <FiChevronRight className="ml-1" />
+                        </a>
                       </motion.div>
                     ) : (
-              <motion.div
+                      <motion.div
                         className="absolute bottom-3 left-0 right-0 text-center text-sm text-blue-500"
                         animate={{ y: [0, 5, 0] }}
                         transition={{ repeat: Infinity, duration: 1.5 }}
@@ -841,80 +844,6 @@ export const HomePage = ({ user }) => {
             ))}
           </div>
         </div>
-        </motion.section>
-        
-        {/* Latest news section */}
-        <motion.section 
-          ref={newsRef}
-          initial="hidden"
-          animate={newsControls}
-          variants={containerVariants}
-          className="py-16 bg-gray-50"
-        >
-        <div className="container mx-auto px-4">
-            <motion.div variants={itemVariants} className="mb-12 text-center">
-              <h2 className="text-3xl font-bold mb-4">Latest News</h2>
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Stay updated with our recent environmental initiatives and announcements.
-              </p>
-            </motion.div>
-            
-            <motion.div 
-              variants={itemVariants}
-              className="bg-white rounded-xl shadow-lg p-6 mb-8"
-            >
-              <div className="flex flex-col md:flex-row items-start">
-                <div className="md:w-1/4 mb-4 md:mb-0 md:mr-6">
-                  <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium inline-block mb-2">
-                    Announcement
-                  </div>
-                  <div className="text-gray-500 text-sm">March 15, 2025</div>
-          </div>
-
-                <div className="md:w-3/4">
-                  <h3 className="text-xl font-bold mb-2">Eco Festival Planning Committee Formed</h3>
-                  <p className="text-gray-600 mb-4">
-                    We are pleased to announce the formation of our Eco Festival planning committee, which includes students, faculty, and community representatives. The committee will oversee the planning and execution of the upcoming Eco Festival.
-                  </p>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="text-blue-600 font-medium flex items-center"
-                  >
-                    Read more <FiChevronRight className="ml-1" />
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-            
-              <motion.div
-              variants={itemVariants}
-              className="bg-white rounded-xl shadow-lg p-6"
-            >
-              <div className="flex flex-col md:flex-row items-start">
-                <div className="md:w-1/4 mb-4 md:mb-0 md:mr-6">
-                  <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium inline-block mb-2">
-                    Event Update
-                  </div>
-                  <div className="text-gray-500 text-sm">March 10, 2025</div>
-                </div>
-                
-                <div className="md:w-3/4">
-                  <h3 className="text-xl font-bold mb-2">Volunteer Registration Now Open</h3>
-                  <p className="text-gray-600 mb-4">
-                    We are now accepting volunteer applications for the Eco Festival. Volunteers will help with setup, guide participants, assist with activities, and more. This is a great opportunity to gain experience and contribute to environmental awareness.
-                  </p>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="text-blue-600 font-medium flex items-center"
-                  >
-                    Read more <FiChevronRight className="ml-1" />
-                  </motion.button>
-                </div>
-              </div>
-              </motion.div>
-          </div>
         </motion.section>
         
         {/* CSS for 3D flip effect */}

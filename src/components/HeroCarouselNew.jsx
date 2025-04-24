@@ -273,15 +273,40 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                   <img
                     src={currentSlide.mobileImage || currentSlide.image}
                     alt={currentSlide.title}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
                     loading="lazy"
                   />
                 </motion.div>
+                
+                {/* 导航按钮放在图片上 */}
+                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between items-center px-2 z-20">
+                  <motion.button
+                    onClick={handlePrevious}
+                    initial={{ opacity: 0.6 }}
+                    whileHover={{ opacity: 1, scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full p-1.5 transition-all border border-white/20 shadow-lg"
+                    aria-label="Previous slide"
+                  >
+                    <FiChevronLeft className="w-4 h-4 text-white" />
+                  </motion.button>
+                  
+                  <motion.button
+                    onClick={handleNext}
+                    initial={{ opacity: 0.6 }}
+                    whileHover={{ opacity: 1, scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full p-1.5 transition-all border border-white/20 shadow-lg"
+                    aria-label="Next slide"
+                  >
+                    <FiChevronRight className="w-4 h-4 text-white" />
+                  </motion.button>
+                </div>
               </div>
               
               {/* 文字内容区域 - 占据下部分 */}
               <div className={`w-full h-1/3 ${colorClass} px-4 py-5 flex flex-col justify-between`}>
-                <div>
+                <div className="flex-1">
                   <motion.h2 
                     variants={contentVariants}
                     initial="hidden"
@@ -325,7 +350,7 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                     variants={fadeIn}
                     initial="hidden"
                     animate="visible"
-                    className="mt-auto"
+                    className="mb-5"
                   >
                     {currentSlide.isExternal ? (
                       <a 
@@ -348,6 +373,28 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                     )}
                   </motion.div>
                 )}
+                
+                {/* 分页指示器移到最底部 */}
+                <div className="flex space-x-2 justify-center w-full mt-5">
+                  {slides.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleDotClick(index)}
+                      aria-label={`Go to slide ${index + 1}`}
+                      className={`group relative h-2 transition-all duration-300 ${
+                        index === currentIndex ? 'w-6' : 'w-2'
+                      }`}
+                    >
+                      <span 
+                        className={`absolute inset-0 rounded-full transition-all duration-300 ${
+                          index === currentIndex 
+                            ? 'bg-white shadow-md' 
+                            : 'bg-white/40 group-hover:bg-white/60'
+                        }`} 
+                      />
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           ) : (
@@ -451,59 +498,61 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
         </motion.div>
       </AnimatePresence>
       
-      {/* 导航按钮 - 移动端调整尺寸 */}
-      <div className="absolute inset-x-0 top-1/3 -translate-y-1/2 flex justify-between items-center px-2 md:px-10 z-10">
-        <motion.button
-          onClick={handlePrevious}
-          initial={{ opacity: 0.6 }}
-          whileHover={{ opacity: 1, scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          className={`bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full ${isMobile ? 'p-1.5' : 'p-2 md:p-4'} transition-all border border-white/20 shadow-lg`}
-          aria-label="Previous slide"
-        >
-          <FiChevronLeft className={`${isMobile ? 'w-4 h-4' : 'w-6 h-6'} text-white`} />
-        </motion.button>
-        
-        <motion.button
-          onClick={handleNext}
-          initial={{ opacity: 0.6 }}
-          whileHover={{ opacity: 1, scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          className={`bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full ${isMobile ? 'p-1.5' : 'p-2 md:p-4'} transition-all border border-white/20 shadow-lg`}
-          aria-label="Next slide"
-        >
-          <FiChevronRight className={`${isMobile ? 'w-4 h-4' : 'w-6 h-6'} text-white`} />
-        </motion.button>
-      </div>
-      
-      {/* 底部控制区 - 移动端简化并调整位置 */}
-      <div className={`absolute ${isMobile ? 'bottom-1/3 -translate-y-6' : 'bottom-0'} left-0 right-0 p-3 md:p-8 z-10`}>
-        <div className={`container mx-auto flex ${isMobile ? 'justify-center' : 'flex-col md:flex-row md:items-center md:justify-between'}`}>
-          {/* 分页指示器 */}
-          <div className="flex space-x-2 md:space-x-3 justify-center md:justify-start">
-            {slides.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => handleDotClick(index)}
-                aria-label={`Go to slide ${index + 1}`}
-                className={`group relative ${isMobile ? 'h-2' : 'h-3'} transition-all duration-300 ${
-                  index === currentIndex ? (isMobile ? 'w-6' : 'w-8') : (isMobile ? 'w-2' : 'w-3')
-                }`}
-              >
-                <span 
-                  className={`absolute inset-0 rounded-full transition-all duration-300 ${
-                    index === currentIndex 
-                      ? `${isMobile ? 'bg-white' : colorClass} shadow-md` 
-                      : 'bg-white/40 group-hover:bg-white/60'
-                  }`} 
-                />
-              </button>
-            ))}
-          </div>
+      {/* 修改导航按钮部分，只在桌面模式下显示 */}
+      {!isMobile && (
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between items-center px-10 z-10">
+          <motion.button
+            onClick={handlePrevious}
+            initial={{ opacity: 0.6 }}
+            whileHover={{ opacity: 1, scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full p-2 md:p-4 transition-all border border-white/20 shadow-lg"
+            aria-label="Previous slide"
+          >
+            <FiChevronLeft className="w-6 h-6 text-white" />
+          </motion.button>
           
-          {/* 进度条 - 仅非移动端显示 */}
-          {!isMobile && (
-            <div className="hidden md:block w-64 h-1 bg-white/20 rounded-full overflow-hidden mt-4 md:mt-0">
+          <motion.button
+            onClick={handleNext}
+            initial={{ opacity: 0.6 }}
+            whileHover={{ opacity: 1, scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-full p-2 md:p-4 transition-all border border-white/20 shadow-lg"
+            aria-label="Next slide"
+          >
+            <FiChevronRight className="w-6 h-6 text-white" />
+          </motion.button>
+        </div>
+      )}
+      
+      {/* 修改底部控制区代码，只在桌面模式下显示 */}
+      {!isMobile && (
+        <div className="absolute bottom-0 left-0 right-0 p-8 z-10">
+          <div className="container mx-auto flex flex-row items-center justify-between">
+            {/* 分页指示器 */}
+            <div className="flex space-x-3 justify-start">
+              {slides.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleDotClick(index)}
+                  aria-label={`Go to slide ${index + 1}`}
+                  className={`group relative h-3 transition-all duration-300 ${
+                    index === currentIndex ? 'w-8' : 'w-3'
+                  }`}
+                >
+                  <span 
+                    className={`absolute inset-0 rounded-full transition-all duration-300 ${
+                      index === currentIndex 
+                        ? `${colorClass} shadow-md` 
+                        : 'bg-white/40 group-hover:bg-white/60'
+                    }`} 
+                  />
+                </button>
+              ))}
+            </div>
+            
+            {/* 进度条 */}
+            <div className="block w-64 h-1 bg-white/20 rounded-full overflow-hidden mt-0">
               <motion.div 
                 className={`h-full ${colorClass}`}
                 initial={{ width: 0 }}
@@ -511,18 +560,16 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                 transition={{ duration: 0.3, ease: "easeOut" }}
               />
             </div>
-          )}
-          
-          {/* 幻灯片计数器 - 仅非移动端显示 */}
-          {!isMobile && (
-            <div className="text-white/60 text-sm font-medium hidden md:block">
+            
+            {/* 幻灯片计数器 */}
+            <div className="text-white/60 text-sm font-medium block">
               <span className="text-white">{currentIndex + 1}</span>
               <span className="mx-1">/</span>
               <span>{slides.length}</span>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
