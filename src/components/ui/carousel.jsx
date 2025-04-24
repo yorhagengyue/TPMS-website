@@ -3,47 +3,31 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiChevronLeft, FiChevronRight, FiImage } from 'react-icons/fi';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 
-// Updated slides with direct Unsplash image links
+// 更新轮播图图片，使用本地图片路径
 const slides = [
   {
     id: 1,
-    image: 'https://images.unsplash.com/photo-1560174876-8b78b592926d?w=1920&h=1080&fit=crop&q=80',
-    mobileImage: 'https://images.unsplash.com/photo-1560174876-8b78b592926d?w=640&h=360&fit=crop&q=80',
+    image: '/images/slide1.jpg',
+    mobileImage: '/images/slide1.jpg',
     gradient: 'bg-gradient-to-r from-blue-800 to-blue-600',
+    aspectRatio: '16/9',
+    title: 'TP Mindsport Club'
+  },
+  {
+    id: 2,
+    image: '/images/slide2.png',
+    mobileImage: '/images/slide2.png',
+    gradient: 'bg-gradient-to-r from-purple-800 to-indigo-700',
     aspectRatio: '16/9',
     title: 'Chess Tournament'
   },
   {
-    id: 2,
-    image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1920&h=1080&fit=crop&q=80',
-    mobileImage: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=640&h=360&fit=crop&q=80',
-    gradient: 'bg-gradient-to-r from-purple-800 to-indigo-700',
-    aspectRatio: '16/9',
-    title: 'Team Learning'
-  },
-  {
     id: 3,
-    image: 'https://images.unsplash.com/photo-1606167668584-78701c57f13d?w=1920&h=1080&fit=crop&q=80',
-    mobileImage: 'https://images.unsplash.com/photo-1606167668584-78701c57f13d?w=640&h=360&fit=crop&q=80',
+    image: '/images/slide3.jpg',
+    mobileImage: '/images/slide3.jpg',
     gradient: 'bg-gradient-to-r from-red-800 to-orange-700',
     aspectRatio: '16/9',
-    title: 'Go Match'
-  },
-  {
-    id: 4,
-    image: 'https://images.unsplash.com/photo-1610501693689-6437d8034511?w=1920&h=1080&fit=crop&q=80',
-    mobileImage: 'https://images.unsplash.com/photo-1610501693689-6437d8034511?w=640&h=360&fit=crop&q=80',
-    gradient: 'bg-gradient-to-r from-emerald-800 to-teal-700',
-    aspectRatio: '16/9',
-    title: 'Award Ceremony'
-  },
-  {
-    id: 5,
-    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1920&h=1080&fit=crop&q=80',
-    mobileImage: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=640&h=360&fit=crop&q=80',
-    gradient: 'bg-gradient-to-r from-amber-800 to-yellow-700',
-    aspectRatio: '16/9',
-    title: 'Strategic Thinking Training'
+    title: 'Strategic Thinking'
   }
 ];
 
@@ -56,15 +40,7 @@ export const Carousel = ({ aspectRatio = '16/9', height = null, maxHeight = '80v
   // Custom hook to check if we're on mobile
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isTablet = useMediaQuery('(max-width: 1024px)');
-  
-  // Calculate appropriate image to use
-  const getImagePath = (slide) => {
-    if (isMobile && slide.mobileImage) {
-      return slide.mobileImage;
-    }
-    return slide.image;
-  };
-  
+
   // Set dynamic sizing for carousel container
   useEffect(() => {
     if (carouselRef.current && !height) {
@@ -83,6 +59,7 @@ export const Carousel = ({ aspectRatio = '16/9', height = null, maxHeight = '80v
   }, [aspectRatio, height]);
   
   const handleImageError = (id) => {
+    console.error(`Failed to load image for slide ${id}`);
     setImageErrors(prev => ({...prev, [id]: true}));
   };
 
@@ -172,13 +149,6 @@ export const Carousel = ({ aspectRatio = '16/9', height = null, maxHeight = '80v
   const currentSlide = slides[currentIndex];
   const hasImageError = imageErrors[currentSlide.id];
 
-  // Object fit strategy based on device
-  const getObjectFit = () => {
-    // Different object-fit strategies for different screen sizes
-    if (isMobile) return 'object-cover';
-    return 'object-contain md:object-cover';
-  };
-
   return (
     <div 
       ref={carouselRef}
@@ -202,9 +172,9 @@ export const Carousel = ({ aspectRatio = '16/9', height = null, maxHeight = '80v
           <div className={`relative w-full h-full ${hasImageError ? currentSlide.gradient : ''}`}>
             {!hasImageError && (
               <img
-                src={getImagePath(currentSlide)}
+                src={isMobile && currentSlide.mobileImage ? currentSlide.mobileImage : currentSlide.image}
                 alt={`${currentSlide.title || `Slide ${currentSlide.id}`}`}
-                className={`w-full h-full ${getObjectFit()} transition-all`}
+                className="w-full h-full object-cover transition-all"
                 onError={() => handleImageError(currentSlide.id)}
                 loading="lazy"
               />
@@ -215,7 +185,7 @@ export const Carousel = ({ aspectRatio = '16/9', height = null, maxHeight = '80v
               </div>
             )}
             
-            {/* Optional: Title overlay */}
+            {/* Title overlay */}
             {currentSlide.title && (
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 md:p-6">
                 <h3 className="text-white text-lg md:text-2xl font-bold">{currentSlide.title}</h3>
