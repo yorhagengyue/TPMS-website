@@ -203,7 +203,7 @@ const LoginPage = ({ onLogin }) => {
         )}
 
         {needsPasswordSetup ? (
-          // 密码设置表单
+          // Password setup form
           <form onSubmit={handleSetPassword}>
             <div className="mb-6">
               <label htmlFor="password" className="block text-gray-700 text-sm font-medium mb-2">
@@ -287,7 +287,7 @@ const LoginPage = ({ onLogin }) => {
             </div>
           </form>
         ) : (
-          // 登录表单
+          // Login form
           <form onSubmit={handleLogin}>
             <div className="mb-6">
               <label htmlFor="username" className="block text-gray-700 text-sm font-medium mb-2">

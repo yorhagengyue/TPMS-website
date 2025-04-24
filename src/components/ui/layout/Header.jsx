@@ -53,18 +53,14 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-40 ${
-        scrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'
-      } transition-all duration-300`}
+      className="fixed top-0 left-0 right-0 z-40 bg-white shadow-md py-3 transition-all duration-300"
     >
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
           {/* Logo and site name */}
           <Link to="/" className="flex items-center cursor-pointer">
             <div
-              className={`font-bold text-xl md:text-2xl transition-colors duration-300 ${
-                scrolled ? 'text-primary-600' : 'text-primary-500'
-              }`}
+              className="font-bold text-xl md:text-2xl text-primary-600"
             >
               TP Mindsport Club
             </div>

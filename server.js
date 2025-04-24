@@ -105,63 +105,63 @@ async function initializeDatabase() {
       await connection.commit();
     } else {
       // MySQL initialization
-      
-      // Create students table
-      await connection.query(`
-        CREATE TABLE IF NOT EXISTS students (
-          id INT AUTO_INCREMENT PRIMARY KEY,
-          name VARCHAR(255) NOT NULL,
-          course VARCHAR(255),
-          index_number VARCHAR(50) UNIQUE NOT NULL,
-          email VARCHAR(255),
+    
+    // Create students table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS students (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        course VARCHAR(255),
+        index_number VARCHAR(50) UNIQUE NOT NULL,
+        email VARCHAR(255),
           phone_number VARCHAR(50),
-          total_sessions INT DEFAULT 0,
-          attended_sessions INT DEFAULT 0,
-          attendance_rate DECIMAL(5,2) DEFAULT 0.00,
-          last_attendance TIMESTAMP NULL,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      
-      // Create attendance table
-      await connection.query(`
-        CREATE TABLE IF NOT EXISTS attendance (
-          id INT AUTO_INCREMENT PRIMARY KEY,
-          student_id INT NOT NULL,
-          check_in_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          location_lat DECIMAL(10, 8),
-          location_lng DECIMAL(11, 8),
-          session_id INT,
-          FOREIGN KEY (student_id) REFERENCES students(id)
-        )
-      `);
-      
-      // Create users table
-      await connection.query(`
-        CREATE TABLE IF NOT EXISTS users (
-          id INT AUTO_INCREMENT PRIMARY KEY,
-          username VARCHAR(50) UNIQUE NOT NULL,
-          password_hash VARCHAR(255) NOT NULL,
-          student_id INT NOT NULL,
-          email VARCHAR(255),
-          role ENUM('admin', 'student', 'teacher') NOT NULL DEFAULT 'student',
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          last_login TIMESTAMP NULL,
-          FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
-        )
-      `);
-      
-      // Create revoked tokens table
-      await connection.query(`
-        CREATE TABLE IF NOT EXISTS revoked_tokens (
-          id INT AUTO_INCREMENT PRIMARY KEY,
-          token_id VARCHAR(255) NOT NULL,
-          expiry TIMESTAMP NOT NULL,
-          revoked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          INDEX (token_id),
-          INDEX (expiry)
-        )
-      `);
+        total_sessions INT DEFAULT 0,
+        attended_sessions INT DEFAULT 0,
+        attendance_rate DECIMAL(5,2) DEFAULT 0.00,
+        last_attendance TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Create attendance table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS attendance (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        student_id INT NOT NULL,
+        check_in_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        location_lat DECIMAL(10, 8),
+        location_lng DECIMAL(11, 8),
+        session_id INT,
+        FOREIGN KEY (student_id) REFERENCES students(id)
+      )
+    `);
+    
+    // Create users table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(50) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        student_id INT NOT NULL,
+        email VARCHAR(255),
+        role ENUM('admin', 'student', 'teacher') NOT NULL DEFAULT 'student',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_login TIMESTAMP NULL,
+        FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+      )
+    `);
+    
+    // Create revoked tokens table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS revoked_tokens (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        token_id VARCHAR(255) NOT NULL,
+        expiry TIMESTAMP NOT NULL,
+        revoked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX (token_id),
+        INDEX (expiry)
+      )
+    `);
     }
     
     connection.release();
@@ -379,55 +379,55 @@ app.post('/api/auth/verify-student', async (req, res) => {
     } else {
       // A direct match was found
       const studentDbId = studentRows[0].id;
-      
-      const auth = require('./src/lib/auth');
+    
+    const auth = require('./src/lib/auth');
       const result = await auth.verifyStudentId(normalizedStudentId);
-      
+    
       // Check if student already has an account - query using numeric ID
       const userQuery = db.isPostgres
         ? 'SELECT * FROM users WHERE student_id = $1'
         : 'SELECT * FROM users WHERE student_id = ?';
       
       const userRows = await db.query(userQuery, [studentDbId]);
-      
-      if (userRows.length > 0) {
+    
+    if (userRows.length > 0) {
         // User already exists
-        const user = userRows[0];
-        
+      const user = userRows[0];
+      
         if (!user.password_hash || user.password_hash === '') {
           // User exists but has no password
-          return res.json({
-            success: true,
-            hasAccount: true,
-            needsPasswordSetup: true,
-            message: 'Account exists but requires password setup. Please go to the login page.'
-          });
-        } else {
-          // User already exists and has a password
-          return res.json({
-            success: true,
-            hasAccount: true,
-            needsPasswordSetup: false,
-            message: 'Account already exists. Please log in directly.'
-          });
-        }
-      }
-      
-      if (result.success) {
-        // Student exists but has no account, create an account without a password
-        await auth.createUserAccount(normalizedStudentId);
-        
         return res.json({
           success: true,
-          hasAccount: false,
-          needsPasswordSetup: true,
-          message: 'Verification successful, account has been created. Please go to the login page to set your password'
+          hasAccount: true,
+            needsPasswordSetup: true,
+            message: 'Account exists but requires password setup. Please go to the login page.'
         });
       } else {
-        return res.status(400).json({
-          success: false,
-          message: result.message || 'Student ID verification failed'
+          // User already exists and has a password
+        return res.json({
+          success: true,
+          hasAccount: true,
+            needsPasswordSetup: false,
+            message: 'Account already exists. Please log in directly.'
         });
+      }
+    }
+    
+    if (result.success) {
+        // Student exists but has no account, create an account without a password
+        await auth.createUserAccount(normalizedStudentId);
+      
+      return res.json({
+        success: true,
+        hasAccount: false,
+          needsPasswordSetup: true,
+          message: 'Verification successful, account has been created. Please go to the login page to set your password'
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+          message: result.message || 'Student ID verification failed'
+      });
       }
     }
   } catch (error) {
@@ -541,8 +541,8 @@ app.get('/api/users/profile', authenticate, async (req, res) => {
     // Get user details
     const userQuery = db.isPostgres
       ? `SELECT u.id, u.username, u.role, s.name, s.index_number, s.email, s.course
-         FROM users u
-         JOIN students s ON u.student_id = s.id
+       FROM users u
+       JOIN students s ON u.student_id = s.id
          WHERE u.id = $1`
       : `SELECT u.id, u.username, u.role, s.name, s.index_number, s.email, s.course
          FROM users u
@@ -577,7 +577,7 @@ app.get('/api/users/profile', authenticate, async (req, res) => {
 app.get('/api/students', authenticate, authorize(['admin', 'teacher']), async (req, res) => {
   try {
     const studentsQuery = `SELECT id, name, course, index_number, email, phone_number, 
-            total_sessions, attended_sessions, attendance_rate
+              total_sessions, attended_sessions, attendance_rate
      FROM students`;
     
     const rows = await db.query(studentsQuery);
@@ -613,58 +613,58 @@ app.post('/api/import-students', authenticate, authorize(['admin']), upload.sing
     try {
       await connection.beginTransaction();
 
-      for (const row of jsonData) {
-        const name = row['Name'] || '';
-        const course = row['Course'] || '';
+    for (const row of jsonData) {
+      const name = row['Name'] || '';
+      const course = row['Course'] || '';
         const indexNumber = (row['index number'] || row['Admission Numbers'] || row['Admission Number'] || '').toString().trim();
         const email = row['Email'] || '';
         const phoneNumber = row['Phone Number'] || '';
         const totalSessions = parseInt(row['Total Number Training Sessions'] || 0);
         const attendanceRate = parseFloat(row['Percentage for Attendance'] || 0);
         const attendedSessions = Math.round((attendanceRate / 100) * totalSessions) || 0;
-        
-        if (!name || !indexNumber) {
-          errors++;
-          continue;
-        }
+      
+      if (!name || !indexNumber) {
+        errors++;
+        continue;
+      }
 
-        try {
-          // Check if student already exists
+      try {
+        // Check if student already exists
           const existingQuery = db.isPostgres
             ? 'SELECT id FROM students WHERE index_number = $1'
             : 'SELECT id FROM students WHERE index_number = ?';
           
           const existing = await connection.query(existingQuery, [indexNumber]);
-          
-          if (existing.length === 0) {
-            // Insert new student
+        
+        if (existing.length === 0) {
+          // Insert new student
             const insertQuery = db.isPostgres
               ? 'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)'
               : 'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
             
             await connection.query(insertQuery, [name, course, indexNumber, email, phoneNumber, totalSessions, attendedSessions, attendanceRate]);
-            inserted++;
-          } else {
-            // Update existing student
+          inserted++;
+        } else {
+          // Update existing student
             const updateQuery = db.isPostgres
               ? 'UPDATE students SET name = $1, course = $2, email = $3, phone_number = $4, total_sessions = $5, attended_sessions = $6, attendance_rate = $7 WHERE index_number = $8'
               : 'UPDATE students SET name = ?, course = ?, email = ?, phone_number = ?, total_sessions = ?, attended_sessions = ?, attendance_rate = ? WHERE index_number = ?';
             
             await connection.query(updateQuery, [name, course, email, phoneNumber, totalSessions, attendedSessions, attendanceRate, indexNumber]);
-            inserted++;
-          }
-        } catch (error) {
-          console.error('Error inserting/updating student:', error);
-          errors++;
+          inserted++;
         }
+      } catch (error) {
+        console.error('Error inserting/updating student:', error);
+        errors++;
       }
+    }
 
       await connection.commit();
     } catch (error) {
       await connection.rollback();
       throw error;
     } finally {
-      connection.release();
+    connection.release();
     }
     
     // Clean up uploaded file
@@ -797,9 +797,9 @@ app.post('/api/attendance', authenticate, async (req, res) => {
     // Update student attendance stats
     const updateQuery = db.isPostgres
       ? `UPDATE students SET 
-          attended_sessions = attended_sessions + 1,
-          attendance_rate = (attended_sessions + 1) / (CASE WHEN total_sessions = 0 THEN 1 ELSE total_sessions END) * 100,
-          last_attendance = NOW()
+        attended_sessions = attended_sessions + 1,
+        attendance_rate = (attended_sessions + 1) / (CASE WHEN total_sessions = 0 THEN 1 ELSE total_sessions END) * 100,
+        last_attendance = NOW()
          WHERE id = $1`
       : `UPDATE students SET 
           attended_sessions = attended_sessions + 1,
@@ -822,8 +822,8 @@ app.get('/api/export-attendance', authenticate, authorize(['admin', 'teacher']),
     // Get attendance data with student info
     const attendanceQuery = db.isPostgres
       ? `SELECT s.name, s.course, s.index_number, a.check_in_time, a.location_lat, a.location_lng
-         FROM attendance a
-         JOIN students s ON a.student_id = s.id
+      FROM attendance a
+      JOIN students s ON a.student_id = s.id
          ORDER BY a.check_in_time DESC`
       : `SELECT s.name, s.course, s.index_number, a.check_in_time, a.location_lat, a.location_lng
          FROM attendance a
@@ -886,8 +886,8 @@ app.get('/api/students/:id', authenticate, async (req, res) => {
     // Get student details
     const studentQuery = db.isPostgres
       ? `SELECT s.*, u.username, u.role, u.id as user_id
-         FROM students s
-         JOIN users u ON s.id = u.student_id
+       FROM students s
+       JOIN users u ON s.id = u.student_id
          WHERE s.id = $1`
       : `SELECT s.*, u.username, u.role, u.id as user_id
          FROM students s
@@ -950,8 +950,8 @@ app.get('/api/students/:id/attendance', authenticate, async (req, res) => {
          ORDER BY check_in_time DESC 
          LIMIT 10`
       : `SELECT * FROM attendance 
-         WHERE student_id = ? 
-         ORDER BY check_in_time DESC 
+       WHERE student_id = ? 
+       ORDER BY check_in_time DESC 
          LIMIT 10`;
     
     const attendance = await db.query(attendanceQuery, [studentId]);

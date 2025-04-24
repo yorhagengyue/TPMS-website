@@ -9,7 +9,6 @@ import RegisterPage from './components/pages/RegisterPage';
 import JoinUsPage from './components/pages/JoinUsPage';
 import { StudentDashboard } from './components/pages/StudentDashboard';
 import { NewsPage } from './components/pages/NewsPage';
-import { IntroSection } from './components/ui/layout/IntroSection';
 import { BannerSection } from './components/ui/layout/BannerSection';
 import LoadingScreen from './components/ui/LoadingScreen';
 import PageTransition from './components/ui/PageTransition';
@@ -171,13 +170,6 @@ const TPMSApp = () => {
             onLogout={handleLogout}
           />
           
-          {/* 首页部分处理，包括IntroSection */}
-          {currentPage === 'home' && (
-            <div>
-              <IntroSection user={user} />
-            </div>
-          )}
-          
           {/* 其他页面时只显示Banner */}
           {currentPage !== 'home' && currentPage !== 'login' && currentPage !== 'register' && (
             <div className="pt-20">
@@ -190,7 +182,7 @@ const TPMSApp = () => {
             currentPage === 'login' || currentPage === 'register' || currentPage === 'joinus'
             ? 'pt-32' 
             : currentPage === 'home'
-            ? 'pt-0' // 首页不需要额外的padding，因为IntroSection已经包含了
+            ? 'pt-0' // 首页不需要额外的padding
             : 'pt-8'
           }`}>
             {error && (

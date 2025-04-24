@@ -88,22 +88,22 @@ const verifyStudentId = async (studentId) => {
       const fuzzyStudents = await connection.query(fuzzyStudentSql, [studentId.toLowerCase()]);
       
       if (fuzzyStudents.length === 0) {
-        return { success: false, message: 'Student ID not found' };
-      }
-      
+      return { success: false, message: 'Student ID not found' };
+    }
+    
       // Use the fuzzy match result
       const student = fuzzyStudents[0];
-      
-      // Check if student already has a user account
+    
+    // Check if student already has a user account
       const userSql = db.isPostgres
         ? 'SELECT id, password_hash FROM users WHERE student_id = $1'
         : 'SELECT id, password_hash FROM users WHERE student_id = ?';
       
       const users = await connection.query(userSql, [student.id]);
-      
-      if (users.length > 0) {
-        // If account exists, check if password is set
-        const hasPassword = users[0].password_hash && users[0].password_hash.length > 0;
+    
+    if (users.length > 0) {
+      // If account exists, check if password is set
+      const hasPassword = users[0].password_hash && users[0].password_hash.length > 0;
         
         return { 
           success: true, 
@@ -208,7 +208,7 @@ const createUserAccount = async (studentId) => {
       const fuzzyStudents = await connection.query(fuzzyStudentSql, [studentId.toLowerCase()]);
       
       if (fuzzyStudents.length === 0) {
-        return { success: false, message: 'Student ID not found' };
+      return { success: false, message: 'Student ID not found' };
       }
       
       // Use the fuzzy match result
@@ -316,8 +316,8 @@ const createUserAccount = async (studentId) => {
          JOIN students s ON u.student_id = s.id 
          WHERE u.id = $1`
       : `SELECT u.*, s.name, s.course, s.email, s.index_number 
-         FROM users u 
-         JOIN students s ON u.student_id = s.id 
+       FROM users u 
+       JOIN students s ON u.student_id = s.id 
          WHERE u.id = ?`;
     
     const users = await connection.query(getUserSql, [newUserId]);
@@ -372,8 +372,8 @@ const setUserPassword = async (userId, password) => {
          JOIN students s ON u.student_id = s.id 
          WHERE u.id = $1`
       : `SELECT u.*, s.name, s.course, s.email, s.index_number 
-         FROM users u 
-         JOIN students s ON u.student_id = s.id 
+       FROM users u 
+       JOIN students s ON u.student_id = s.id 
          WHERE u.id = ?`;
     
     const users = await connection.query(getUserSql, [userId]);
@@ -442,8 +442,8 @@ const authenticateUser = async (username, password) => {
          JOIN students s ON u.student_id = s.id 
          WHERE LOWER(u.username) = $1`
       : `SELECT u.*, s.name, s.course, s.email, s.index_number 
-         FROM users u 
-         JOIN students s ON u.student_id = s.id 
+       FROM users u 
+       JOIN students s ON u.student_id = s.id 
          WHERE LOWER(u.username) = ?`;
     
     const users = await connection.query(getUserSql, [username.toLowerCase()]);

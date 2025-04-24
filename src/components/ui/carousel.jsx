@@ -3,31 +3,37 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiChevronLeft, FiChevronRight, FiImage } from 'react-icons/fi';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 
-// 更新轮播图图片，使用本地图片路径
+// 更新轮播图图片，使用本地图片路径并添加内容
 const slides = [
   {
     id: 1,
-    image: '/images/slide1.jpg',
-    mobileImage: '/images/slide1.jpg',
+    image: process.env.PUBLIC_URL + '/images/slide1.jpg',
+    mobileImage: process.env.PUBLIC_URL + '/images/slide1.jpg',
     gradient: 'bg-gradient-to-r from-blue-800 to-blue-600',
     aspectRatio: '16/9',
-    title: 'TP Mindsport Club'
+    title: 'Exciting Mind Games',
+    content: 'Looking for exciting, challenging ways to keep your brain stimulated? Look no further as TPMS opens its doors to you, offering classic games like international chess, chinese chess, and others!\n\nMake sure to come check us out at the CCA fair on 23-24 April at Horseshoe Plaza!',
+    contentShort: 'TPMS opens its doors to you!'
   },
   {
     id: 2,
-    image: '/images/slide2.png',
-    mobileImage: '/images/slide2.png',
+    image: process.env.PUBLIC_URL + '/images/slide2.png',
+    mobileImage: process.env.PUBLIC_URL + '/images/slide2.png',
     gradient: 'bg-gradient-to-r from-purple-800 to-indigo-700',
     aspectRatio: '16/9',
-    title: 'Chess Tournament'
+    title: 'AY24/25 TPMS Maincomm',
+    content: 'AY24/25 TPMS Maincomm signing off… Welcome new maincomm members in the near future!',
+    contentShort: 'Farewell AY24/25 Maincomm!'
   },
   {
     id: 3,
-    image: '/images/slide3.jpg',
-    mobileImage: '/images/slide3.jpg',
+    image: process.env.PUBLIC_URL + '/images/slide3.jpg',
+    mobileImage: process.env.PUBLIC_URL + '/images/slide3.jpg',
     gradient: 'bg-gradient-to-r from-red-800 to-orange-700',
     aspectRatio: '16/9',
-    title: 'Strategic Thinking'
+    title: 'Welcome AY25/26 Maincomm',
+    content: 'Welcoming our AY25/26 maincomm members into TPMS!!!\n\nIt\'s been a long and tough journey for us guys, but we\'ve finally made it. We\'d like to thank our outgoing maincomm members for their continuous support!',
+    contentShort: 'Welcome our new maincomm members!'
   }
 ];
 
@@ -40,7 +46,7 @@ export const Carousel = ({ aspectRatio = '16/9', height = null, maxHeight = '80v
   // Custom hook to check if we're on mobile
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isTablet = useMediaQuery('(max-width: 1024px)');
-
+  
   // Set dynamic sizing for carousel container
   useEffect(() => {
     if (carouselRef.current && !height) {
@@ -149,6 +155,17 @@ export const Carousel = ({ aspectRatio = '16/9', height = null, maxHeight = '80v
   const currentSlide = slides[currentIndex];
   const hasImageError = imageErrors[currentSlide.id];
 
+  // 将内容文本转换为带有换行符的JSX
+  const formatContent = (content) => {
+    if (!content) return null;
+    return content.split('\n').map((line, i) => (
+      <React.Fragment key={i}>
+        {line}
+        {i < content.split('\n').length - 1 && <br />}
+      </React.Fragment>
+    ));
+  };
+
   return (
     <div 
       ref={carouselRef}
@@ -169,12 +186,14 @@ export const Carousel = ({ aspectRatio = '16/9', height = null, maxHeight = '80v
           }}
           className="absolute w-full h-full"
         >
-          <div className={`relative w-full h-full ${hasImageError ? currentSlide.gradient : ''}`}>
+          <div className={`relative w-full h-full flex ${isMobile ? 'flex-col' : 'flex-row'} ${hasImageError ? currentSlide.gradient : ''}`}>
+            {/* 图片部分 */}
+            <div className={`${isMobile ? 'w-full h-full' : 'w-3/5 h-full'} relative`}>
             {!hasImageError && (
               <img
-                src={isMobile && currentSlide.mobileImage ? currentSlide.mobileImage : currentSlide.image}
+                  src={isMobile && currentSlide.mobileImage ? currentSlide.mobileImage : currentSlide.image}
                 alt={`${currentSlide.title || `Slide ${currentSlide.id}`}`}
-                className="w-full h-full object-cover transition-all"
+                  className="w-full h-full object-contain transition-all"
                 onError={() => handleImageError(currentSlide.id)}
                 loading="lazy"
               />
@@ -185,10 +204,34 @@ export const Carousel = ({ aspectRatio = '16/9', height = null, maxHeight = '80v
               </div>
             )}
             
-            {/* Title overlay */}
-            {currentSlide.title && (
+              {/* 移动端显示的简短文字 */}
+              {isMobile && currentSlide.contentShort && (
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 md:p-6">
                 <h3 className="text-white text-lg md:text-2xl font-bold">{currentSlide.title}</h3>
+                  <p className="text-white/90 text-sm mt-1">{currentSlide.contentShort}</p>
+                </div>
+              )}
+            </div>
+            
+            {/* 桌面端显示的详细文字内容 */}
+            {!isMobile && (
+              <div className="w-2/5 h-full bg-gray-900/90 p-6 md:p-8 flex flex-col justify-center">
+                <motion.h2 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="text-2xl md:text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-primary-600 drop-shadow-sm"
+                >
+                  {currentSlide.title}
+                </motion.h2>
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="text-white text-base md:text-lg space-y-4"
+                >
+                  <p className="leading-relaxed">{formatContent(currentSlide.content)}</p>
+                </motion.div>
               </div>
             )}
           </div>

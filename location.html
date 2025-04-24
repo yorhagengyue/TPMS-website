@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Location</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .location-container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .location-status {
+            color: #4CAF50;
+            text-align: right;
+            margin-bottom: 10px;
+        }
+        .location-data {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error-message {
+            color: #f44336;
+            margin-top: 10px;
+        }
+        .options {
+            margin: 15px 0;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+        }
+        .checkbox-container input {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Your Location</h1>
+    
+    <div class="options">
+        <div class="checkbox-container">
+            <input type="checkbox" id="highAccuracy" checked>
+            <label for="highAccuracy">High Accuracy Mode (uses GPS, more precise but uses more battery)</label>
+        </div>
+    </div>
+    
+    <button id="getLocation">Get Current Location</button>
+    
+    <div class="location-container">
+        <div class="location-status" id="status">Location Unknown</div>
+        <div class="location-data">
+            <span>Latitude:</span>
+            <span id="latitude">-</span>
+        </div>
+        <div class="location-data">
+            <span>Longitude:</span>
+            <span id="longitude">-</span>
+        </div>
+    </div>
+    
+    <p id="error" class="error-message"></p>
+
+    <script>
+        document.getElementById('getLocation').addEventListener('click', function() {
+            const statusElement = document.getElementById('status');
+            const latitudeElement = document.getElementById('latitude');
+            const longitudeElement = document.getElementById('longitude');
+            const errorElement = document.getElementById('error');
+            const highAccuracyEnabled = document.getElementById('highAccuracy').checked;
+            
+            // Clear previous error messages
+            errorElement.textContent = '';
+            
+            // Check if browser supports geolocation
+            if (!navigator.geolocation) {
+                errorElement.textContent = 'Your browser doesn\'t support geolocation';
+                return;
+            }
+            
+            // Update status
+            statusElement.textContent = 'Getting location...';
+            
+            // Get position
+            navigator.geolocation.getCurrentPosition(
+                // Success callback
+                function(position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    
+                    latitudeElement.textContent = latitude;
+                    longitudeElement.textContent = longitude;
+                    statusElement.textContent = 'Location Found';
+                },
+                // Error callback
+                function(error) {
+                    statusElement.textContent = 'Location Unknown';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorElement.textContent = 'User denied the location request';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorElement.textContent = 'Location information is unavailable';
+                            break;
+                        case error.TIMEOUT:
+                            errorElement.textContent = 'The location request timed out';
+                            break;
+                        case error.UNKNOWN_ERROR:
+                            errorElement.textContent = 'An unknown error occurred';
+                            break;
+                    }
+                },
+                // Options
+                {
+                    enableHighAccuracy: highAccuracyEnabled, // Use the checkbox value
+                    timeout: 10000,          // 10 second timeout
+                    maximumAge: 0            // Don't use cached position
+                }
+            );
+        });
+    </script>
+</body>
+</html> 

@@ -17,7 +17,7 @@ export const CheckinPage = ({ user }) => {
   const [location, setLocation] = useState(null);
   const [locationStatus, setLocationStatus] = useState('idle');
   const [successMessage, setSuccessMessage] = useState('');
-  
+
   // Check if current time is within allowed check-in times
   const [isWithinCheckinHours, setIsWithinCheckinHours] = useState(false);
   
