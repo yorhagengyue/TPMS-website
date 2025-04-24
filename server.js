@@ -5,6 +5,7 @@ const multer = require('multer');
 const XLSX = require('xlsx');
 const path = require('path');
 const fs = require('fs');
+const fetch = require('node-fetch');
 const config = require('./config'); // Use the new configuration system
 const db = require('./database'); // Import unified database connection module
 const { authenticateUser, revokeToken, verifyStudentId, registerUser, setUserPassword, createUserAccount } = require('./src/lib/auth');
@@ -80,6 +81,8 @@ async function initializeDatabase() {
           student_id INT NOT NULL,
           email VARCHAR(255),
           role VARCHAR(10) NOT NULL DEFAULT 'student' CHECK (role IN ('admin', 'student', 'teacher')),
+          chess_username VARCHAR(50),
+          chess_rating INT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           last_login TIMESTAMP NULL,
           FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
@@ -540,11 +543,11 @@ app.get('/api/users/profile', authenticate, async (req, res) => {
   try {
     // Get user details
     const userQuery = db.isPostgres
-      ? `SELECT u.id, u.username, u.role, s.name, s.index_number, s.email, s.course
+      ? `SELECT u.id, u.username, u.role, u.chess_username, u.chess_rating, s.name, s.index_number, s.email, s.course
        FROM users u
        JOIN students s ON u.student_id = s.id
          WHERE u.id = $1`
-      : `SELECT u.id, u.username, u.role, s.name, s.index_number, s.email, s.course
+      : `SELECT u.id, u.username, u.role, u.chess_username, u.chess_rating, s.name, s.index_number, s.email, s.course
          FROM users u
          JOIN students s ON u.student_id = s.id
          WHERE u.id = ?`;
@@ -1082,11 +1085,24 @@ app.post('/api/user/link-chess', authenticate, async (req, res) => {
       });
     }
 
+    console.log(`Attempting to link Chess.com account for user ${req.user.id} with username: ${chessUsername}`);
+
     // Validate Chess.com username by calling their API
     try {
-      const chessComResponse = await fetch(`https://api.chess.com/pub/player/${chessUsername}`);
+      // Try to fetch player data from Chess.com
+      console.log(`Fetching player data from Chess.com for username: ${chessUsername}`);
+      const playerUrl = `https://api.chess.com/pub/player/${chessUsername}`;
+      console.log(`API URL: ${playerUrl}`);
+      
+      const chessComResponse = await fetch(playerUrl, { 
+        headers: { 'User-Agent': 'TPMS-Chess-Rankings/1.0' }
+      });
+      
+      // Log the response status
+      console.log(`Chess.com player API response status: ${chessComResponse.status}`);
       
       if (!chessComResponse.ok) {
+        console.log(`Failed to fetch Chess.com player data: ${chessComResponse.statusText}`);
         return res.status(404).json({
           success: false,
           message: 'Chess.com username not found. Please check the username and try again.'
@@ -1094,21 +1110,50 @@ app.post('/api/user/link-chess', authenticate, async (req, res) => {
       }
       
       const userData = await chessComResponse.json();
+      console.log(`Successfully fetched player data for ${chessUsername}`);
       
       // Get chess rating from Stats API
-      const statsResponse = await fetch(`https://api.chess.com/pub/player/${chessUsername}/stats`);
+      console.log(`Fetching stats for player ${chessUsername}`);
+      const statsUrl = `https://api.chess.com/pub/player/${chessUsername}/stats`;
+      console.log(`Stats API URL: ${statsUrl}`);
+      
+      const statsResponse = await fetch(statsUrl, {
+        headers: { 'User-Agent': 'TPMS-Chess-Rankings/1.0' }
+      });
+      
+      // Log the response status
+      console.log(`Chess.com stats API response status: ${statsResponse.status}`);
       
       if (!statsResponse.ok) {
-        return res.status(500).json({
-          success: false,
-          message: 'Could not retrieve Chess.com stats'
+        console.log(`Failed to fetch Chess.com stats: ${statsResponse.statusText}`);
+        // Still proceed, but with rating 0
+        console.log(`Proceeding with rating 0 for ${chessUsername}`);
+        
+        // Save username with 0 rating
+        const updateQuery = db.isPostgres
+          ? `UPDATE users 
+             SET chess_username = $1, chess_rating = $2
+             WHERE id = $3`
+          : `UPDATE users 
+             SET chess_username = ?, chess_rating = ?
+             WHERE id = ?`;
+        
+        await db.query(updateQuery, [chessUsername, 0, req.user.id]);
+        
+        return res.json({
+          success: true,
+          message: 'Chess.com account linked successfully, but rating could not be retrieved',
+          chess_username: chessUsername,
+          chess_rating: 0
         });
       }
       
       const statsData = await statsResponse.json();
+      console.log(`Successfully fetched stats for ${chessUsername}`);
       
       // Extract blitz rating or use 0 if not available
       const blitzRating = statsData.chess_blitz?.last?.rating || 0;
+      console.log(`Blitz rating for ${chessUsername}: ${blitzRating}`);
       
       // Save username and rating to user record
       const updateQuery = db.isPostgres
@@ -1119,7 +1164,9 @@ app.post('/api/user/link-chess', authenticate, async (req, res) => {
            SET chess_username = ?, chess_rating = ?
            WHERE id = ?`;
       
+      console.log(`Updating database for user ID ${req.user.id} with username ${chessUsername} and rating ${blitzRating}`);
       await db.query(updateQuery, [chessUsername, blitzRating, req.user.id]);
+      console.log(`Database update successful`);
       
       return res.json({
         success: true,
@@ -1131,14 +1178,16 @@ app.post('/api/user/link-chess', authenticate, async (req, res) => {
       console.error('Error checking Chess.com API:', error);
       return res.status(500).json({
         success: false,
-        message: 'Could not connect to Chess.com API. Please try again later.'
+        message: 'Could not connect to Chess.com API. Please try again later.',
+        error: error.message
       });
     }
   } catch (error) {
     console.error('Error linking Chess.com account:', error);
     return res.status(500).json({
       success: false,
-      message: 'Server error occurred while linking Chess.com account'
+      message: 'Server error occurred while linking Chess.com account',
+      error: error.message
     });
   }
 });
