@@ -258,50 +258,146 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
           }}
           className="absolute inset-0 w-full h-full"
         >
-          {/* 背景图片 */}
-          <motion.div
-            variants={imageVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            className="absolute inset-0 w-full h-full"
-          >
-            <img
-              src={isMobile && currentSlide.mobileImage ? currentSlide.mobileImage : currentSlide.image}
-              alt={currentSlide.title}
-              className="w-full h-full object-contain"
-              onError={() => handleImageError(currentSlide.id)}
-              loading="lazy"
-            />
-            
-            {/* 渐变叠加层 - 移动端更强的渐变效果 */}
-            <div className={`absolute inset-0 ${isMobile ? 'bg-gradient-to-t from-black/90 via-black/70 to-black/40' : 'bg-gradient-to-t from-black via-black/40 to-black/10'}`}></div>
-            
-            {/* 主题色彩叠加 */}
-            <div className={`absolute inset-0 ${colorClass} ${isMobile ? 'opacity-20' : 'opacity-10'}`}></div>
-          </motion.div>
-          
-          {/* 内容叠加层 */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="container mx-auto px-6 md:px-12 flex flex-col items-center md:items-start justify-center h-full">
-              <motion.div
-                variants={contentVariants}
-                initial="hidden"
-                animate="visible"
-                className={`${isMobile ? 'max-w-sm text-center px-4 py-6 bg-black/30 backdrop-blur-sm rounded-2xl' : 'max-w-4xl text-center md:text-left'}`}
-              >
-                {/* 主标题 */}
-                <h2 className={`${isMobile ? 'text-3xl' : 'text-4xl md:text-6xl lg:text-7xl'} font-bold text-white mb-4 md:mb-6 leading-tight`}>
+          {isMobile ? (
+            // 移动端视图 - 上图下文布局
+            <div className="flex flex-col h-full">
+              {/* 图片区域 - 占据上部分 */}
+              <div className="relative w-full h-2/3">
+                <motion.div
+                  variants={imageVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  className="h-full w-full"
+                >
+                  <img
+                    src={currentSlide.mobileImage || currentSlide.image}
+                    alt={currentSlide.title}
+                    className="w-full h-full object-contain"
+                    loading="lazy"
+                  />
+                </motion.div>
+              </div>
+              
+              {/* 文字内容区域 - 占据下部分 */}
+              <div className={`w-full h-1/3 ${colorClass} px-4 py-5 flex flex-col justify-between`}>
+                <div>
+                  <motion.h2 
+                    variants={contentVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="text-2xl font-bold text-white mb-3"
+                  >
+                    {currentSlide.title}
+                  </motion.h2>
+                  
+                  <motion.p 
+                    variants={contentVariants}
+                    initial="hidden"
+                    animate="visible"
+                    transition={{ delay: 0.1 }}
+                    className="text-white/90 text-sm mb-3"
+                  >
+                    {currentSlide.contentShort}
+                  </motion.p>
+                  
+                  {(currentSlide.date || currentSlide.location) && (
+                    <div className="flex flex-col text-white/80 text-xs mb-3">
+                      {currentSlide.date && (
+                        <div className="flex items-center mb-1">
+                          <FiClock className="mr-1" />
+                          <span>{currentSlide.date}</span>
+                        </div>
+                      )}
+                      {currentSlide.location && (
+                        <div className="flex items-center">
+                          <FiMapPin className="mr-1" />
+                          <span>{currentSlide.location}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                {/* 行动按钮 */}
+                {currentSlide.link && (
+                  <motion.div 
+                    variants={fadeIn}
+                    initial="hidden"
+                    animate="visible"
+                    className="mt-auto"
+                  >
+                    {currentSlide.isExternal ? (
+                      <a 
+                        href={currentSlide.link} 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex w-full items-center justify-center px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-full font-medium text-sm transition-all"
+                      >
+                        {currentSlide.linkText || 'Learn More'}
+                        {currentSlide.isExternal ? <FiInstagram className="ml-2" /> : <FiArrowRight className="ml-2" />}
+                      </a>
+                    ) : (
+                      <a 
+                        href={currentSlide.link} 
+                        className="inline-flex w-full items-center justify-center px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-full font-medium text-sm transition-all"
+                      >
+                        {currentSlide.linkText || 'Learn More'}
+                        <FiArrowRight className="ml-2" />
+                      </a>
+                    )}
+                  </motion.div>
+                )}
+              </div>
+            </div>
+          ) : (
+            // 桌面端视图 - 保持原样
+            <div className="relative w-full h-full flex flex-row">
+              {/* 图片部分 */}
+              <div className="w-3/5 h-full relative">
+                <motion.div
+                  variants={imageVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  className="absolute inset-0 w-full h-full"
+                >
+                  <img
+                    src={currentSlide.image}
+                    alt={currentSlide.title}
+                    className="w-full h-full object-contain"
+                    loading="lazy"
+                  />
+                </motion.div>
+                
+                {/* 渐变叠加层 */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10"></div>
+                
+                {/* 主题色彩叠加 */}
+                <div className={`absolute inset-0 ${colorClass} opacity-10`}></div>
+              </div>
+              
+              {/* 桌面端显示的详细文字内容 */}
+              <div className="w-2/5 h-full bg-gray-900/90 p-6 md:p-8 flex flex-col justify-center">
+                <motion.h2 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="text-2xl md:text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600 drop-shadow-sm"
+                >
                   {currentSlide.title}
-                </h2>
+                </motion.h2>
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="text-white text-base md:text-lg space-y-4"
+                >
+                  <p className="leading-relaxed">{formatContent(currentSlide.content)}</p>
+                </motion.div>
                 
-                {/* 内容文本 */}
-                <p className={`${isMobile ? 'text-base text-white' : 'text-lg md:text-xl text-white/90'} mb-6 md:mb-8 max-w-2xl`}>
-                  {isMobile ? currentSlide.contentShort : currentSlide.content}
-                </p>
-                
-                {/* 详细信息 - 仅在非移动端显示 */}
-                {!isMobile && currentSlide.details && (
+                {/* 详细信息 */}
+                {currentSlide.details && (
                   <p className="text-md md:text-lg text-white/70 mb-8 max-w-2xl">
                     {currentSlide.details}
                   </p>
@@ -309,15 +405,15 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                 
                 {/* 日期和地点信息 */}
                 {(currentSlide.date || currentSlide.location) && (
-                  <div className={`${isMobile ? 'flex flex-col space-y-2 mb-6' : 'flex flex-col md:flex-row gap-4 mb-8'} text-white/80`}>
+                  <div className="flex flex-col md:flex-row gap-4 mb-8 text-white/80">
                     {currentSlide.date && (
-                      <div className="flex items-center justify-center md:justify-start">
+                      <div className="flex items-center">
                         <FiClock className="mr-2" />
                         <span>{currentSlide.date}</span>
                       </div>
                     )}
                     {currentSlide.location && (
-                      <div className="flex items-center justify-center md:justify-start">
+                      <div className="flex items-center">
                         <FiMapPin className="mr-2" />
                         <span>{currentSlide.location}</span>
                       </div>
@@ -327,18 +423,13 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                 
                 {/* 行动按钮 */}
                 {currentSlide.link && (
-                  <motion.div 
-                    variants={fadeIn} 
-                    initial="hidden" 
-                    animate="visible"
-                    className={`${isMobile ? 'mt-2' : ''}`}
-                  >
+                  <motion.div variants={fadeIn} initial="hidden" animate="visible">
                     {currentSlide.isExternal ? (
                       <a 
                         href={currentSlide.link} 
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`inline-flex items-center px-6 py-3 ${colorClass} text-white rounded-full font-medium ${isMobile ? 'text-base w-full justify-center' : 'text-lg'} transition-transform hover:scale-105 shadow-lg`}
+                        className={`inline-flex items-center px-6 py-3 ${colorClass} text-white rounded-full font-medium text-lg transition-transform hover:scale-105 shadow-lg`}
                       >
                         {currentSlide.linkText || 'Learn More'}
                         {currentSlide.isExternal ? <FiInstagram className="ml-2" /> : <FiArrowRight className="ml-2" />}
@@ -346,7 +437,7 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                     ) : (
                       <a 
                         href={currentSlide.link} 
-                        className={`inline-flex items-center px-6 py-3 ${colorClass} text-white rounded-full font-medium ${isMobile ? 'text-base w-full justify-center' : 'text-lg'} transition-transform hover:scale-105 shadow-lg`}
+                        className={`inline-flex items-center px-6 py-3 ${colorClass} text-white rounded-full font-medium text-lg transition-transform hover:scale-105 shadow-lg`}
                       >
                         {currentSlide.linkText || 'Learn More'}
                         <FiArrowRight className="ml-2" />
@@ -354,14 +445,14 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                     )}
                   </motion.div>
                 )}
-              </motion.div>
+              </div>
             </div>
-          </div>
+          )}
         </motion.div>
       </AnimatePresence>
       
       {/* 导航按钮 - 移动端调整尺寸 */}
-      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between items-center px-2 md:px-10 z-10">
+      <div className="absolute inset-x-0 top-1/3 -translate-y-1/2 flex justify-between items-center px-2 md:px-10 z-10">
         <motion.button
           onClick={handlePrevious}
           initial={{ opacity: 0.6 }}
@@ -385,8 +476,8 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
         </motion.button>
       </div>
       
-      {/* 底部控制区 - 移动端简化 */}
-      <div className="absolute bottom-0 left-0 right-0 p-3 md:p-8 z-10">
+      {/* 底部控制区 - 移动端简化并调整位置 */}
+      <div className={`absolute ${isMobile ? 'bottom-1/3 -translate-y-6' : 'bottom-0'} left-0 right-0 p-3 md:p-8 z-10`}>
         <div className={`container mx-auto flex ${isMobile ? 'justify-center' : 'flex-col md:flex-row md:items-center md:justify-between'}`}>
           {/* 分页指示器 */}
           <div className="flex space-x-2 md:space-x-3 justify-center md:justify-start">
@@ -402,7 +493,7 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                 <span 
                   className={`absolute inset-0 rounded-full transition-all duration-300 ${
                     index === currentIndex 
-                      ? `${colorClass} shadow-md` 
+                      ? `${isMobile ? 'bg-white' : colorClass} shadow-md` 
                       : 'bg-white/40 group-hover:bg-white/60'
                   }`} 
                 />
