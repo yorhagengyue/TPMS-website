@@ -108,7 +108,7 @@ npm run build
 
 1. Clone the project
 ```bash
-git clone [repository URL]
+git clone https://github.com/yorhagengyue/TPMS-website
 cd tpms
 ```
 
