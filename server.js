@@ -787,10 +787,28 @@ app.post('/api/attendance', authenticate, async (req, res) => {
     }
     
     // 检查当前时间是否在允许签到的时间范围内 (仅周五18:00-21:00)
+    // Use Singapore time (UTC+8)
     const now = new Date();
-    const dayOfWeek = now.getDay(); // 0是周日，5是周五
-    const hour = now.getHours();
-    const isValidTime = dayOfWeek === 5 && hour >= 18 && hour < 21;
+    // Debug logging of server time
+    console.log(`Server time: ${now.toISOString()}`);
+    
+    // Convert to Singapore time (UTC+8)
+    const sgOffset = 8 * 60; // 8 hours in minutes
+    const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+    const sgMinutes = (utcMinutes + sgOffset) % (24 * 60);
+    const sgHour = Math.floor(sgMinutes / 60);
+    
+    // Get day of week in Singapore time
+    // If adding 8 hours pushes us to the next day, adjust the day of week
+    let sgDayOfWeek = now.getUTCDay();
+    if (now.getUTCHours() + 8 >= 24) {
+      sgDayOfWeek = (sgDayOfWeek + 1) % 7;
+    }
+    
+    console.log(`Singapore time: Day ${sgDayOfWeek} (5=Friday), Hour: ${sgHour}`);
+    
+    // Check if it's Friday (day 5) and between 6-9pm Singapore time
+    const isValidTime = sgDayOfWeek === 5 && sgHour >= 18 && sgHour < 21;
     
     if (!isValidTime) {
       const errorMsg = 'Check-in failed: CCA activities are only held on Fridays from 6:00 PM to 9:00 PM. Please check in during activity hours.';
