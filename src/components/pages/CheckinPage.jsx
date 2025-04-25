@@ -386,9 +386,9 @@ export const CheckinPage = ({ user }) => {
           <p>
             Note: Your location is only used to verify you are at the CCA venue.
             <br />
-            You must be within campus boundaries or within 1.5 kilometers of the campus center to check in.
+            You must be within campus boundaries or within 1 kilometer of the campus center to check in.
             <br />
-            CCA sessions are only on Fridays from 6:00 PM to 9:00 PM.
+            If you are in campus but rejected of check-in, please try again or use another browser.
           </p>
         </div>
       </motion.div>
