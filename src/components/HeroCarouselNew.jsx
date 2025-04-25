@@ -93,7 +93,7 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
     
     intervalRef.current = setInterval(() => {
       if (!isHovering) {
-        handleNext();
+      handleNext();
       }
     }, 6000);
   };
@@ -201,10 +201,10 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
     },
     visible: { 
       opacity: 1, 
-      y: 0,
-      transition: { 
-        duration: 0.8, 
-        ease: "easeOut" 
+      y: 0, 
+      transition: {
+        duration: 0.8,
+        ease: "easeOut"
       }
     }
   };
@@ -234,7 +234,7 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
   
   // 计算进度条宽度
   const progressWidth = ((currentIndex + 1) / slides.length) * 100;
-
+  
   return (
     <div 
       ref={carouselRef}
@@ -263,21 +263,21 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
             <div className="flex flex-col h-full">
               {/* 图片区域 - 占据上部分 */}
               <div className="relative w-full h-2/3">
-                <motion.div
-                  variants={imageVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
+            <motion.div
+              variants={imageVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
                   className="h-full w-full"
-                >
-                  <img
+            >
+              <img
                     src={currentSlide.mobileImage || currentSlide.image}
                     alt={currentSlide.title}
-                    className="w-full h-full object-cover"
+                className="w-full h-full object-cover"
                     loading="lazy"
-                  />
-                </motion.div>
-                
+              />
+            </motion.div>
+            
                 {/* 导航按钮放在图片上 */}
                 <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between items-center px-2 z-20">
                   <motion.button
@@ -303,28 +303,28 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                   </motion.button>
                 </div>
               </div>
-              
+            
               {/* 文字内容区域 - 占据下部分 */}
               <div className={`w-full h-1/3 ${colorClass} px-4 py-5 flex flex-col justify-between`}>
                 <div className="flex-1">
-                  <motion.h2 
+              <motion.h2 
                     variants={contentVariants}
-                    initial="hidden"
-                    animate="visible"
+                initial="hidden"
+                animate="visible"
                     className="text-2xl font-bold text-white mb-3"
-                  >
+              >
                     {currentSlide.title}
-                  </motion.h2>
-                  
-                  <motion.p 
+              </motion.h2>
+              
+              <motion.p 
                     variants={contentVariants}
-                    initial="hidden"
-                    animate="visible"
+                initial="hidden"
+                animate="visible"
                     transition={{ delay: 0.1 }}
                     className="text-white/90 text-sm mb-3"
-                  >
+              >
                     {currentSlide.contentShort}
-                  </motion.p>
+              </motion.p>
                   
                   {(currentSlide.date || currentSlide.location) && (
                     <div className="flex flex-col text-white/80 text-xs mb-3">
@@ -492,8 +492,8 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                     )}
                   </motion.div>
                 )}
-              </div>
             </div>
+          </div>
           )}
         </motion.div>
       </AnimatePresence>
@@ -531,26 +531,26 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
           <div className="container mx-auto flex flex-row items-center justify-between">
             {/* 分页指示器 */}
             <div className="flex space-x-3 justify-start">
-              {slides.map((_, index) => (
+        {slides.map((_, index) => (
                 <button
-                  key={index}
-                  onClick={() => handleDotClick(index)}
-                  aria-label={`Go to slide ${index + 1}`}
+            key={index}
+            onClick={() => handleDotClick(index)}
+            aria-label={`Go to slide ${index + 1}`}
                   className={`group relative h-3 transition-all duration-300 ${
                     index === currentIndex ? 'w-8' : 'w-3'
                   }`}
                 >
                   <span 
                     className={`absolute inset-0 rounded-full transition-all duration-300 ${
-                      index === currentIndex 
+              index === currentIndex
                         ? `${colorClass} shadow-md` 
                         : 'bg-white/40 group-hover:bg-white/60'
-                    }`} 
+            }`}
                   />
                 </button>
-              ))}
-            </div>
-            
+        ))}
+      </div>
+      
             {/* 进度条 */}
             <div className="block w-64 h-1 bg-white/20 rounded-full overflow-hidden mt-0">
               <motion.div 
@@ -560,13 +560,13 @@ const HeroCarouselNew = ({ height = null, maxHeight = '700px' }) => {
                 transition={{ duration: 0.3, ease: "easeOut" }}
               />
             </div>
-            
+      
             {/* 幻灯片计数器 */}
             <div className="text-white/60 text-sm font-medium block">
-              <span className="text-white">{currentIndex + 1}</span>
-              <span className="mx-1">/</span>
-              <span>{slides.length}</span>
-            </div>
+        <span className="text-white">{currentIndex + 1}</span>
+        <span className="mx-1">/</span>
+        <span>{slides.length}</span>
+      </div>
           </div>
         </div>
       )}

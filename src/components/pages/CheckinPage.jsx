@@ -81,7 +81,7 @@ export const CheckinPage = ({ user }) => {
     
     // If not directly within boundary, check distance from campus center
     const distance = calculateDistance(lat, lng, tpLocation.lat, tpLocation.lng);
-    return distance <= 1.5; // Within 1.5km of campus center
+    return distance <= 1.0; // Within 1.0km of campus center
   };
 
   // Get user's current location

@@ -75,25 +75,25 @@ export const EventsPage = ({ user }) => {
 
   return (
     <PageTransition>
-      <div className="container mx-auto px-4 py-24">
+      <div className="container mx-auto px-2 sm:px-4 py-16 sm:py-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-4xl font-bold mb-6 text-gray-800">Chess.com Rankings</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 text-gray-800">Chess.com Rankings</h1>
           <div className="w-16 h-1 bg-blue-500 mb-10"></div>
           
           {users.length > 0 ? (
             <>
               {/* Rating Type Tabs */}
-              <div className="mb-6 overflow-x-auto">
-                <div className="inline-flex p-1 space-x-1 bg-gray-100 rounded-lg min-w-max">
+              <div className="mb-6 overflow-x-auto scrollbar-none">
+                <div className="flex flex-nowrap p-1 space-x-1 bg-gray-100 rounded-lg min-w-max">
                   {ratingTypes.map(type => (
                     <button
                       key={type.id}
                       onClick={() => setActiveRatingType(type.id)}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 focus:outline-none ${
+                      className={`px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors duration-200 focus:outline-none ${
                         activeRatingType === type.id
                           ? 'bg-white shadow text-blue-600'
                           : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
@@ -112,7 +112,7 @@ export const EventsPage = ({ user }) => {
               </div>
               
               {/* Search input */}
-              <div className="relative max-w-md mb-8">
+              <div className="relative w-full max-w-md mb-8">
                 <input
                   type="text"
                   placeholder="Search by name or Chess.com username..."
@@ -124,20 +124,20 @@ export const EventsPage = ({ user }) => {
               </div>
               
               {/* Rankings table */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
+              <div className="bg-white rounded-lg shadow-md overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 table-auto">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-2 sm:px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">
                         Rank
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-2 sm:px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[35%]">
                         Player
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-2 sm:px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[35%]">
                         Chess.com Username
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-2 sm:px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[20%]">
                         {currentRatingType.label} Rating
                       </th>
                     </tr>
@@ -145,7 +145,7 @@ export const EventsPage = ({ user }) => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {loading ? (
                       <tr>
-                        <td colSpan="4" className="px-6 py-4 text-center">
+                        <td colSpan="4" className="px-2 sm:px-4 md:px-6 py-4 text-center">
                           <div className="flex justify-center">
                             <FiLoader className="animate-spin text-blue-500" size={24} />
                           </div>
@@ -154,27 +154,27 @@ export const EventsPage = ({ user }) => {
                     ) : currentUsers.length > 0 ? (
                       currentUsers.map((user, index) => (
                         <tr key={user.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          <td className="px-2 sm:px-4 md:px-6 py-4 text-sm font-medium text-gray-900">
                             {indexOfFirstUser + index + 1}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-2 sm:px-4 md:px-6 py-4">
                             <div className="flex items-center">
                               <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
                                 <FiUser className="text-blue-600" />
                               </div>
                               <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                                <div className="text-sm text-gray-500">{user.student_id}</div>
+                                <div className="text-sm font-medium text-gray-900 truncate max-w-[150px] sm:max-w-none">{user.name}</div>
+                                <div className="text-sm text-gray-500 truncate max-w-[150px] sm:max-w-none">{user.student_id}</div>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-2 sm:px-4 md:px-6 py-4">
                             {user.chess_username ? (
                               <a 
                                 href={`https://www.chess.com/member/${user.chess_username}`} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline flex items-center"
+                                className="text-blue-600 hover:underline flex items-center truncate max-w-[120px] sm:max-w-none"
                               >
                                 {user.chess_username}
                                 <FiExternalLink className="ml-1" size={14} />
@@ -183,7 +183,7 @@ export const EventsPage = ({ user }) => {
                               <span className="text-gray-400">Not connected</span>
                             )}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-2 sm:px-4 md:px-6 py-4">
                             {user[currentRatingType.field] ? (
                               <div className="text-sm font-semibold text-gray-900">
                                 {user[currentRatingType.field]}
