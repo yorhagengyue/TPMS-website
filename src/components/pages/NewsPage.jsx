@@ -11,7 +11,7 @@ export const NewsPage = () => {
       date: "2025-05-02",
       content: "We are looking for volunteers to help with our New Member Orientation on 2 May from 6pm to 9pm. Help us welcome new members and share your passion for mind sports!",
       category: "Volunteers",
-      icon: <FiUsers className="w-12 h-12 text-blue-500" />,
+      image: "/images/ori.png",
       location: "Student Alumni Hub L2 (behind Macs)",
       registerLink: "https://forms.office.com/Pages/ResponsePage.aspx?id=8JupJXKOKkeuUK373w328ZEuWoM_35BNnOpNgTSGoYNUM1ZWUDRQU1hWQVFBOTlCSjNEVVpRWFhUMy4u"
     },
@@ -49,11 +49,22 @@ export const NewsPage = () => {
             className="group"
           >
             <div className="bg-white rounded-lg shadow-md overflow-hidden h-full flex flex-col hover:shadow-xl transition-shadow">
-              <div className="h-48 overflow-hidden bg-gradient-to-r from-blue-500 to-green-400 flex items-center justify-center">
-                {/* Use icon instead of trying to load images */}
-                <div className="flex flex-col items-center justify-center text-white">
-                  {item.icon}
-                </div>
+              <div className="h-56 overflow-hidden bg-white">
+                {/* Use actual image instead of icon */}
+                {item.image ? (
+                  <div className="w-full h-full overflow-hidden relative">
+                    <img 
+                      src={item.image} 
+                      alt={item.title}
+                      className="w-full h-full object-contain absolute top-0 left-0 transition-transform duration-300 group-hover:scale-105"
+                      style={{ objectPosition: 'center center' }}
+                    />
+                  </div>
+                ) : (
+                  <div className="h-full bg-gradient-to-r from-blue-500 to-green-400 flex items-center justify-center">
+                    <FiBell className="w-12 h-12 text-white" />
+                  </div>
+                )}
               </div>
               <div className="p-6 flex flex-col flex-grow">
                 <div className="flex justify-between items-center mb-3">

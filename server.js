@@ -881,6 +881,26 @@ app.post('/api/attendance', authenticate, async (req, res) => {
       return res.status(404).json({ error: 'Student not found' });
     }
     
+    // 检查当天是否已签到
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+    
+    const checkExistingQuery = db.isPostgres
+      ? 'SELECT id FROM attendance WHERE student_id = $1 AND check_in_time BETWEEN $2 AND $3'
+      : 'SELECT id FROM attendance WHERE student_id = ? AND check_in_time BETWEEN ? AND ?';
+    
+    const existingAttendance = await db.query(checkExistingQuery, [students[0].id, todayStart, todayEnd]);
+    
+    if (existingAttendance.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'You have already checked in today',
+        message: 'You have already checked in today. Only one check-in is allowed per day.',
+        alreadyCheckedIn: true
+      });
+    }
+    
     // Record attendance
     const insertQuery = db.isPostgres
       ? 'INSERT INTO attendance (student_id, location_lat, location_lng) VALUES ($1, $2, $3)'

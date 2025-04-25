@@ -22,6 +22,23 @@ export const CheckinPage = ({ user }) => {
   const [isWithinCheckinHours, setIsWithinCheckinHours] = useState(false);
   
   // Update check-in time validity every minute
+  // Check if user has already checked in today
+  useEffect(() => {
+    if (!user) return;
+    
+    // Check localStorage for today's check-in
+    const lastCheckIn = localStorage.getItem('lastCheckIn');
+    const today = new Date().toDateString();
+    
+    if (lastCheckIn === today) {
+      setIsCheckedIn(true);
+      setSuccessMessage('You have already checked in today. Thank you!');
+    }
+    
+    // We could also try checking with the server, but the localStorage approach
+    // is simpler and should work for most cases since we're storing the check-in date
+  }, [user]);
+
   useEffect(() => {
     const checkValidTime = () => {
       const now = new Date();
@@ -190,12 +207,14 @@ export const CheckinPage = ({ user }) => {
       setIsCheckedIn(true);
       setSuccessMessage('Attendance recorded successfully! Thank you for checking in.');
       
-      // Reset after 5 seconds
+      // Store in localStorage that user has checked in today
+      const today = new Date().toDateString();
+      localStorage.setItem('lastCheckIn', today);
+      
+      // Reset location but keep checked in status
       setTimeout(() => {
-        setIsCheckedIn(false);
         setLocation(null);
         setLocationStatus('idle');
-        setSuccessMessage('');
       }, 5000);
       
     } catch (error) {
