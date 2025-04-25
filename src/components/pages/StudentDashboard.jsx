@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiCalendar, FiUser, FiBarChart2, FiClock, FiCheckCircle, FiAlertCircle, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiCalendar, FiUser, FiBarChart2, FiClock, FiCheckCircle, FiAlertCircle, FiChevronLeft, FiChevronRight, FiSettings } from 'react-icons/fi';
+import ExportAttendance from '../admin/ExportAttendance';
 
 export const StudentDashboard = ({ user }) => {
   const [loading, setLoading] = useState(true);
@@ -183,6 +184,26 @@ export const StudentDashboard = ({ user }) => {
         transition={{ duration: 0.5 }}
       >
         <h2 className="text-3xl font-bold mb-8 text-gray-800">Student Dashboard</h2>
+
+        {/* Admin tools area - only shown when user is an administrator */}
+        {user && user.role === 'admin' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-8"
+          >
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md mb-6">
+              <div className="flex items-center">
+                <FiSettings className="text-blue-500 mr-3" size={20} />
+                <p className="font-medium text-blue-600">Admin Tools</p>
+              </div>
+            </div>
+            
+            {/* 导出签到数据工具 */}
+            <ExportAttendance />
+          </motion.div>
+        )}
 
         {/* Student Information Card */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">

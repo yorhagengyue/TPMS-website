@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TPMS 签到数据导出工具</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .card {
+            background: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .tips {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>TPMS 签到数据导出工具</h1>
+    
+    <div class="card">
+        <h2>导出签到数据</h2>
+        <form id="exportForm">
+            <div>
+                <label for="startDate">开始日期:</label>
+                <input type="date" id="startDate" name="startDate">
+            </div>
+            
+            <div>
+                <label for="endDate">结束日期:</label>
+                <input type="date" id="endDate" name="endDate">
+            </div>
+            
+            <div>
+                <label for="studentId">学生学号 (可选):</label>
+                <input type="text" id="studentId" name="studentId" placeholder="例如: 2403880d">
+            </div>
+            
+            <button type="button" id="exportButton">导出为Excel</button>
+        </form>
+        
+        <div class="tips">
+            <p>提示:</p>
+            <ul>
+                <li>不选择日期范围将导出所有签到记录</li>
+                <li>仅设置开始日期将导出从该日期至今的记录</li>
+                <li>仅设置结束日期将导出至该日期为止的记录</li>
+                <li>填写学号可筛选特定学生的签到记录</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="footer">
+        &copy; 2025 Temasek Polytechnic Mindsport Club
+    </div>
+    
+    <script>
+        document.getElementById('exportButton').addEventListener('click', function() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const studentId = document.getElementById('studentId').value;
+            
+            let url = '/api/attendance/export';
+            const params = [];
+            
+            if (startDate) params.push(`startDate=${startDate}`);
+            if (endDate) params.push(`endDate=${endDate}`);
+            if (studentId) params.push(`studentId=${studentId}`);
+            
+            if (params.length > 0) {
+                url += '?' + params.join('&');
+            }
+            
+            // 打开新窗口下载Excel文件
+            window.open(url, '_blank');
+        });
+    </script>
+</body>
+</html>

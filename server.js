@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const XLSX = require('xlsx');
 const path = require('path');
@@ -8,8 +9,90 @@ const fs = require('fs');
 const fetch = require('node-fetch');
 const config = require('./config'); // Use the new configuration system
 const db = require('./database'); // Import unified database connection module
+const { promisify } = require('util');
+const bcrypt = require('bcrypt');
 const { authenticateUser, revokeToken, verifyStudentId, registerUser, setUserPassword, createUserAccount } = require('./src/lib/auth');
 const { authenticate, authorize } = require('./src/lib/authMiddleware');
+
+// Chess.com API功能
+/**
+ * 验证Chess.com用户名是否有效
+ * @param {string} username - 要验证的用户名
+ * @returns {Promise<boolean>} 是否是有效的Chess.com用户名
+ */
+async function validateChessUsername(username) {
+  try {
+    if (!username) return false;
+    
+    const cleanUsername = username.trim().toLowerCase();
+    console.log(`验证Chess.com用户名: ${cleanUsername}`);
+    
+    const response = await fetch(`https://api.chess.com/pub/player/${cleanUsername}`);
+    return response.ok;
+  } catch (error) {
+    console.error('验证Chess.com用户名出错:', error);
+    return false;
+  }
+}
+
+/**
+ * 获取Chess.com玩家等级分
+ * @param {string} username - Chess.com用户名
+ * @returns {Promise<Object>} 包含各类棋局等级分的对象
+ */
+async function getPlayerRating(username) {
+  try {
+    if (!username) {
+      return {
+        blitz: null,
+        rapid: null,
+        bullet: null,
+        daily: null,
+        tactics: null,
+        puzzleRush: null
+      };
+    }
+    
+    const cleanUsername = username.trim().toLowerCase();
+    console.log(`获取Chess.com玩家等级分: ${cleanUsername}`);
+    
+    const response = await fetch(`https://api.chess.com/pub/player/${cleanUsername}/stats`);
+    
+    if (!response.ok) {
+      console.log(`Chess.com API返回状态码: ${response.status}`);
+      throw new Error(`Chess.com API返回错误: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    // 提取各类棋局的等级分
+    const blitzRating = data.chess_blitz?.last?.rating || null;
+    const rapidRating = data.chess_rapid?.last?.rating || null;
+    const bulletRating = data.chess_bullet?.last?.rating || null;
+    const dailyRating = data.chess_daily?.last?.rating || null;
+    const tacticsRating = data.tactics?.highest?.rating || null;
+    const puzzleRushRating = data.puzzle_rush?.best?.score || null;
+    
+    return {
+      blitz: blitzRating,
+      rapid: rapidRating,
+      bullet: bulletRating,
+      daily: dailyRating,
+      tactics: tacticsRating,
+      puzzleRush: puzzleRushRating
+    };
+  } catch (error) {
+    console.error('获取Chess.com玩家等级分出错:', error);
+    return {
+      blitz: null,
+      rapid: null,
+      bullet: null,
+      daily: null,
+      tactics: null,
+      puzzleRush: null
+    };
+  }
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -1270,6 +1353,137 @@ app.get('/api/users/chess-ratings', async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Server error occurred while fetching chess ratings'
+    });
+  }
+});
+
+// Export attendance data to Excel (Public Access)
+app.get('/api/attendance/export', async (req, res) => {
+  try {
+    // Get optional date filter parameters
+    const { startDate, endDate, studentId } = req.query;
+    
+    // Build base query conditions
+    let whereClause = [];
+    let params = [];
+    let paramIndex = 1; // PostgreSQL uses $1, $2 format for parameters
+    
+    // Add date filter conditions
+    if (startDate && endDate) {
+      if (db.isPostgres) {
+        whereClause.push(`a.check_in_time BETWEEN $${paramIndex++} AND $${paramIndex++}`);
+        params.push(new Date(startDate), new Date(endDate));
+      } else {
+        whereClause.push('a.check_in_time BETWEEN ? AND ?');
+        params.push(new Date(startDate), new Date(endDate));
+      }
+    }
+    
+    // Add student ID filter condition
+    if (studentId) {
+      if (db.isPostgres) {
+        whereClause.push(`s.index_number = $${paramIndex++}`);
+        params.push(studentId);
+      } else {
+        whereClause.push('s.index_number = ?');
+        params.push(studentId);
+      }
+    }
+    
+    // Build complete WHERE clause
+    const whereStatement = whereClause.length > 0 ? `WHERE ${whereClause.join(' AND ')}` : '';
+    
+    // Build complete query statement
+    const query = `
+      SELECT 
+        a.id, 
+        s.name, 
+        s.index_number, 
+        s.course,
+        s.email,
+        s.total_sessions,
+        s.attended_sessions,
+        s.attendance_rate,
+        a.check_in_time
+      FROM attendance a
+      JOIN students s ON a.student_id = s.id
+      ${whereStatement}
+      ORDER BY a.check_in_time DESC
+    `;
+    
+    console.log('Executing query:', query);
+    console.log('Parameters:', params);
+    
+    // Execute query to get attendance records
+    const records = await db.query(query, params);
+    console.log(`Found ${records.length} attendance records`);
+    
+    // If no records found, return message
+    if (records.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No attendance records found matching the criteria'
+      });
+    }
+    
+    // Format data for better readability
+    const formattedData = records.map(record => ({
+      'ID': record.id,
+      'Student Name': record.name,
+      'Student ID': record.index_number,
+      'Course': record.course || 'N/A',
+      'Email': record.email || 'N/A',
+      'Total Sessions': record.total_sessions || 0,
+      'Attended Sessions': record.attended_sessions || 0,
+      'Attendance Rate': `${record.attendance_rate || 0}%`,
+      'Check-in Time': new Date(record.check_in_time).toLocaleString()
+    }));
+    
+    // Create a new Excel workbook
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+    
+    // Set column widths
+    const columnsWidth = [
+      { wch: 8 },   // ID
+      { wch: 25 },  // Student Name
+      { wch: 15 },  // Student ID
+      { wch: 20 },  // Course
+      { wch: 30 },  // Email
+      { wch: 15 },  // Total Sessions
+      { wch: 15 },  // Attended Sessions
+      { wch: 15 },  // Attendance Rate
+      { wch: 20 }   // Check-in Time
+    ];
+    worksheet['!cols'] = columnsWidth;
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance Records');
+    
+    // Generate Excel file
+    const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    
+    // Set filename (includes date range or current date) - using English filename to avoid encoding issues
+    let filename = 'attendance_records';
+    if (startDate && endDate) {
+      filename += `_${startDate.substring(0, 10)}_to_${endDate.substring(0, 10)}`;
+    } else {
+      filename += `_${new Date().toISOString().substring(0, 10)}`;
+    }
+    filename += '.xlsx';
+    
+    // Set response headers - using encodeURIComponent to encode filename
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+    
+    // Send Excel file
+    return res.send(excelBuffer);
+  } catch (error) {
+    console.error('Error exporting Excel file:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Failed to export attendance data', 
+      error: error.message 
     });
   }
 });
