@@ -1,11 +1,13 @@
 # TPMS - Temasek Polytechnic Mindsport Club Website
 
-This is the official website for the Temasek Polytechnic CCA (Co-Curricular Activity) TPMS (TP Mindsport) club. The platform serves as a central hub for club activities, member management, and event coordination.
+This is the official website for the Temasek Polytechnic CCA (Co-Curricular Activity) TPMS (TP Mindsport) club. The platform serves as a central hub for club activities, member management, event coordination, and player ranking systems.
 
 ## Features
 
 - **Modern Responsive Interface**: Fully responsive design optimized for all device sizes
-- **Digital Attendance System**: Track and manage student attendance at club activities
+- **Digital Attendance System**: Track and manage student attendance at club activities with geo-location verification
+- **Chess.com Integration**: Link student accounts with Chess.com profiles and display chess ratings
+- **Chess Rankings Leaderboard**: Display student rankings based on their Chess.com ratings
 - **Events Calendar**: Display upcoming tournaments, workshops, and regular club meetings
 - **News Section**: Highlight club achievements and announcements
 - **Member Management**: Import/export member data using Excel spreadsheets
@@ -15,15 +17,16 @@ This is the official website for the Temasek Polytechnic CCA (Co-Curricular Acti
 
 ## Technical Implementation
 
-- **Frontend Framework**: React.js
+- **Frontend Framework**: React.js with modern hooks pattern
 - **Backend**: Node.js with Express
-- **Database**: MySQL for data persistence
+- **Database**: Dual support for MySQL (local) and PostgreSQL (Render deployment)
 - **Authentication**: JSON Web Tokens (JWT) for secure authentication
-- **Styling**: Tailwind CSS with custom color theming
+- **Styling**: Tailwind CSS with custom color theming and responsive design
 - **Animations**: Framer Motion for smooth transitions and effects
 - **Data Handling**: 
   - Excel integration using XLSX library
-  - MySQL database for persistent data storage
+  - Unified database interface supporting both MySQL and PostgreSQL
+  - External API integration with Chess.com Public Data API
 - **Icons**: React Icons (FI set)
 - **Package Management**: npm
 
@@ -59,24 +62,38 @@ npm run build
 │   │   │   ├── PageTransition.jsx # Page transition animations
 │   │   │   ├── PageAnimations.jsx # Animation components
 │   │   │   └── LoadingScreen.jsx  # Loading screen component
-│   │   └── pages/            # Page components
+│   │   ├── pages/            # Page components
+│   │   │   ├── CheckinPage.jsx    # Attendance check-in with geolocation
+│   │   │   ├── EventsPage.jsx     # Chess rankings display (chessrank page)
+│   │   │   ├── HomePage.jsx       # Main landing page
+│   │   │   ├── LoginPage.jsx      # User authentication
+│   │   │   └── StudentDashboard.jsx # User dashboard
+│   │   ├── HeroCarousel.jsx       # Homepage carousel component
+│   │   └── HeroCarouselNew.jsx    # Enhanced carousel component
 │   ├── lib/                  # Utility functions and libraries
 │   │   ├── auth.js           # Authentication library
-│   │   └── authMiddleware.js # Authentication middleware
+│   │   ├── authMiddleware.js # Authentication middleware
+│   │   └── chessApi.js       # Chess.com API integration
 │   ├── hooks/                # Custom React hooks
 │   ├── styles/               # Global styles
 │   └── App.jsx               # Main application component
 ├── public/                   # Static assets
 ├── server.js                 # Express server and API endpoints
+├── database.js               # Unified database connection module
 ├── config.js                 # Server configuration
+├── add-attendance.js         # Tool to add attendance records
 ├── tools/                    # Maintenance and utility tools
 │   ├── test-auth.js          # Authentication testing
 │   ├── clear-account.js      # Account management tools
 │   ├── migrate-db.js         # Database migration tools
 │   ├── reset-passwords.js    # Password reset tool
+│   ├── add-user.js           # Add user accounts
+│   ├── generate-user-sql.js  # Generate SQL for user creation
 │   └── README.md             # Tools documentation
 ├── tests/                    # Test scripts
-└── setup-db.sql              # Database schema setup script
+├── setup-db.sql              # Database schema setup script
+├── postgres-schema.sql       # PostgreSQL schema for Render deployment
+└── .env.render.example       # Environment example for Render deployment
 ```
 
 ## Requirements
@@ -84,7 +101,8 @@ npm run build
 ### Environment Requirements
 - Node.js 16.0 or higher
 - npm 7.0 or higher
-- MySQL 5.7 or higher
+- MySQL 5.7 or higher (for local development)
+- PostgreSQL 12.0 or higher (for Render deployment)
 
 ### Installation Steps
 
@@ -142,15 +160,18 @@ const tpLocation = {
 3. Check-in Range Settings
 Adjust in `src/components/pages/CheckinPage.jsx`:
 ```javascript
-const CHECKIN_RADIUS = 0.5; // unit: kilometers
+// Current setting: 1.0km from campus center
+return distance <= 1.0; // Within 1.0km of campus center
 ```
 
 ## Development Guidelines
 
 ### Code Standards
 - Use ESLint for code linting
-- Follow React best practices
+- Follow React best practices and hooks pattern
 - Use Prettier for code formatting
+- Handle responsive design using Tailwind breakpoints
+- Implement proper error handling for API calls
 
 ### Commit Standards
 ```bash
