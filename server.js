@@ -926,16 +926,16 @@ app.post('/api/attendance', authenticate, async (req, res) => {
     
     await db.query(insertQuery, [students[0].id, locationLat, locationLng]);
 
-    // Update student attendance stats
+    // Update student attendance stats - handle schema differences between PostgreSQL and MySQL
+    // The 'last_attendance' column may not exist in the Postgres database
     const updateQuery = db.isPostgres
       ? `UPDATE students SET 
-        attended_sessions = attended_sessions + 1,
-        attendance_rate = (attended_sessions + 1) / (CASE WHEN total_sessions = 0 THEN 1 ELSE total_sessions END) * 100,
-        last_attendance = NOW()
+        attended_sessions = COALESCE(attended_sessions, 0) + 1,
+        attendance_rate = (COALESCE(attended_sessions, 0) + 1) / (CASE WHEN COALESCE(total_sessions, 0) = 0 THEN 1 ELSE COALESCE(total_sessions, 0) END) * 100
          WHERE id = $1`
       : `UPDATE students SET 
-          attended_sessions = attended_sessions + 1,
-          attendance_rate = (attended_sessions + 1) / (CASE WHEN total_sessions = 0 THEN 1 ELSE total_sessions END) * 100,
+          attended_sessions = COALESCE(attended_sessions, 0) + 1,
+          attendance_rate = (COALESCE(attended_sessions, 0) + 1) / (CASE WHEN COALESCE(total_sessions, 0) = 0 THEN 1 ELSE COALESCE(total_sessions, 0) END) * 100,
           last_attendance = NOW()
          WHERE id = ?`;
     
