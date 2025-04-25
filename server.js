@@ -928,14 +928,17 @@ app.post('/api/attendance', authenticate, async (req, res) => {
 
     // Update student attendance stats - handle schema differences between PostgreSQL and MySQL
     // The 'last_attendance' column may not exist in the Postgres database
+    // Also ensure total_sessions is at least equal to attended_sessions
     const updateQuery = db.isPostgres
       ? `UPDATE students SET 
+        total_sessions = GREATEST(COALESCE(total_sessions, 0), COALESCE(attended_sessions, 0) + 1),
         attended_sessions = COALESCE(attended_sessions, 0) + 1,
-        attendance_rate = (COALESCE(attended_sessions, 0) + 1) / (CASE WHEN COALESCE(total_sessions, 0) = 0 THEN 1 ELSE COALESCE(total_sessions, 0) END) * 100
+        attendance_rate = ((COALESCE(attended_sessions, 0) + 1) * 100.0) / GREATEST(COALESCE(total_sessions, 0), COALESCE(attended_sessions, 0) + 1)
          WHERE id = $1`
       : `UPDATE students SET 
+          total_sessions = GREATEST(COALESCE(total_sessions, 0), COALESCE(attended_sessions, 0) + 1),
           attended_sessions = COALESCE(attended_sessions, 0) + 1,
-          attendance_rate = (COALESCE(attended_sessions, 0) + 1) / (CASE WHEN COALESCE(total_sessions, 0) = 0 THEN 1 ELSE COALESCE(total_sessions, 0) END) * 100,
+          attendance_rate = ((COALESCE(attended_sessions, 0) + 1) * 100.0) / GREATEST(COALESCE(total_sessions, 0), COALESCE(attended_sessions, 0) + 1),
           last_attendance = NOW()
          WHERE id = ?`;
     
