@@ -356,6 +356,8 @@ app.post('/api/auth/verify-student', async (req, res) => {
     
     console.log(`DEBUG: Query result: ${JSON.stringify(studentRows)}`);
     
+    let studentDbId;
+    
     if (studentRows.length === 0) {
       // Try one more time with less strict comparison (for databases that might have trailing spaces)
       const fuzzyStudentQuery = db.isPostgres
@@ -374,61 +376,58 @@ app.post('/api/auth/verify-student', async (req, res) => {
       }
       
       // We found a match with the fuzzy query
-      const studentDbId = fuzzyStudentRows[0].id;
-      // Proceed with the rest of the function using this ID...
+      studentDbId = fuzzyStudentRows[0].id;
     } else {
       // A direct match was found
-      const studentDbId = studentRows[0].id;
+      studentDbId = studentRows[0].id;
+    }
     
-    const auth = require('./src/lib/auth');
-      const result = await auth.verifyStudentId(normalizedStudentId);
+    // Check if student already has an account - query using numeric ID
+    const userQuery = db.isPostgres
+      ? 'SELECT * FROM users WHERE student_id = $1'
+      : 'SELECT * FROM users WHERE student_id = ?';
     
-      // Check if student already has an account - query using numeric ID
-      const userQuery = db.isPostgres
-        ? 'SELECT * FROM users WHERE student_id = $1'
-        : 'SELECT * FROM users WHERE student_id = ?';
-      
-      const userRows = await db.query(userQuery, [studentDbId]);
+    const userRows = await db.query(userQuery, [studentDbId]);
     
     if (userRows.length > 0) {
-        // User already exists
+      // User already exists
       const user = userRows[0];
       
-        if (!user.password_hash || user.password_hash === '') {
-          // User exists but has no password
+      if (!user.password_hash || user.password_hash === '') {
+        // User exists but has no password
         return res.json({
           success: true,
           hasAccount: true,
-            needsPasswordSetup: true,
-            message: 'Account exists but requires password setup. Please go to the login page.'
+          needsPasswordSetup: true,
+          message: 'Account exists but requires password setup. Please go to the login page.'
         });
       } else {
-          // User already exists and has a password
+        // User already exists and has a password
         return res.json({
           success: true,
           hasAccount: true,
-            needsPasswordSetup: false,
-            message: 'Account already exists. Please log in directly.'
+          needsPasswordSetup: false,
+          message: 'Account already exists. Please log in directly.'
         });
       }
     }
     
-    if (result.success) {
-        // Student exists but has no account, create an account without a password
-        await auth.createUserAccount(normalizedStudentId);
-      
+    // Student exists but has no account, create an account without a password
+    const auth = require('./src/lib/auth');
+    const createResult = await auth.createUserAccount(normalizedStudentId);
+    
+    if (createResult.success) {
       return res.json({
         success: true,
         hasAccount: false,
-          needsPasswordSetup: true,
-          message: 'Verification successful, account has been created. Please go to the login page to set your password'
+        needsPasswordSetup: true,
+        message: 'Verification successful, account has been created. Please go to the login page to set your password'
       });
     } else {
       return res.status(400).json({
         success: false,
-          message: result.message || 'Student ID verification failed'
+        message: createResult.message || 'Student ID verification failed'
       });
-      }
     }
   } catch (error) {
     console.error('Error verifying student ID:', error);
@@ -445,10 +444,10 @@ app.post('/api/auth/register', async (req, res) => {
   try {
     const { studentId, password } = req.body;
     
-    if (!studentId || !password) {
+    if (!studentId) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Student ID and password are required' 
+        message: 'Student ID is required' 
       });
     }
     
@@ -482,24 +481,38 @@ app.post('/api/auth/register', async (req, res) => {
       const users = await db.query(userQuery, [students[0].id]);
       
       if (users.length > 0) {
-        // Set password
-        const setPasswordResult = await setUserPassword(users[0].id, password);
-        return res.json(setPasswordResult);
+        if (password) {
+          // If password is provided, set it (for backward compatibility)
+          const setPasswordResult = await setUserPassword(users[0].id, password);
+          return res.json(setPasswordResult);
+        } else {
+          // Return success with needsPasswordSetup flag
+          return res.json({
+            success: true,
+            message: 'Account exists, password setup required',
+            needsPasswordSetup: true,
+            user: { id: users[0].id }
+          });
+        }
       }
     }
     
-    // If no account exists, create an account and set password
+    // If no account exists, create an account with empty password
     if (!verifyResult.hasAccount) {
-      // First create the account
+      // Create the account (with empty password by default)
       const createResult = await createUserAccount(studentId);
       
       if (!createResult.success) {
         return res.status(400).json(createResult);
       }
       
-      // Then set the password
-      const setPasswordResult = await setUserPassword(createResult.user.id, password);
-      return res.json(setPasswordResult);
+      // Return success - user will set password later during first login
+      return res.json({
+        success: true,
+        message: 'Account created successfully. You can now login to set your password.',
+        user: createResult.user,
+        needsPasswordSetup: true
+      });
     }
     
     // Should not reach here, but just in case
