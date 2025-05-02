@@ -79,14 +79,14 @@ const ChessRankPage = ({ user }) => {
           {user && !chessRankings.some(rank => rank.id === user.id) && (
             <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-md p-4 mb-6 flex items-center justify-between">
               <div>
-                <p className="text-blue-700 dark:text-blue-300 font-medium">您尚未绑定Chess.com账号</p>
-                <p className="text-sm text-blue-600 dark:text-blue-400">绑定账号后即可在排行榜上显示您的评分</p>
+                <p className="text-blue-700 dark:text-blue-300 font-medium">Chess.com Account Not Linked</p>
+                <p className="text-sm text-blue-600 dark:text-blue-400">Link your account to appear on the leaderboard</p>
               </div>
               <Link 
                 to="/profile"
                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors">
                 <FaLink />
-                <span>前往绑定</span>
+                <span>Link Account</span>
               </Link>
             </div>
           )}
