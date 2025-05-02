@@ -692,22 +692,6 @@ app.post('/api/attendance', authenticate, async (req, res) => {
       return res.status(400).json({ error: 'Student index number is required' });
     }
     
-    // 检查当前时间是否在允许签到的时间范围内 (仅周五18:00-21:00)
-    const now = new Date();
-    const dayOfWeek = now.getDay(); // 0是周日，5是周五
-    const hour = now.getHours();
-    const isValidTime = dayOfWeek === 5 && hour >= 18 && hour < 21;
-    
-    if (!isValidTime) {
-      const errorMsg = 'Check-in failed: CCA activities are only held on Fridays from 6:00 PM to 9:00 PM. Please check in during activity hours.';
-      console.log(`Attendance rejected for ${indexNumber}: Not within allowed time window`);
-      return res.status(403).json({ 
-        success: false, 
-        error: errorMsg,
-        message: errorMsg
-      });
-    }
-    
     // 检查位置是否在允许范围内（德马塞克理工学院校园边界内或附近）
     const tpLocation = { 
       lat: 1.34498,
@@ -788,9 +772,11 @@ app.post('/api/attendance', authenticate, async (req, res) => {
     }
     
     // 获取当前日期并设置为最近的周五
+    const now = new Date();
     let fridayDate = new Date(now);
     
     // 如果今天不是周五，调整到最近的周五
+    const dayOfWeek = now.getDay();
     if (dayOfWeek !== 5) {
       // 如果今天是周六，使用昨天的日期；如果是其他日，使用上周五
       if (dayOfWeek === 6) {
