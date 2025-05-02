@@ -465,7 +465,7 @@ const authenticateUser = async (username, password) => {
         const fuzzyStudents = await connection.query(fuzzyStudentSql, [username.toLowerCase()]);
         
         if (fuzzyStudents.length > 0) {
-          // Student found with fuzzy match, create account
+          // Student found with fuzzy match, create account with empty password
           const createResult = await createUserAccount(username);
           if (createResult.success) {
             return { 
@@ -483,7 +483,7 @@ const authenticateUser = async (username, password) => {
       }
       
       if (students.length > 0) {
-        // Student exists but no account - create account and require password setup
+        // Student exists but no account - create account with empty password
         const createResult = await createUserAccount(username);
         if (createResult.success) {
           return { 
