@@ -1280,6 +1280,177 @@ app.post('/api/auth/send-password-reset-code', async (req, res) => {
   }
 });
 
+// Chess.com账号绑定API
+app.post('/api/user/link-chess', authenticate, async (req, res) => {
+  try {
+    const { chessUsername } = req.body;
+    
+    if (!chessUsername || typeof chessUsername !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Chess.com username is required'
+      });
+    }
+    
+    const userId = req.user.id;
+    
+    // 获取Chess.com API数据
+    async function fetchChessData(username) {
+      try {
+        // 获取用户资料
+        const profileResponse = await fetch(`https://api.chess.com/pub/player/${username}`);
+        if (!profileResponse.ok) {
+          throw new Error('Chess.com user not found');
+        }
+        
+        // 获取用户的blitz评分
+        const statsResponse = await fetch(`https://api.chess.com/pub/player/${username}/stats`);
+        if (!statsResponse.ok) {
+          throw new Error('Failed to fetch Chess.com stats');
+        }
+        
+        const stats = await statsResponse.json();
+        
+        return {
+          success: true,
+          username,
+          chess_rating: stats.chess_blitz?.last?.rating || 0,
+          chess_rapid_rating: stats.chess_rapid?.last?.rating || 0, 
+          chess_bullet_rating: stats.chess_bullet?.last?.rating || 0,
+          chess_daily_rating: stats.chess_daily?.last?.rating || 0,
+          chess_tactics_rating: stats.tactics?.highest?.rating || 0,
+          chess_puzzle_rush_rating: stats.puzzle_rush?.best?.score || 0
+        };
+      } catch (error) {
+        console.error(`Error fetching Chess.com data for ${username}:`, error);
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+    }
+    
+    // 获取Chess.com数据
+    const chessData = await fetchChessData(chessUsername);
+    
+    if (!chessData.success) {
+      return res.status(400).json({
+        success: false,
+        message: chessData.error || 'Failed to validate Chess.com account'
+      });
+    }
+    
+    // 更新用户表中的Chess.com信息
+    try {
+      // 先更新user表中关联的student_id
+      const userQuery = db.isPostgres
+        ? 'SELECT student_id FROM users WHERE id = $1'
+        : 'SELECT student_id FROM users WHERE id = ?';
+      
+      const users = await db.query(userQuery, [userId]);
+      
+      if (users.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+      
+      const studentId = users[0].student_id;
+      
+      // 检查数据库中是否有Chess.com相关列
+      const updateQuery = db.isPostgres
+        ? `UPDATE students SET 
+            chess_username = $1,
+            chess_rating = $2,
+            chess_rapid_rating = $3,
+            chess_bullet_rating = $4,
+            chess_daily_rating = $5,
+            chess_tactics_rating = $6,
+            chess_puzzle_rush_rating = $7
+          WHERE id = $8`
+        : `UPDATE students SET 
+            chess_username = ?,
+            chess_rating = ?,
+            chess_rapid_rating = ?,
+            chess_bullet_rating = ?,
+            chess_daily_rating = ?,
+            chess_tactics_rating = ?,
+            chess_puzzle_rush_rating = ?
+          WHERE id = ?`;
+      
+      await db.query(updateQuery, [
+        chessUsername,
+        chessData.chess_rating,
+        chessData.chess_rapid_rating,
+        chessData.chess_bullet_rating,
+        chessData.chess_daily_rating,
+        chessData.chess_tactics_rating,
+        chessData.chess_puzzle_rush_rating,
+        studentId
+      ]);
+      
+      // 返回更新后的信息
+      return res.json({
+        success: true,
+        message: 'Chess.com account linked successfully',
+        chess_username: chessUsername,
+        chess_rating: chessData.chess_rating,
+        chess_rapid_rating: chessData.chess_rapid_rating,
+        chess_bullet_rating: chessData.chess_bullet_rating,
+        chess_daily_rating: chessData.chess_daily_rating,
+        chess_tactics_rating: chessData.chess_tactics_rating,
+        chess_puzzle_rush_rating: chessData.chess_puzzle_rush_rating
+      });
+    } catch (error) {
+      console.error('Error updating Chess.com data:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update Chess.com data'
+      });
+    }
+  } catch (error) {
+    console.error('Error linking Chess.com account:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error, please try again later'
+    });
+  }
+});
+
+// 获取所有用户的Chess.com评分
+app.get('/api/users/chess-ratings', async (req, res) => {
+  try {
+    // 获取所有有Chess.com绑定的用户
+    const usersQuery = db.isPostgres
+      ? `SELECT s.id, s.name, s.course, s.chess_username, 
+          s.chess_rating, s.chess_rapid_rating, s.chess_bullet_rating, 
+          s.chess_daily_rating, s.chess_tactics_rating, s.chess_puzzle_rush_rating
+        FROM students s
+        WHERE s.chess_username IS NOT NULL
+        ORDER BY s.name`
+      : `SELECT s.id, s.name, s.course, s.chess_username, 
+          s.chess_rating, s.chess_rapid_rating, s.chess_bullet_rating, 
+          s.chess_daily_rating, s.chess_tactics_rating, s.chess_puzzle_rush_rating
+        FROM students s
+        WHERE s.chess_username IS NOT NULL
+        ORDER BY s.name`;
+    
+    const users = await db.query(usersQuery);
+    
+    return res.json({
+      success: true,
+      users
+    });
+  } catch (error) {
+    console.error('Error fetching chess ratings:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch chess ratings'
+    });
+  }
+});
+
 // Serve React app
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
