@@ -692,6 +692,22 @@ app.post('/api/attendance', authenticate, async (req, res) => {
       return res.status(400).json({ error: 'Student index number is required' });
     }
     
+    // 检查当前时间是否在允许签到的时间范围内 (仅周五18:00-21:00)
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0是周日，5是周五
+    const hour = now.getHours();
+    const isValidTime = dayOfWeek === 5 && hour >= 18 && hour < 21;
+    
+    if (!isValidTime) {
+      const errorMsg = 'Check-in failed: CCA activities are only held on Fridays from 6:00 PM to 9:00 PM. Please check in during activity hours.';
+      console.log(`Attendance rejected for ${indexNumber}: Not within allowed time window`);
+      return res.status(403).json({ 
+        success: false, 
+        error: errorMsg,
+        message: errorMsg
+      });
+    }
+    
     // 检查位置是否在允许范围内（德马塞克理工学院校园边界内或附近）
     const tpLocation = { 
       lat: 1.34498,
@@ -772,28 +788,19 @@ app.post('/api/attendance', authenticate, async (req, res) => {
     }
     
     // 获取当前日期并设置为最近的周五
-    const now = new Date();
-    const currentDay = now.getDay(); // 0是周日，5是周五
-    let fridayDate;
+    let fridayDate = new Date(now);
     
-    if (currentDay === 5) {
-      // 如果今天是周五，使用今天的日期
-      fridayDate = now;
-    } else if (currentDay < 5) {
-      // 如果今天是周日到周四，使用上周五的日期
-      const daysToSubtract = currentDay + 2; // 周日=0，需要-2天；周一=1，需要-3天...
-      fridayDate = new Date(now);
-      fridayDate.setDate(now.getDate() - daysToSubtract);
-    } else {
-      // 如果今天是周六，使用昨天（周五）的日期
-      fridayDate = new Date(now);
-      fridayDate.setDate(now.getDate() - 1);
+    // 如果今天不是周五，调整到最近的周五
+    if (dayOfWeek !== 5) {
+      // 如果今天是周六，使用昨天的日期；如果是其他日，使用上周五
+      if (dayOfWeek === 6) {
+        fridayDate.setDate(fridayDate.getDate() - 1);
+      } else {
+        // 计算到上周五的天数
+        const daysToSubtract = (dayOfWeek + 2) % 7;
+        fridayDate.setDate(fridayDate.getDate() - daysToSubtract);
+      }
     }
-    
-    // 设置时间为当前时间
-    fridayDate.setHours(now.getHours());
-    fridayDate.setMinutes(now.getMinutes());
-    fridayDate.setSeconds(now.getSeconds());
     
     console.log(`Recording attendance for ${indexNumber} with date adjusted to Friday: ${fridayDate.toISOString()}`);
     

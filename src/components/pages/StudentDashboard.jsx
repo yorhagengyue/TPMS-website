@@ -51,7 +51,7 @@ export const StudentDashboard = ({ user }) => {
         const stats = {
           totalSessions: studentResult.student.total_sessions || 0,
           attendedSessions: studentResult.student.attended_sessions || 0,
-          attendanceRate: studentResult.student.attendance_rate || 0,
+          attendanceRate: parseFloat(studentResult.student.attendance_rate || 0).toFixed(2),
           // last_attendance might not exist in PostgreSQL database
           lastAttendance: studentResult.student.last_attendance || null
         };

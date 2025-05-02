@@ -19,10 +19,8 @@ export const CheckinPage = ({ user }) => {
   const [successMessage, setSuccessMessage] = useState('');
 
   // Check if current time is within allowed check-in times
-  // 暂时设置为始终允许签到，用于测试
-  const [isWithinCheckinHours, setIsWithinCheckinHours] = useState(true);
+  const [isWithinCheckinHours, setIsWithinCheckinHours] = useState(false);
   
-  /*
   // Update check-in time validity every minute
   useEffect(() => {
     const checkValidTime = () => {
@@ -42,7 +40,6 @@ export const CheckinPage = ({ user }) => {
     
     return () => clearInterval(interval);
   }, []);
-  */
 
   // TP Campus location - updated with precise coordinates
   const tpLocation = { 
@@ -222,8 +219,14 @@ export const CheckinPage = ({ user }) => {
           <p className="text-gray-600">
             Record your attendance at TP Mindsport Club activities
           </p>
-          <div className={`mt-2 text-sm font-medium text-green-600`}>
-            <span className="font-semibold">Check-in time:</span> 时间限制已暂时关闭（测试模式）
+          <div className={`mt-2 text-sm font-medium ${isWithinCheckinHours ? 'text-green-600' : 'text-amber-600'}`}>
+            <span className="font-semibold">Check-in time:</span> Only on Fridays 18:00-21:00
+            {!isWithinCheckinHours && (
+              <div className="mt-1 text-amber-600">
+                <FiAlertTriangle className="inline mr-1" />
+                <span>Currently outside check-in hours</span>
+              </div>
+            )}
           </div>
         </div>
         
@@ -351,9 +354,9 @@ export const CheckinPage = ({ user }) => {
                 
                 <button
                   onClick={handleCheckIn}
-                  disabled={isLoading || locationStatus !== 'success' || !user}
+                  disabled={isLoading || locationStatus !== 'success' || !user || !isWithinCheckinHours}
                   className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-white ${
-                    !user || locationStatus !== 'success' ? 'bg-gray-400 cursor-not-allowed' :
+                    !user || locationStatus !== 'success' || !isWithinCheckinHours ? 'bg-gray-400 cursor-not-allowed' :
                     isLoading ? 'bg-green-500' : 'bg-green-600 hover:bg-green-700'
                   } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
                 >
@@ -361,6 +364,11 @@ export const CheckinPage = ({ user }) => {
                     <>
                       <FiLoader className="animate-spin mr-2" />
                       Recording attendance...
+                    </>
+                  ) : !isWithinCheckinHours ? (
+                    <>
+                      <FiClock className="mr-2" />
+                      Outside check-in hours
                     </>
                   ) : (
                     <>
@@ -380,7 +388,7 @@ export const CheckinPage = ({ user }) => {
             <br />
             You must be within campus boundaries or within 1.5 kilometers of the campus center to check in.
             <br />
-            <span className="text-amber-600 font-medium">测试模式：签到时间限制已暂时关闭</span>
+            CCA sessions are only on Fridays from 6:00 PM to 9:00 PM.
           </p>
         </div>
       </motion.div>
