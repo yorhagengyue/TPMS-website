@@ -90,6 +90,44 @@ const saveVerificationCode = (email, code, expiresIn = 600) => {
       verificationCodes.delete(email);
     }
   }, expiresIn * 1000);
+  
+  // Also store in localStorage for simple persistence between server restarts
+  try {
+    // This is only for development and low-volume sites
+    // Store codes in a JSON file (not secure for production)
+    const fs = require('fs');
+    const path = require('path');
+    const codesFile = path.join(__dirname, '../../.verification-codes.json');
+    
+    let codes = {};
+    if (fs.existsSync(codesFile)) {
+      try {
+        const data = fs.readFileSync(codesFile, 'utf8');
+        codes = JSON.parse(data);
+      } catch (err) {
+        console.error('Error reading verification codes file:', err);
+        codes = {};
+      }
+    }
+    
+    // Clean up expired codes
+    Object.keys(codes).forEach(key => {
+      if (codes[key].expiresAt < Date.now()) {
+        delete codes[key];
+      }
+    });
+    
+    // Add new code
+    codes[email] = {
+      code,
+      expiresAt
+    };
+    
+    fs.writeFileSync(codesFile, JSON.stringify(codes, null, 2), 'utf8');
+  } catch (error) {
+    console.error('Error saving verification code to storage:', error);
+    // Continue even if this fails
+  }
 };
 
 /**
@@ -99,25 +137,76 @@ const saveVerificationCode = (email, code, expiresIn = 600) => {
  * @returns {Boolean} True if code is valid
  */
 const verifyCode = (email, code) => {
+  console.log(`DEBUG: Verifying code for ${email}, input code: ${code}`);
+  
+  // For testing environment, accept a universal code "123456"
+  if (process.env.NODE_ENV !== 'production' && code === '123456') {
+    console.log('DEBUG: Using test code 123456, accepted');
+    return true;
+  }
+  
+  // Check in-memory store first
   const stored = verificationCodes.get(email);
   
-  if (!stored) {
-    return false;
+  if (stored) {
+    if (Date.now() > stored.expiresAt) {
+      console.log('DEBUG: Code found in memory but expired');
+      verificationCodes.delete(email);
+      return false;
+    }
+    
+    const isValid = stored.code === code;
+    
+    if (isValid) {
+      console.log('DEBUG: Code verified successfully from memory');
+      // Remove code after successful verification
+      verificationCodes.delete(email);
+    }
+    
+    return isValid;
   }
   
-  if (Date.now() > stored.expiresAt) {
-    verificationCodes.delete(email);
-    return false;
+  // If not in memory, check persistent storage
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const codesFile = path.join(__dirname, '../../.verification-codes.json');
+    
+    if (fs.existsSync(codesFile)) {
+      const data = fs.readFileSync(codesFile, 'utf8');
+      const codes = JSON.parse(data);
+      
+      if (codes[email]) {
+        const stored = codes[email];
+        
+        if (Date.now() > stored.expiresAt) {
+          console.log('DEBUG: Code found in storage but expired');
+          delete codes[email];
+          fs.writeFileSync(codesFile, JSON.stringify(codes, null, 2), 'utf8');
+          return false;
+        }
+        
+        const isValid = stored.code === code;
+        
+        if (isValid) {
+          console.log('DEBUG: Code verified successfully from storage');
+          // Remove code after successful verification
+          delete codes[email];
+          fs.writeFileSync(codesFile, JSON.stringify(codes, null, 2), 'utf8');
+        } else {
+          console.log(`DEBUG: Code mismatch, stored: ${stored.code}, provided: ${code}`);
+        }
+        
+        return isValid;
+      }
+    }
+  } catch (error) {
+    console.error('Error verifying code from storage:', error);
+    // Continue even if this fails
   }
   
-  const isValid = stored.code === code;
-  
-  if (isValid) {
-    // Remove code after successful verification
-    verificationCodes.delete(email);
-  }
-  
-  return isValid;
+  console.log('DEBUG: No valid code found for this email');
+  return false;
 };
 
 /**
