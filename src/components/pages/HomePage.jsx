@@ -4,7 +4,7 @@ import { FiChevronRight, FiUsers, FiCalendar, FiAward, FiStar, FiArrowRight, FiC
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import PageTransition from '../ui/PageTransition';
 import { useInView } from "react-intersection-observer";
-import HeroCarouselNew from '../HeroCarouselNew';
+import HeroCarousel from '../HeroCarousel';
 
 const ecoActivities = [
   {
@@ -222,7 +222,7 @@ export const HomePage = ({ user }) => {
       <div className="relative min-h-screen">
         {/* Hero Carousel - 添加顶部padding以避免被Header遮挡 */}
         <div className="pt-16 md:pt-16">
-          <HeroCarouselNew />
+          <HeroCarousel />
         </div>
         
         {/* Floating Instagram Promotion */}
