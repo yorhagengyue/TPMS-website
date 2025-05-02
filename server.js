@@ -818,11 +818,17 @@ app.post('/api/attendance', authenticate, async (req, res) => {
     const updateQuery = db.isPostgres
       ? `UPDATE students SET 
         attended_sessions = attended_sessions + 1,
-        attendance_rate = (attended_sessions + 1) / (CASE WHEN total_sessions = 0 THEN 1 ELSE total_sessions END) * 100
+        attendance_rate = CASE 
+          WHEN total_sessions > 0 THEN (attended_sessions + 1) * 100.0 / total_sessions
+          ELSE 0 -- 如果总课程数为0，设置出勤率为0
+        END
          WHERE id = $1`
       : `UPDATE students SET 
           attended_sessions = attended_sessions + 1,
-          attendance_rate = (attended_sessions + 1) / (CASE WHEN total_sessions = 0 THEN 1 ELSE total_sessions END) * 100,
+          attendance_rate = CASE 
+            WHEN total_sessions > 0 THEN (attended_sessions + 1) * 100.0 / total_sessions
+            ELSE 0 -- 如果总课程数为0，设置出勤率为0
+          END,
           last_attendance = NOW()
          WHERE id = ?`;
     

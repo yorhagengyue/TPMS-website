@@ -48,10 +48,26 @@ export const StudentDashboard = ({ user }) => {
         setAttendanceData(attendanceResult.attendance);
 
         // Calculate attendance statistics
+        const totalSessions = studentResult.student.total_sessions || 0;
+        const attendedSessions = studentResult.student.attended_sessions || 0;
+        
+        // 处理出勤率的计算逻辑
+        let attendanceRate;
+        if (totalSessions > 0) {
+          // 如果有总课程数，计算真实出勤率
+          attendanceRate = (attendedSessions * 100.0 / totalSessions).toFixed(2);
+        } else if (attendedSessions > 0) {
+          // 如果没有总课程数但有出席记录，显示出勤率为0
+          attendanceRate = "0.00";
+        } else {
+          // 如果既没有总课程数也没有出席记录，显示为0
+          attendanceRate = "0.00";
+        }
+        
         const stats = {
-          totalSessions: studentResult.student.total_sessions || 0,
-          attendedSessions: studentResult.student.attended_sessions || 0,
-          attendanceRate: parseFloat(studentResult.student.attendance_rate || 0).toFixed(2),
+          totalSessions: totalSessions,
+          attendedSessions: attendedSessions,
+          attendanceRate: attendanceRate,
           // last_attendance might not exist in PostgreSQL database
           lastAttendance: studentResult.student.last_attendance || null
         };
