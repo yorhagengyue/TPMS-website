@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FaChess, FaSpinner, FaExternalLinkAlt } from 'react-icons/fa';
+import { FaChess, FaSpinner, FaExternalLinkAlt, FaLink } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
-const ChessRankPage = () => {
+const ChessRankPage = ({ user }) => {
   const [chessRankings, setChessRankings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -69,10 +70,26 @@ const ChessRankPage = () => {
             <h1 className="text-2xl md:text-3xl font-bold">TPMS Chess Rankings</h1>
           </div>
           
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
             Below are the current Chess.com ratings for TPMS members. Rankings are sorted by Rapid rating.
             Connect your Chess.com account in your profile to appear on this leaderboard!
           </p>
+          
+          {/* 添加绑定Chess.com账号的按钮 - 仅当用户登录但未绑定账号时显示 */}
+          {user && !chessRankings.some(rank => rank.id === user.id) && (
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-md p-4 mb-6 flex items-center justify-between">
+              <div>
+                <p className="text-blue-700 dark:text-blue-300 font-medium">您尚未绑定Chess.com账号</p>
+                <p className="text-sm text-blue-600 dark:text-blue-400">绑定账号后即可在排行榜上显示您的评分</p>
+              </div>
+              <Link 
+                to="/profile"
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors">
+                <FaLink />
+                <span>前往绑定</span>
+              </Link>
+            </div>
+          )}
           
           {loading ? (
             <div className="flex justify-center items-center py-10">
