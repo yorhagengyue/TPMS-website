@@ -52,7 +52,8 @@ export const StudentDashboard = ({ user }) => {
           totalSessions: studentResult.student.total_sessions || 0,
           attendedSessions: studentResult.student.attended_sessions || 0,
           attendanceRate: studentResult.student.attendance_rate || 0,
-          lastAttendance: studentResult.student.last_attendance
+          // last_attendance might not exist in PostgreSQL database
+          lastAttendance: studentResult.student.last_attendance || null
         };
         setAttendanceStats(stats);
 
@@ -399,12 +400,14 @@ export const StudentDashboard = ({ user }) => {
                   // Days of the month
                   for (let day = 1; day <= daysInMonth; day++) {
                     const date = new Date(year, month, day);
-                    const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
                     
                     // Check if this date is in the attendance records
                     const attendance = attendanceData.find(record => {
-                      const recordDate = new Date(record.check_in_time).toISOString().split('T')[0];
-                      return recordDate === dateStr;
+                      const recordDate = new Date(record.check_in_time);
+                      // 使用本地日期比较，避免时区问题
+                      return recordDate.getDate() === day &&
+                             recordDate.getMonth() === month &&
+                             recordDate.getFullYear() === year;
                     });
                     
                     const isAttended = !!attendance;
