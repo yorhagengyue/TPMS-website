@@ -9,6 +9,7 @@ const config = require('./config'); // Use the new configuration system
 const db = require('./database'); // Import unified database connection module
 const { authenticateUser, revokeToken, verifyStudentId, registerUser, setUserPassword, createUserAccount } = require('./src/lib/auth');
 const { authenticate, authorize } = require('./src/lib/authMiddleware');
+const emailService = require('./src/lib/emailService');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -259,13 +260,25 @@ app.post('/api/auth/login', async (req, res) => {
 // Set user password
 app.post('/api/auth/set-password', async (req, res) => {
   try {
-    const { userId, studentId, password } = req.body;
+    const { userId, studentId, password, email, verificationCode } = req.body;
     
     if ((!studentId && !userId) || !password) {
       return res.status(400).json({ 
         success: false, 
         message: 'Student ID/User ID and password cannot be empty' 
       });
+    }
+    
+    // If email and verification code are provided, verify them
+    if (email && verificationCode) {
+      const isValidCode = emailService.verifyCode(email, verificationCode);
+      
+      if (!isValidCode) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid or expired verification code'
+        });
+      }
     }
     
     const auth = require('./src/lib/auth');
@@ -442,12 +455,36 @@ app.post('/api/auth/verify-student', async (req, res) => {
 // Keep for backward compatibility with old frontend logic
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { studentId, password } = req.body;
+    const { studentId, password, email, verificationCode } = req.body;
     
     if (!studentId) {
       return res.status(400).json({ 
         success: false, 
         message: 'Student ID is required' 
+      });
+    }
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email address is required'
+      });
+    }
+    
+    if (!verificationCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email verification code is required'
+      });
+    }
+    
+    // Verify the email verification code
+    const isValidCode = emailService.verifyCode(email, verificationCode);
+    
+    if (!isValidCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification code'
       });
     }
     
@@ -472,6 +509,15 @@ app.post('/api/auth/register', async (req, res) => {
           success: false,
           message: 'Student not found'
         });
+      }
+      
+      // Update student email if it has changed
+      if (email) {
+        const updateEmailQuery = db.isPostgres
+          ? 'UPDATE students SET email = $1 WHERE id = $2'
+          : 'UPDATE students SET email = ? WHERE id = ?';
+          
+        await db.query(updateEmailQuery, [email, students[0].id]);
       }
       
       const userQuery = db.isPostgres
@@ -499,6 +545,13 @@ app.post('/api/auth/register', async (req, res) => {
     
     // If no account exists, create an account with empty password
     if (!verifyResult.hasAccount) {
+      // First update student email
+      const updateEmailQuery = db.isPostgres
+        ? 'UPDATE students SET email = $1 WHERE id = $2'
+        : 'UPDATE students SET email = ? WHERE id = ?';
+        
+      await db.query(updateEmailQuery, [email, verifyResult.student.id]);
+      
       // Create the account (with empty password by default)
       const createResult = await createUserAccount(studentId);
       
@@ -1092,6 +1145,137 @@ app.get('/api/debug/check-account/:studentId', async (req, res) => {
       status: 'error',
       message: 'Server error',
       error: error.message
+    });
+  }
+});
+
+// Send verification code to email
+app.post('/api/auth/send-verification-code', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Email address is required' 
+      });
+    }
+    
+    // Validate email format using a simple regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format'
+      });
+    }
+    
+    // Send verification code
+    const result = await emailService.sendVerificationCode(email);
+    
+    if (!result.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send verification code',
+        error: result.error
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Verification code sent successfully'
+    });
+  } catch (error) {
+    console.error('Error sending verification code:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error, please try again later'
+    });
+  }
+});
+
+// Verify email verification code
+app.post('/api/auth/verify-email-code', async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    
+    if (!email || !code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and verification code are required'
+      });
+    }
+    
+    // Verify the code
+    const isValid = emailService.verifyCode(email, code);
+    
+    if (!isValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification code'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Email verified successfully'
+    });
+  } catch (error) {
+    console.error('Error verifying email code:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error, please try again later'
+    });
+  }
+});
+
+// Send password reset verification code
+app.post('/api/auth/send-password-reset-code', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Email address is required' 
+      });
+    }
+    
+    // First check if the email exists in the system
+    const studentQuery = db.isPostgres
+      ? 'SELECT id FROM students WHERE email = $1'
+      : 'SELECT id FROM students WHERE email = ?';
+      
+    const students = await db.query(studentQuery, [email]);
+    
+    if (students.length === 0) {
+      // For security reasons, we still return success but don't actually send the email
+      return res.json({
+        success: true,
+        message: 'If your email is registered, you will receive a password reset code'
+      });
+    }
+    
+    // Send password reset code
+    const result = await emailService.sendPasswordResetCode(email);
+    
+    if (!result.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send password reset code',
+        error: result.error
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Password reset code sent successfully'
+    });
+  } catch (error) {
+    console.error('Error sending password reset code:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error, please try again later'
     });
   }
 });

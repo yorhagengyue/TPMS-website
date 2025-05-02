@@ -54,11 +54,24 @@ function loadEnv() {
         password: DB_PASSWORD || '',
         database: DB_NAME || (NODE_ENV === 'test' ? 'tpms_test_db' : 'tpms_db')
       };
+      
+  // Email configuration
+  const EMAIL_CONFIG = {
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: Number(process.env.EMAIL_PORT || 587),
+    secure: process.env.EMAIL_SECURE === 'true',
+    auth: {
+      user: process.env.EMAIL_USER || '',
+      pass: process.env.EMAIL_PASS || '',
+    },
+    from: process.env.EMAIL_FROM || 'TPMS System <noreply@tpms.com>'
+  };
   
   return {
     NODE_ENV,
     PORT: process.env.PORT || 5000,
-    DB_CONFIG
+    DB_CONFIG,
+    EMAIL_CONFIG
   };
 }
 

@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiUser, FiLock, FiLogIn, FiAlertCircle, FiCheck, FiKey, FiInfo } from 'react-icons/fi';
-import { useLocation, useNavigate } from 'react-router-dom';
+import EmailVerification from '../EmailVerification';
 
 const LoginPage = ({ onLogin }) => {
-  const location = useLocation();
-  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -13,12 +11,15 @@ const LoginPage = ({ onLogin }) => {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  // Get redirect path from location state if available
-  const from = location.state?.from || '/';
-  
   // State for password setup handling
   const [needsPasswordSetup, setNeedsPasswordSetup] = useState(false);
   const [tempUserData, setTempUserData] = useState(null);
+  
+  // Email verification for password setup
+  const [email, setEmail] = useState('');
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -48,6 +49,7 @@ const LoginPage = ({ onLogin }) => {
         setNeedsPasswordSetup(true);
         setTempUserData(data.user);
         setMessage(data.message || 'Please set your password to continue.');
+        setShowEmailVerification(true);
         setIsLoading(false);
         return;
       }
@@ -68,15 +70,20 @@ const LoginPage = ({ onLogin }) => {
         onLogin(data.user);
       }
 
-      // Navigate back to the original page or home
-      navigate(from);
-
       setIsLoading(false);
     } catch (error) {
       console.error('Login error:', error);
       setError('An unexpected error occurred, please try again');
       setIsLoading(false);
     }
+  };
+
+  // Handle email verification completion 
+  const handleEmailVerified = (verifiedEmail, code) => {
+    setEmail(verifiedEmail);
+    setVerificationCode(code);
+    setIsEmailVerified(true);
+    setShowEmailVerification(false);
   };
 
   // Handle password setup
@@ -104,6 +111,13 @@ const LoginPage = ({ onLogin }) => {
       return;
     }
 
+    if (!isEmailVerified) {
+      setError('Please verify your email first');
+      setShowEmailVerification(true);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/auth/set-password', {
         method: 'POST',
@@ -112,7 +126,9 @@ const LoginPage = ({ onLogin }) => {
         },
         body: JSON.stringify({ 
           userId: tempUserData.id, 
-          password 
+          password,
+          email,
+          verificationCode
         }),
       });
 
@@ -131,12 +147,11 @@ const LoginPage = ({ onLogin }) => {
       // Set success message
       setMessage('Password set successfully!');
       
-      // Short delay before calling login callback and redirecting
+      // Short delay before calling login callback
       setTimeout(() => {
         if (onLogin) {
           onLogin(data.user);
         }
-        navigate(from);
       }, 1500);
 
       setIsLoading(false);
@@ -163,12 +178,13 @@ const LoginPage = ({ onLogin }) => {
       >
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-800">
-            {needsPasswordSetup ? 'Set Your Password' : 'Welcome Back'}
+            {needsPasswordSetup ? 'Set Your Password' : 'Login'}
           </h2>
           <p className="text-gray-600 mt-2">
             {needsPasswordSetup 
               ? 'Please set a password for your account' 
-              : 'Login to access your account'}
+              : 'Welcome back to TPMS'
+            }
           </p>
         </div>
 
@@ -212,98 +228,14 @@ const LoginPage = ({ onLogin }) => {
           </motion.div>
         )}
 
-        {needsPasswordSetup ? (
-          // Password setup form
-          <form onSubmit={handleSetPassword}>
-            <div className="mb-6">
-              <label htmlFor="password" className="block text-gray-700 text-sm font-medium mb-2">
-                New Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiKey className="text-gray-400" />
-                </div>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 block w-full border border-gray-300 rounded-md py-3 px-4 bg-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Enter new password"
-                />
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Password must be at least 6 characters long
-              </p>
-            </div>
-
-            <div className="mb-6">
-              <label htmlFor="confirmPassword" className="block text-gray-700 text-sm font-medium mb-2">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiLock className="text-gray-400" />
-                </div>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pl-10 block w-full border border-gray-300 rounded-md py-3 px-4 bg-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Re-enter password"
-                />
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <button
-                type="submit"
-                className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
-                  isLoading ? 'opacity-75 cursor-not-allowed' : ''
-                }`}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Setting password...
-                  </>
-                ) : (
-                  <>
-                    <FiKey className="mr-2" /> Set Password
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        ) : (
-          // Login form
-          <form onSubmit={handleLogin}>
-            <div className="mb-6">
+        {/* Login Form */}
+        {!needsPasswordSetup && (
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
               <label htmlFor="username" className="block text-gray-700 text-sm font-medium mb-2">
-                Username
+                Student ID
               </label>
-              <div className="relative">
+              <div className="relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <FiUser className="text-gray-400" />
                 </div>
@@ -314,18 +246,16 @@ const LoginPage = ({ onLogin }) => {
                   onChange={(e) => setUsername(e.target.value)}
                   className="pl-10 block w-full border border-gray-300 rounded-md py-3 px-4 bg-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Enter your student ID"
+                  required
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Your student ID is your username (e.g., 2401360i)
-              </p>
             </div>
 
-            <div className="mb-6">
+            <div>
               <label htmlFor="password" className="block text-gray-700 text-sm font-medium mb-2">
                 Password
               </label>
-              <div className="relative">
+              <div className="relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <FiLock className="text-gray-400" />
                 </div>
@@ -339,11 +269,11 @@ const LoginPage = ({ onLogin }) => {
                 />
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Leave blank if you're logging in for the first time
+                New users: Leave password blank if this is your first login
               </p>
             </div>
 
-            <div className="mb-6">
+            <div>
               <button
                 type="submit"
                 className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
@@ -385,10 +315,112 @@ const LoginPage = ({ onLogin }) => {
           </form>
         )}
 
+        {/* Password Setup Form */}
+        {needsPasswordSetup && (
+          <div>
+            {/* Email Verification Step */}
+            {showEmailVerification && (
+              <EmailVerification
+                email={email}
+                onEmailChange={setEmail}
+                onVerified={handleEmailVerified}
+                title="Email Verification"
+                description="Please verify your email address before setting your password"
+              />
+            )}
+
+            {/* Password Setup Form - only show after email verification */}
+            {isEmailVerified && (
+              <form onSubmit={handleSetPassword} className="space-y-6">
+                <div>
+                  <label htmlFor="password" className="block text-gray-700 text-sm font-medium mb-2">
+                    New Password
+                  </label>
+                  <div className="relative rounded-md shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <FiKey className="text-gray-400" />
+                    </div>
+                    <input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 block w-full border border-gray-300 rounded-md py-3 px-4 bg-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      placeholder="Create a new password"
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Password must be at least 6 characters
+                  </p>
+                </div>
+
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-gray-700 text-sm font-medium mb-2">
+                    Confirm Password
+                  </label>
+                  <div className="relative rounded-md shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <FiLock className="text-gray-400" />
+                    </div>
+                    <input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="pl-10 block w-full border border-gray-300 rounded-md py-3 px-4 bg-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      placeholder="Confirm your password"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <button
+                    type="submit"
+                    className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
+                      isLoading ? 'opacity-75 cursor-not-allowed' : ''
+                    }`}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <svg
+                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Setting password...
+                      </>
+                    ) : (
+                      'Set Password'
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
+
         <div className="text-center mt-4">
           {!needsPasswordSetup && (
             <p className="text-sm text-gray-600">
-              Don't have an account? <a href="#" onClick={goToRegister} className="text-primary-600 hover:text-primary-700">Register new account</a>
+              Don't have an account? <a href="#" onClick={goToRegister} className="text-primary-600 hover:text-primary-700">Create account</a>
             </p>
           )}
           <p className="text-sm text-gray-600 mt-2">

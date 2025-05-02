@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiUser, FiAlertCircle, FiCheck, FiArrowRight, FiInfo } from 'react-icons/fi';
+import EmailVerification from '../EmailVerification';
 
 const RegisterPage = ({ onLogin }) => {
   const [studentId, setStudentId] = useState('');
+  const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState(1); // Simplified to only 1 step: verify student ID
+  const [step, setStep] = useState(1); // 1: Enter Student ID, 2: Email Verification
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
 
-  // Verify student ID and automatically create account
-  const verifyStudentId = async () => {
+  // Verify student ID and advance to email verification
+  const verifyStudentId = async (e) => {
+    e.preventDefault();
     setError('');
     setMessage('');
     setIsLoading(true);
@@ -42,52 +47,91 @@ const RegisterPage = ({ onLogin }) => {
           }, 1500);
         } else {
           // For other errors, show the error message
-          // Replace any Chinese error messages with English equivalents
-          let errorMessage = data.message || 'Student ID verification failed';
-          if (errorMessage === '学生ID不存在') {
-            errorMessage = 'Student ID does not exist';
-          }
-          setError(errorMessage);
+          setError(data.message || 'Student ID verification failed');
         }
         setIsLoading(false);
         return;
       }
 
-      // Student ID verification successful, account may have been created
-      if (data.needsPasswordSetup) {
-        // Account exists or has been created, but needs password setup
-        setMessage('Account verified! Please proceed to login page to set your password.');
-      } else if (data.hasAccount) {
-        // Already has an account with password set
-        setMessage('You already have an account. Please proceed to login page.');
-      } else {
-        // Other success cases
-        setMessage('Verification successful! Please proceed to login page.');
-      }
-      
-      // Redirect to login page after 3 seconds
-      setTimeout(() => {
-        window.history.pushState(null, '', '/login');
-        window.dispatchEvent(new Event('popstate'));
-      }, 3000);
-      
+      // Student ID verification successful, proceed to email verification
+      setStep(2);
       setIsLoading(false);
     } catch (error) {
-      console.error('Verification error:', error);
-      setError('An unexpected error occurred. Please try again');
+      console.error('Error:', error);
+      setError('An unexpected error occurred, please try again');
       setIsLoading(false);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    await verifyStudentId();
+  // Handle complete registration
+  const handleCompleteRegistration = async () => {
+    setError('');
+    setMessage('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          studentId,
+          email,
+          verificationCode
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        setError(data.message || 'Registration failed');
+        setIsLoading(false);
+        return;
+      }
+
+      // Registration successful
+      setMessage('Account created successfully! Redirecting to login page...');
+      
+      // Redirect to login page after a delay
+      setTimeout(() => {
+        window.history.pushState(null, '', '/login');
+        window.dispatchEvent(new Event('popstate'));
+      }, 2000);
+    } catch (error) {
+      console.error('Registration error:', error);
+      setError('An unexpected error occurred, please try again');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Navigate to login page
-  const goToLogin = () => {
+  // Handle email verification completion
+  const handleEmailVerified = (verifiedEmail, code) => {
+    setEmail(verifiedEmail);
+    setVerificationCode(code);
+    setIsEmailVerified(true);
+    
+    // Automatically complete registration when email is verified
+    handleCompleteRegistration();
+  };
+
+  // Switch to login page
+  const goToLogin = (e) => {
+    e.preventDefault();
     window.history.pushState(null, '', '/login');
     window.dispatchEvent(new Event('popstate'));
+  };
+
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    if (step === 1) {
+      verifyStudentId(e);
+    } else if (step === 2 && isEmailVerified) {
+      handleCompleteRegistration();
+    }
   };
 
   return (
@@ -100,7 +144,9 @@ const RegisterPage = ({ onLogin }) => {
       >
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-800">Create Account</h2>
-          <p className="text-gray-600 mt-2">Verify your student ID to get started</p>
+          <p className="text-gray-600 mt-2">
+            {step === 1 ? 'Verify your student ID to get started' : 'Verify your email address'}
+          </p>
         </div>
 
         {/* TPMS Member Guidance */}
@@ -145,68 +191,83 @@ const RegisterPage = ({ onLogin }) => {
         )}
 
         <form onSubmit={handleSubmit}>
-          {/* Student ID input */}
-          <div className="mb-6">
-            <label htmlFor="studentId" className="block text-gray-700 text-sm font-medium mb-2">
-              Student ID
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FiUser className="text-gray-400" />
+          {/* Step 1: Student ID Verification */}
+          {step === 1 && (
+            <div>
+              <div className="mb-6">
+                <label htmlFor="studentId" className="block text-gray-700 text-sm font-medium mb-2">
+                  Student ID
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiUser className="text-gray-400" />
+                  </div>
+                  <input
+                    id="studentId"
+                    type="text"
+                    value={studentId}
+                    onChange={(e) => setStudentId(e.target.value)}
+                    className="pl-10 block w-full border border-gray-300 rounded-md py-3 px-4 bg-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="Enter your student ID"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Example: 2401360i (Your student ID will be your username)
+                </p>
               </div>
-              <input
-                id="studentId"
-                type="text"
-                value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
-                className="pl-10 block w-full border border-gray-300 rounded-md py-3 px-4 bg-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                placeholder="Enter your student ID"
-              />
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Example: 2401360i (Your student ID will be your username)
-            </p>
-          </div>
 
-          <div className="mb-6">
-            <button
-              type="submit"
-              className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
-                isLoading ? 'opacity-75 cursor-not-allowed' : ''
-              }`}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Verifying...
-                </>
-              ) : (
-                <>
-                  <FiArrowRight className="mr-2" /> Verify Student ID
-                </>
-              )}
-            </button>
-          </div>
+              <div className="mb-6">
+                <button
+                  type="submit"
+                  className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
+                    isLoading ? 'opacity-75 cursor-not-allowed' : ''
+                  }`}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      <FiArrowRight className="mr-2" /> Verify Student ID
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {/* Step 2: Email Verification */}
+          {step === 2 && (
+            <EmailVerification
+              email={email}
+              onEmailChange={setEmail}
+              onVerified={handleEmailVerified}
+              title="Email Verification"
+              description="Please enter your email address to verify your account"
+            />
+          )}
         </form>
 
         <div className="text-center mt-4">
