@@ -19,26 +19,11 @@ export const CheckinPage = ({ user }) => {
   const [successMessage, setSuccessMessage] = useState('');
 
   // Check if current time is within allowed check-in times
-  const [isWithinCheckinHours, setIsWithinCheckinHours] = useState(false);
+  // 暂时设置为始终允许签到，用于测试
+  const [isWithinCheckinHours, setIsWithinCheckinHours] = useState(true);
   
+  /*
   // Update check-in time validity every minute
-  // Check if user has already checked in today
-  useEffect(() => {
-    if (!user) return;
-    
-    // Check localStorage for today's check-in
-    const lastCheckIn = localStorage.getItem('lastCheckIn');
-    const today = new Date().toDateString();
-    
-    if (lastCheckIn === today) {
-      setIsCheckedIn(true);
-      setSuccessMessage('You have already checked in today. Thank you!');
-    }
-    
-    // We could also try checking with the server, but the localStorage approach
-    // is simpler and should work for most cases since we're storing the check-in date
-  }, [user]);
-
   useEffect(() => {
     const checkValidTime = () => {
       const now = new Date();
@@ -57,6 +42,7 @@ export const CheckinPage = ({ user }) => {
     
     return () => clearInterval(interval);
   }, []);
+  */
 
   // TP Campus location - updated with precise coordinates
   const tpLocation = { 
@@ -98,7 +84,7 @@ export const CheckinPage = ({ user }) => {
     
     // If not directly within boundary, check distance from campus center
     const distance = calculateDistance(lat, lng, tpLocation.lat, tpLocation.lng);
-    return distance <= 1.0; // Within 1.0km of campus center
+    return distance <= 1.5; // Within 1.5km of campus center
   };
 
   // Get user's current location
@@ -207,14 +193,12 @@ export const CheckinPage = ({ user }) => {
       setIsCheckedIn(true);
       setSuccessMessage('Attendance recorded successfully! Thank you for checking in.');
       
-      // Store in localStorage that user has checked in today
-      const today = new Date().toDateString();
-      localStorage.setItem('lastCheckIn', today);
-      
-      // Reset location but keep checked in status
+      // Reset after 5 seconds
       setTimeout(() => {
+        setIsCheckedIn(false);
         setLocation(null);
         setLocationStatus('idle');
+        setSuccessMessage('');
       }, 5000);
       
     } catch (error) {
@@ -238,14 +222,8 @@ export const CheckinPage = ({ user }) => {
           <p className="text-gray-600">
             Record your attendance at TP Mindsport Club activities
           </p>
-          <div className={`mt-2 text-sm font-medium ${isWithinCheckinHours ? 'text-green-600' : 'text-amber-600'}`}>
-            <span className="font-semibold">Check-in time:</span> Only on Fridays 18:00-21:00
-            {!isWithinCheckinHours && (
-              <div className="mt-1 text-amber-600">
-                <FiAlertTriangle className="inline mr-1" />
-                <span>Currently outside check-in hours</span>
-              </div>
-            )}
+          <div className={`mt-2 text-sm font-medium text-green-600`}>
+            <span className="font-semibold">Check-in time:</span> 时间限制已暂时关闭（测试模式）
           </div>
         </div>
         
@@ -373,9 +351,9 @@ export const CheckinPage = ({ user }) => {
                 
                 <button
                   onClick={handleCheckIn}
-                  disabled={isLoading || locationStatus !== 'success' || !user || !isWithinCheckinHours}
+                  disabled={isLoading || locationStatus !== 'success' || !user}
                   className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-white ${
-                    !user || locationStatus !== 'success' || !isWithinCheckinHours ? 'bg-gray-400 cursor-not-allowed' :
+                    !user || locationStatus !== 'success' ? 'bg-gray-400 cursor-not-allowed' :
                     isLoading ? 'bg-green-500' : 'bg-green-600 hover:bg-green-700'
                   } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
                 >
@@ -383,11 +361,6 @@ export const CheckinPage = ({ user }) => {
                     <>
                       <FiLoader className="animate-spin mr-2" />
                       Recording attendance...
-                    </>
-                  ) : !isWithinCheckinHours ? (
-                    <>
-                      <FiClock className="mr-2" />
-                      Outside check-in hours
                     </>
                   ) : (
                     <>
@@ -405,9 +378,9 @@ export const CheckinPage = ({ user }) => {
           <p>
             Note: Your location is only used to verify you are at the CCA venue.
             <br />
-            You must be within campus boundaries or within 1 kilometer of the campus center to check in.
+            You must be within campus boundaries or within 1.5 kilometers of the campus center to check in.
             <br />
-            If you are in campus but rejected of check-in, please try again or use another browser.
+            <span className="text-amber-600 font-medium">测试模式：签到时间限制已暂时关闭</span>
           </p>
         </div>
       </motion.div>

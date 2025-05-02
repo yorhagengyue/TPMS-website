@@ -1,98 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const XLSX = require('xlsx');
 const path = require('path');
 const fs = require('fs');
-const fetch = require('node-fetch');
 const config = require('./config'); // Use the new configuration system
 const db = require('./database'); // Import unified database connection module
-const { promisify } = require('util');
-const bcrypt = require('bcrypt');
 const { authenticateUser, revokeToken, verifyStudentId, registerUser, setUserPassword, createUserAccount } = require('./src/lib/auth');
 const { authenticate, authorize } = require('./src/lib/authMiddleware');
-
-// Chess.com API功能
-/**
- * 验证Chess.com用户名是否有效
- * @param {string} username - 要验证的用户名
- * @returns {Promise<boolean>} 是否是有效的Chess.com用户名
- */
-async function validateChessUsername(username) {
-  try {
-    if (!username) return false;
-    
-    const cleanUsername = username.trim().toLowerCase();
-    console.log(`验证Chess.com用户名: ${cleanUsername}`);
-    
-    const response = await fetch(`https://api.chess.com/pub/player/${cleanUsername}`);
-    return response.ok;
-  } catch (error) {
-    console.error('验证Chess.com用户名出错:', error);
-    return false;
-  }
-}
-
-/**
- * 获取Chess.com玩家等级分
- * @param {string} username - Chess.com用户名
- * @returns {Promise<Object>} 包含各类棋局等级分的对象
- */
-async function getPlayerRating(username) {
-  try {
-    if (!username) {
-      return {
-        blitz: null,
-        rapid: null,
-        bullet: null,
-        daily: null,
-        tactics: null,
-        puzzleRush: null
-      };
-    }
-    
-    const cleanUsername = username.trim().toLowerCase();
-    console.log(`获取Chess.com玩家等级分: ${cleanUsername}`);
-    
-    const response = await fetch(`https://api.chess.com/pub/player/${cleanUsername}/stats`);
-    
-    if (!response.ok) {
-      console.log(`Chess.com API返回状态码: ${response.status}`);
-      throw new Error(`Chess.com API返回错误: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    
-    // 提取各类棋局的等级分
-    const blitzRating = data.chess_blitz?.last?.rating || null;
-    const rapidRating = data.chess_rapid?.last?.rating || null;
-    const bulletRating = data.chess_bullet?.last?.rating || null;
-    const dailyRating = data.chess_daily?.last?.rating || null;
-    const tacticsRating = data.tactics?.highest?.rating || null;
-    const puzzleRushRating = data.puzzle_rush?.best?.score || null;
-    
-    return {
-      blitz: blitzRating,
-      rapid: rapidRating,
-      bullet: bulletRating,
-      daily: dailyRating,
-      tactics: tacticsRating,
-      puzzleRush: puzzleRushRating
-    };
-  } catch (error) {
-    console.error('获取Chess.com玩家等级分出错:', error);
-    return {
-      blitz: null,
-      rapid: null,
-      bullet: null,
-      daily: null,
-      tactics: null,
-      puzzleRush: null
-    };
-  }
-}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -164,8 +80,6 @@ async function initializeDatabase() {
           student_id INT NOT NULL,
           email VARCHAR(255),
           role VARCHAR(10) NOT NULL DEFAULT 'student' CHECK (role IN ('admin', 'student', 'teacher')),
-          chess_username VARCHAR(50),
-          chess_rating INT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           last_login TIMESTAMP NULL,
           FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
@@ -626,19 +540,11 @@ app.get('/api/users/profile', authenticate, async (req, res) => {
   try {
     // Get user details
     const userQuery = db.isPostgres
-      ? `SELECT u.id, u.username, u.role, 
-             u.chess_username, u.chess_rating, u.chess_rapid_rating, 
-             u.chess_bullet_rating, u.chess_daily_rating, 
-             u.chess_tactics_rating, u.chess_puzzle_rush_rating,
-             s.name, s.index_number, s.email, s.course
-         FROM users u
-         JOIN students s ON u.student_id = s.id
+      ? `SELECT u.id, u.username, u.role, s.name, s.index_number, s.email, s.course
+       FROM users u
+       JOIN students s ON u.student_id = s.id
          WHERE u.id = $1`
-      : `SELECT u.id, u.username, u.role, 
-             u.chess_username, u.chess_rating, u.chess_rapid_rating, 
-             u.chess_bullet_rating, u.chess_daily_rating, 
-             u.chess_tactics_rating, u.chess_puzzle_rush_rating,
-             s.name, s.index_number, s.email, s.course
+      : `SELECT u.id, u.username, u.role, s.name, s.index_number, s.email, s.course
          FROM users u
          JOIN students s ON u.student_id = s.id
          WHERE u.id = ?`;
@@ -786,40 +692,6 @@ app.post('/api/attendance', authenticate, async (req, res) => {
       return res.status(400).json({ error: 'Student index number is required' });
     }
     
-    // 检查当前时间是否在允许签到的时间范围内 (仅周五18:00-21:00)
-    // Use Singapore time (UTC+8)
-    const now = new Date();
-    // Debug logging of server time
-    console.log(`Server time: ${now.toISOString()}`);
-    
-    // Convert to Singapore time (UTC+8)
-    const sgOffset = 8 * 60; // 8 hours in minutes
-    const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
-    const sgMinutes = (utcMinutes + sgOffset) % (24 * 60);
-    const sgHour = Math.floor(sgMinutes / 60);
-    
-    // Get day of week in Singapore time
-    // If adding 8 hours pushes us to the next day, adjust the day of week
-    let sgDayOfWeek = now.getUTCDay();
-    if (now.getUTCHours() + 8 >= 24) {
-      sgDayOfWeek = (sgDayOfWeek + 1) % 7;
-    }
-    
-    console.log(`Singapore time: Day ${sgDayOfWeek} (5=Friday), Hour: ${sgHour}`);
-    
-    // Check if it's Friday (day 5) and between 6-9pm Singapore time
-    const isValidTime = sgDayOfWeek === 5 && sgHour >= 18 && sgHour < 21;
-    
-    if (!isValidTime) {
-      const errorMsg = 'Check-in failed: CCA activities are only held on Fridays from 6:00 PM to 9:00 PM. Please check in during activity hours.';
-      console.log(`Attendance rejected for ${indexNumber}: Not within allowed time window`);
-      return res.status(403).json({ 
-        success: false, 
-        error: errorMsg,
-        message: errorMsg
-      });
-    }
-    
     // 检查位置是否在允许范围内（德马塞克理工学院校园边界内或附近）
     const tpLocation = { 
       lat: 1.34498,
@@ -899,26 +771,6 @@ app.post('/api/attendance', authenticate, async (req, res) => {
       return res.status(404).json({ error: 'Student not found' });
     }
     
-    // 检查当天是否已签到
-    const today = new Date();
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
-    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
-    
-    const checkExistingQuery = db.isPostgres
-      ? 'SELECT id FROM attendance WHERE student_id = $1 AND check_in_time BETWEEN $2 AND $3'
-      : 'SELECT id FROM attendance WHERE student_id = ? AND check_in_time BETWEEN ? AND ?';
-    
-    const existingAttendance = await db.query(checkExistingQuery, [students[0].id, todayStart, todayEnd]);
-    
-    if (existingAttendance.length > 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'You have already checked in today',
-        message: 'You have already checked in today. Only one check-in is allowed per day.',
-        alreadyCheckedIn: true
-      });
-    }
-    
     // Record attendance
     const insertQuery = db.isPostgres
       ? 'INSERT INTO attendance (student_id, location_lat, location_lng) VALUES ($1, $2, $3)'
@@ -926,19 +778,16 @@ app.post('/api/attendance', authenticate, async (req, res) => {
     
     await db.query(insertQuery, [students[0].id, locationLat, locationLng]);
 
-    // Update student attendance stats - handle schema differences between PostgreSQL and MySQL
-    // The 'last_attendance' column may not exist in the Postgres database
-    // Also ensure total_sessions is at least equal to attended_sessions
+    // Update student attendance stats
     const updateQuery = db.isPostgres
       ? `UPDATE students SET 
-        total_sessions = GREATEST(COALESCE(total_sessions, 0), COALESCE(attended_sessions, 0) + 1),
-        attended_sessions = COALESCE(attended_sessions, 0) + 1,
-        attendance_rate = ((COALESCE(attended_sessions, 0) + 1) * 100.0) / GREATEST(COALESCE(total_sessions, 0), COALESCE(attended_sessions, 0) + 1)
+        attended_sessions = attended_sessions + 1,
+        attendance_rate = (attended_sessions + 1) / (CASE WHEN total_sessions = 0 THEN 1 ELSE total_sessions END) * 100,
+        last_attendance = NOW()
          WHERE id = $1`
       : `UPDATE students SET 
-          total_sessions = GREATEST(COALESCE(total_sessions, 0), COALESCE(attended_sessions, 0) + 1),
-          attended_sessions = COALESCE(attended_sessions, 0) + 1,
-          attendance_rate = ((COALESCE(attended_sessions, 0) + 1) * 100.0) / GREATEST(COALESCE(total_sessions, 0), COALESCE(attended_sessions, 0) + 1),
+          attended_sessions = attended_sessions + 1,
+          attendance_rate = (attended_sessions + 1) / (CASE WHEN total_sessions = 0 THEN 1 ELSE total_sessions END) * 100,
           last_attendance = NOW()
          WHERE id = ?`;
     
@@ -1201,330 +1050,6 @@ app.get('/api/debug/check-account/:studentId', async (req, res) => {
       status: 'error',
       message: 'Server error',
       error: error.message
-    });
-  }
-});
-
-// Link Chess.com account
-app.post('/api/user/link-chess', authenticate, async (req, res) => {
-  try {
-    const { chessUsername } = req.body;
-    
-    if (!chessUsername || typeof chessUsername !== 'string') {
-      return res.status(400).json({
-        success: false,
-        message: 'Chess.com username is required'
-      });
-    }
-
-    // Trim the username to avoid spaces
-    const trimmedUsername = chessUsername.trim();
-
-    console.log(`Attempting to link Chess.com account for user ${req.user.id} with username: ${trimmedUsername}`);
-
-    // Validate Chess.com username by calling their API
-    try {
-      // Try to fetch player data from Chess.com
-      console.log(`Fetching player data from Chess.com for username: ${trimmedUsername}`);
-      const playerUrl = `https://api.chess.com/pub/player/${trimmedUsername}`;
-      console.log(`API URL: ${playerUrl}`);
-      
-      const chessComResponse = await fetch(playerUrl, { 
-        headers: { 'User-Agent': 'TPMS-Chess-Rankings/1.0' }
-      });
-      
-      // Log the response status
-      console.log(`Chess.com player API response status: ${chessComResponse.status}`);
-      
-      if (!chessComResponse.ok) {
-        console.log(`Failed to fetch Chess.com player data: ${chessComResponse.statusText}`);
-        return res.status(404).json({
-          success: false,
-          message: 'Chess.com username not found. Please check the username and try again.'
-        });
-      }
-      
-      const userData = await chessComResponse.json();
-      console.log(`Successfully fetched player data for ${trimmedUsername}`);
-      
-      // Get chess rating from Stats API
-      console.log(`Fetching stats for player ${trimmedUsername}`);
-      const statsUrl = `https://api.chess.com/pub/player/${trimmedUsername}/stats`;
-      console.log(`Stats API URL: ${statsUrl}`);
-      
-      const statsResponse = await fetch(statsUrl, {
-        headers: { 'User-Agent': 'TPMS-Chess-Rankings/1.0' }
-      });
-      
-      // Log the response status
-      console.log(`Chess.com stats API response status: ${statsResponse.status}`);
-      
-      if (!statsResponse.ok) {
-        console.log(`Failed to fetch Chess.com stats: ${statsResponse.statusText}`);
-        // Still proceed, but with rating 0
-        console.log(`Proceeding with rating 0 for ${trimmedUsername}`);
-        
-        // Save username with 0 rating for all rating types
-        const updateQuery = db.isPostgres
-          ? `UPDATE users 
-             SET chess_username = $1, chess_rating = $2,
-                 chess_rapid_rating = 0, chess_bullet_rating = 0, chess_daily_rating = 0,
-                 chess_tactics_rating = 0, chess_puzzle_rush_rating = 0
-             WHERE id = $3`
-          : `UPDATE users 
-             SET chess_username = ?, chess_rating = ?,
-                 chess_rapid_rating = 0, chess_bullet_rating = 0, chess_daily_rating = 0,
-                 chess_tactics_rating = 0, chess_puzzle_rush_rating = 0
-             WHERE id = ?`;
-        
-        await db.query(updateQuery, [trimmedUsername, 0, req.user.id]);
-        
-        return res.json({
-          success: true,
-          message: 'Chess.com account linked successfully, but ratings could not be retrieved',
-          chess_username: trimmedUsername,
-          chess_rating: 0,
-          chess_rapid_rating: 0,
-          chess_bullet_rating: 0,
-          chess_daily_rating: 0,
-          chess_tactics_rating: 0,
-          chess_puzzle_rush_rating: 0
-        });
-      }
-      
-      const statsData = await statsResponse.json();
-      console.log(`Successfully fetched stats for ${trimmedUsername}`);
-      
-      // Extract all ratings or use 0 if not available
-      const blitzRating = statsData.chess_blitz?.last?.rating || 0;
-      const rapidRating = statsData.chess_rapid?.last?.rating || 0;
-      const bulletRating = statsData.chess_bullet?.last?.rating || 0;
-      const dailyRating = statsData.chess_daily?.last?.rating || 0;
-      const tacticsRating = statsData.tactics?.highest?.rating || 0;
-      const puzzleRushRating = statsData.puzzle_rush?.best?.score || 0;
-      
-      console.log(`Ratings for ${trimmedUsername}:`);
-      console.log(`Blitz: ${blitzRating}`);
-      console.log(`Rapid: ${rapidRating}`);
-      console.log(`Bullet: ${bulletRating}`);
-      console.log(`Daily: ${dailyRating}`);
-      console.log(`Tactics: ${tacticsRating}`);
-      console.log(`Puzzle Rush: ${puzzleRushRating}`);
-      
-      // Save username and all ratings to user record
-      const updateQuery = db.isPostgres
-        ? `UPDATE users 
-           SET chess_username = $1, chess_rating = $2,
-               chess_rapid_rating = $3, chess_bullet_rating = $4, chess_daily_rating = $5,
-               chess_tactics_rating = $6, chess_puzzle_rush_rating = $7
-           WHERE id = $8`
-        : `UPDATE users 
-           SET chess_username = ?, chess_rating = ?,
-               chess_rapid_rating = ?, chess_bullet_rating = ?, chess_daily_rating = ?,
-               chess_tactics_rating = ?, chess_puzzle_rush_rating = ?
-           WHERE id = ?`;
-      
-      console.log(`Updating database for user ID ${req.user.id} with username ${trimmedUsername} and all ratings`);
-      await db.query(updateQuery, [
-        trimmedUsername, 
-        blitzRating, 
-        rapidRating, 
-        bulletRating, 
-        dailyRating,
-        tacticsRating,
-        puzzleRushRating,
-        req.user.id
-      ]);
-      console.log(`Database update successful`);
-      
-      return res.json({
-        success: true,
-        message: 'Chess.com account linked successfully',
-        chess_username: trimmedUsername,
-        chess_rating: blitzRating,
-        chess_rapid_rating: rapidRating,
-        chess_bullet_rating: bulletRating,
-        chess_daily_rating: dailyRating,
-        chess_tactics_rating: tacticsRating,
-        chess_puzzle_rush_rating: puzzleRushRating
-      });
-    } catch (error) {
-      console.error('Error checking Chess.com API:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Could not connect to Chess.com API. Please try again later.',
-        error: error.message
-      });
-    }
-  } catch (error) {
-    console.error('Error linking Chess.com account:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error occurred while linking Chess.com account',
-      error: error.message
-    });
-  }
-});
-
-// Get all users with chess ratings
-app.get('/api/users/chess-ratings', async (req, res) => {
-  try {
-    const usersQuery = db.isPostgres
-      ? `SELECT u.id, s.name, s.index_number as student_id, u.chess_username, 
-             u.chess_rating, u.chess_rapid_rating, u.chess_bullet_rating, 
-             u.chess_daily_rating, u.chess_tactics_rating, u.chess_puzzle_rush_rating
-         FROM users u
-         JOIN students s ON u.student_id = s.id
-         ORDER BY u.chess_rating DESC NULLS LAST`
-      : `SELECT u.id, s.name, s.index_number as student_id, u.chess_username, 
-             u.chess_rating, u.chess_rapid_rating, u.chess_bullet_rating, 
-             u.chess_daily_rating, u.chess_tactics_rating, u.chess_puzzle_rush_rating
-         FROM users u
-         JOIN students s ON u.student_id = s.id
-         ORDER BY u.chess_rating IS NULL, u.chess_rating DESC`;
-    
-    const users = await db.query(usersQuery);
-    
-    return res.json({
-      success: true,
-      users: users
-    });
-  } catch (error) {
-    console.error('Error fetching chess ratings:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error occurred while fetching chess ratings'
-    });
-  }
-});
-
-// Export attendance data to Excel (Public Access)
-app.get('/api/attendance/export', async (req, res) => {
-  try {
-    // Get optional date filter parameters
-    const { startDate, endDate, studentId } = req.query;
-    
-    // Build base query conditions
-    let whereClause = [];
-    let params = [];
-    let paramIndex = 1; // PostgreSQL uses $1, $2 format for parameters
-    
-    // Add date filter conditions
-    if (startDate && endDate) {
-      if (db.isPostgres) {
-        whereClause.push(`a.check_in_time BETWEEN $${paramIndex++} AND $${paramIndex++}`);
-        params.push(new Date(startDate), new Date(endDate));
-      } else {
-        whereClause.push('a.check_in_time BETWEEN ? AND ?');
-        params.push(new Date(startDate), new Date(endDate));
-      }
-    }
-    
-    // Add student ID filter condition
-    if (studentId) {
-      if (db.isPostgres) {
-        whereClause.push(`s.index_number = $${paramIndex++}`);
-        params.push(studentId);
-      } else {
-        whereClause.push('s.index_number = ?');
-        params.push(studentId);
-      }
-    }
-    
-    // Build complete WHERE clause
-    const whereStatement = whereClause.length > 0 ? `WHERE ${whereClause.join(' AND ')}` : '';
-    
-    // Build complete query statement
-    const query = `
-      SELECT 
-        a.id, 
-        s.name, 
-        s.index_number, 
-        s.course,
-        s.email,
-        s.total_sessions,
-        s.attended_sessions,
-        s.attendance_rate,
-        a.check_in_time
-      FROM attendance a
-      JOIN students s ON a.student_id = s.id
-      ${whereStatement}
-      ORDER BY a.check_in_time DESC
-    `;
-    
-    console.log('Executing query:', query);
-    console.log('Parameters:', params);
-    
-    // Execute query to get attendance records
-    const records = await db.query(query, params);
-    console.log(`Found ${records.length} attendance records`);
-    
-    // If no records found, return message
-    if (records.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'No attendance records found matching the criteria'
-      });
-    }
-    
-    // Format data for better readability
-    const formattedData = records.map(record => ({
-      'ID': record.id,
-      'Student Name': record.name,
-      'Student ID': record.index_number,
-      'Course': record.course || 'N/A',
-      'Email': record.email || 'N/A',
-      'Total Sessions': record.total_sessions || 0,
-      'Attended Sessions': record.attended_sessions || 0,
-      'Attendance Rate': `${record.attendance_rate || 0}%`,
-      'Check-in Time': new Date(record.check_in_time).toLocaleString()
-    }));
-    
-    // Create a new Excel workbook
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(formattedData);
-    
-    // Set column widths
-    const columnsWidth = [
-      { wch: 8 },   // ID
-      { wch: 25 },  // Student Name
-      { wch: 15 },  // Student ID
-      { wch: 20 },  // Course
-      { wch: 30 },  // Email
-      { wch: 15 },  // Total Sessions
-      { wch: 15 },  // Attended Sessions
-      { wch: 15 },  // Attendance Rate
-      { wch: 20 }   // Check-in Time
-    ];
-    worksheet['!cols'] = columnsWidth;
-    
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance Records');
-    
-    // Generate Excel file
-    const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
-    
-    // Set filename (includes date range or current date) - using English filename to avoid encoding issues
-    let filename = 'attendance_records';
-    if (startDate && endDate) {
-      filename += `_${startDate.substring(0, 10)}_to_${endDate.substring(0, 10)}`;
-    } else {
-      filename += `_${new Date().toISOString().substring(0, 10)}`;
-    }
-    filename += '.xlsx';
-    
-    // Set response headers - using encodeURIComponent to encode filename
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
-    
-    // Send Excel file
-    return res.send(excelBuffer);
-  } catch (error) {
-    console.error('Error exporting Excel file:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Failed to export attendance data', 
-      error: error.message 
     });
   }
 });
