@@ -228,9 +228,39 @@ const sendVerificationCode = async (email, options = {}) => {
     const text = options.text || 
       `Your verification code is: ${code}\n\nThis code will expire in 10 minutes.`;
     const html = options.html || 
-      `<p>Your verification code is: <strong>${code}</strong></p>
-       <p>This code will expire in 10 minutes.</p>
-       <p>If you did not request this code, please ignore this email.</p>`;
+      `
+      <style>
+        body {
+          margin: 20px;
+          font-family: Arial;
+          max-width: 600px;
+          margin: 0 auto;
+        }
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+      </style>
+      <div style="padding: 20px 20px 0 20px; background: lightgrey; border: 1px solid black;">
+        <h1 style="color: #dc2626; font-size: 24px;">TPMS System</h1>
+      </div>
+      
+      <div style="padding: 20px; display: grid; grid-template-columns: 1fr; gap: 20px; border-left: 1px solid black; border-right: 1px solid black;">
+        <p style="font-weight: bold;">Hello ${email},</p>
+        <p>Your verification code is:</p>
+        <div style="background-color: #f3f4f6; padding: 15px; text-align: center; border-radius: 4px;">
+          <span style="font-size: 24px; font-weight: bold; letter-spacing: 5px;">${code}</span>
+        </div>
+        <p>This code will expire in 10 minutes.</p>
+        <p>If you did not request this code, please ignore this email.</p>
+        <p style="font-size: 14px; color: gray; text-align: center;">This is an automated email, please do not reply.</p>
+      </div>
+
+      <div style="background: #dc2626; padding: 20px 10px; color: white; font-size: 13px; line-height: 1.7; text-align: center;">
+        <p>Temasek Polytechnic Mindsports | Temasek Polytechnic, 21 Tampines Avenue 1 Singapore 529757</p>
+      </div>
+      `;
     
     // Create transporter
     const transporter = createTransporter();
@@ -266,12 +296,49 @@ const sendVerificationCode = async (email, options = {}) => {
  * @returns {Promise<Object>} Send result
  */
 const sendPasswordResetCode = async (email, options = {}) => {
+  // Generate a consistent code for this request
+  const code = options.code || generateVerificationCode();
+  
+  // Store the code
+  saveVerificationCode(email, code);
+  
   return sendVerificationCode(email, {
     subject: 'TPMS Password Reset Code',
-    text: `Your password reset code is: ${options.code || generateVerificationCode()}\n\nThis code will expire in 10 minutes.`,
-    html: `<p>Your password reset code is: <strong>${options.code || generateVerificationCode()}</strong></p>
-           <p>This code will expire in 10 minutes.</p>
-           <p>If you did not request this code, please contact administrator immediately.</p>`,
+    text: `Your password reset code is: ${code}\n\nThis code will expire in 10 minutes.`,
+    html: `
+    <style>
+      body {
+        margin: 20px;
+        font-family: Arial;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+    </style>
+    <div style="padding: 20px 20px 0 20px; background: lightgrey; border: 1px solid black;">
+      <h1 style="color: #dc2626; font-size: 24px;">TPMS Password Reset</h1>
+    </div>
+    
+    <div style="padding: 20px; display: grid; grid-template-columns: 1fr; gap: 20px; border-left: 1px solid black; border-right: 1px solid black;">
+      <p style="font-weight: bold;">Hello ${email},</p>
+      <p>You have requested to reset your password for TPMS.</p>
+      <p>Your password reset code is:</p>
+      <div style="background-color: #f3f4f6; padding: 15px; text-align: center; border-radius: 4px;">
+        <span style="font-size: 24px; font-weight: bold; letter-spacing: 5px;">${code}</span>
+      </div>
+      <p>This code will expire in 10 minutes.</p>
+      <p>If you did not request this, please contact administrator immediately.</p>
+      <p style="font-size: 14px; color: gray; text-align: center;">This is an automated email, please do not reply.</p>
+    </div>
+
+    <div style="background: #dc2626; padding: 20px 10px; color: white; font-size: 13px; line-height: 1.7; text-align: center;">
+      <p>Temasek Polytechnic Mindsports | Temasek Polytechnic, 21 Tampines Avenue 1 Singapore 529757</p>
+    </div>
+    `,
     ...options
   });
 };
