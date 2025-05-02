@@ -28,11 +28,21 @@ async function fixAttendanceRates() {
     // 为每个学生重新计算出勤率
     let updated = 0;
     let errors = 0;
+    let dataFixed = 0;
     
     for (const student of students) {
       try {
-        const totalSessions = student.total_sessions || 0;
-        const attendedSessions = student.attended_sessions || 0;
+        let totalSessions = student.total_sessions || 0;
+        let attendedSessions = student.attended_sessions || 0;
+        let needUpdate = false;
+        
+        // 检查并修复数据不一致情况：总课程数应至少等于出勤次数
+        if (attendedSessions > 0 && totalSessions < attendedSessions) {
+          totalSessions = attendedSessions;
+          needUpdate = true;
+          dataFixed++;
+          console.log(`修复数据不一致: 学生ID ${student.id}, 总课程数 ${student.total_sessions} 小于出勤次数 ${attendedSessions}, 已更新总课程数为 ${totalSessions}`);
+        }
         
         // 计算正确的出勤率
         let attendanceRate = 0;
@@ -42,10 +52,10 @@ async function fixAttendanceRates() {
         
         // 更新学生记录
         const updateQuery = db.isPostgres
-          ? 'UPDATE students SET attendance_rate = $1 WHERE id = $2'
-          : 'UPDATE students SET attendance_rate = ? WHERE id = ?';
+          ? 'UPDATE students SET total_sessions = $1, attendance_rate = $2 WHERE id = $3'
+          : 'UPDATE students SET total_sessions = ?, attendance_rate = ? WHERE id = ?';
         
-        await connection.query(updateQuery, [attendanceRate, student.id]);
+        await connection.query(updateQuery, [totalSessions, attendanceRate, student.id]);
         updated++;
         
         // 打印进度
@@ -64,6 +74,7 @@ async function fixAttendanceRates() {
     console.log('\n出勤率修复完成:');
     console.log(`- 总计学生: ${students.length}`);
     console.log(`- 更新成功: ${updated}`);
+    console.log(`- 数据不一致已修复: ${dataFixed}`);
     console.log(`- 更新失败: ${errors}`);
     
   } catch (error) {
