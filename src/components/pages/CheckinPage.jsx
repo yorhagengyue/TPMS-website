@@ -219,8 +219,8 @@ export const CheckinPage = ({ user }) => {
           <p className="text-gray-600">
             Record your attendance at TP Mindsport Club activities
           </p>
-          <div className={`mt-2 text-sm font-medium text-green-600`}>
-            <span className="font-semibold">Check-in time:</span> 时间限制已暂时关闭（测试模式）
+          <div className={`mt-2 text-sm font-medium ${isWithinCheckinHours ? 'text-green-600' : 'text-amber-600'}`}>
+            <span className="font-semibold">Check-in time:</span> Fridays 6:00 PM - 9:00 PM
           </div>
         </div>
         
