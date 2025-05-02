@@ -103,6 +103,37 @@ async function initializeDatabase() {
         CREATE INDEX IF NOT EXISTS idx_expiry ON revoked_tokens (expiry);
       `);
       
+      // Add Chess.com columns for PostgreSQL - this is what was missing
+      try {
+        console.log('Checking and adding Chess.com columns in PostgreSQL...');
+        
+        // Check if chess_username column exists
+        const columnCheckResult = await connection.query(`
+          SELECT column_name FROM information_schema.columns 
+          WHERE table_name = 'students' AND column_name = 'chess_username'
+        `);
+        
+        if (columnCheckResult.length === 0) {
+          console.log('Adding Chess.com columns to students table in PostgreSQL...');
+          // Add Chess.com related columns
+          await connection.query(`
+            ALTER TABLE students ADD COLUMN IF NOT EXISTS chess_username VARCHAR(50) DEFAULT NULL;
+            ALTER TABLE students ADD COLUMN IF NOT EXISTS chess_rating INT DEFAULT NULL;
+            ALTER TABLE students ADD COLUMN IF NOT EXISTS chess_rapid_rating INT DEFAULT NULL;
+            ALTER TABLE students ADD COLUMN IF NOT EXISTS chess_bullet_rating INT DEFAULT NULL;
+            ALTER TABLE students ADD COLUMN IF NOT EXISTS chess_daily_rating INT DEFAULT NULL;
+            ALTER TABLE students ADD COLUMN IF NOT EXISTS chess_tactics_rating INT DEFAULT NULL;
+            ALTER TABLE students ADD COLUMN IF NOT EXISTS chess_puzzle_rush_rating INT DEFAULT NULL;
+          `);
+          console.log('Successfully added Chess.com columns in PostgreSQL');
+        } else {
+          console.log('Chess.com columns already exist in PostgreSQL students table');
+        }
+      } catch (error) {
+        console.error('Error adding Chess.com columns to PostgreSQL:', error);
+        // Continue initialization even if this fails
+      }
+      
       await connection.commit();
     } else {
       // MySQL initialization
@@ -163,6 +194,37 @@ async function initializeDatabase() {
         INDEX (expiry)
       )
     `);
+    
+    // Add Chess.com columns for MySQL - check if they exist first
+    try {
+      console.log('Checking and adding Chess.com columns in MySQL...');
+      
+      // Check if chess_username column exists
+      const columnCheckResult = await connection.query(`
+        SHOW COLUMNS FROM students LIKE 'chess_username'
+      `);
+      
+      if (columnCheckResult.length === 0) {
+        console.log('Adding Chess.com columns to students table in MySQL...');
+        // Add Chess.com related columns
+        await connection.query(`
+          ALTER TABLE students 
+          ADD COLUMN chess_username VARCHAR(50) DEFAULT NULL,
+          ADD COLUMN chess_rating INT DEFAULT NULL,
+          ADD COLUMN chess_rapid_rating INT DEFAULT NULL,
+          ADD COLUMN chess_bullet_rating INT DEFAULT NULL,
+          ADD COLUMN chess_daily_rating INT DEFAULT NULL,
+          ADD COLUMN chess_tactics_rating INT DEFAULT NULL,
+          ADD COLUMN chess_puzzle_rush_rating INT DEFAULT NULL
+        `);
+        console.log('Successfully added Chess.com columns in MySQL');
+      } else {
+        console.log('Chess.com columns already exist in MySQL students table');
+      }
+    } catch (error) {
+      console.error('Error adding Chess.com columns to MySQL:', error);
+      // Continue initialization even if this fails
+    }
     }
     
     connection.release();
