@@ -12,6 +12,43 @@ const { authenticate, authorize } = require('./src/lib/authMiddleware');
 const emailService = require('./src/lib/emailService');
 
 const app = express();
+
+// Chess ranking endpoint (public endpoint, no authentication required)
+app.get('/api/chess-rank', async (req, res) => {
+  try {
+    // Query for students with chess data, joining with users table
+    const query = db.isPostgres
+      ? `SELECT u.id, u.username, u.email, s.chess_username, s.chess_rapid_rating as chess_rapid, 
+                s.chess_bullet_rating as chess_bullet, s.chess_rating as chess_blitz
+         FROM students s
+         JOIN users u ON s.id = u.student_id
+         WHERE s.chess_username IS NOT NULL 
+           AND (s.chess_rapid_rating > 0 OR s.chess_rating > 0 OR s.chess_bullet_rating > 0)
+         ORDER BY s.chess_rapid_rating DESC, s.chess_rating DESC, s.chess_bullet_rating DESC`
+      : `SELECT u.id, u.username, u.email, s.chess_username, s.chess_rapid_rating as chess_rapid, 
+                s.chess_bullet_rating as chess_bullet, s.chess_rating as chess_blitz
+         FROM students s
+         JOIN users u ON s.id = u.student_id
+         WHERE s.chess_username IS NOT NULL 
+           AND (s.chess_rapid_rating > 0 OR s.chess_rating > 0 OR s.chess_bullet_rating > 0)
+         ORDER BY s.chess_rapid_rating DESC, s.chess_rating DESC, s.chess_bullet_rating DESC`;
+    
+    // Using the db module to query
+    const users = await db.query(query);
+    
+    res.json({
+      success: true,
+      users: users
+    });
+  } catch (error) {
+    console.error('Error fetching chess rankings:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching chess rankings'
+    });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 
 // Middleware
@@ -1088,7 +1125,7 @@ app.get('/api/students/:id/attendance', authenticate, async (req, res) => {
   try {
     const paramId = req.params.id;
     let studentId = paramId;
-    
+
     // Check ID type and convert - user ID may be different from student ID
     // If it's a user ID, first query the corresponding student ID
     if (req.user.role === 'student' && req.user.id.toString() === paramId) {
@@ -1096,9 +1133,9 @@ app.get('/api/students/:id/attendance', authenticate, async (req, res) => {
       const userQuery = db.isPostgres
         ? 'SELECT student_id FROM users WHERE id = $1'
         : 'SELECT student_id FROM users WHERE id = ?';
-      
+
       const userRows = await db.query(userQuery, [paramId]);
-      
+
       if (userRows.length > 0) {
         studentId = userRows[0].student_id;
       }
@@ -1117,8 +1154,8 @@ app.get('/api/students/:id/attendance', authenticate, async (req, res) => {
          ORDER BY check_in_time DESC 
          LIMIT 10`
       : `SELECT * FROM attendance 
-       WHERE student_id = ? 
-       ORDER BY check_in_time DESC 
+         WHERE student_id = ? 
+         ORDER BY check_in_time DESC 
          LIMIT 10`;
     
     const attendance = await db.query(attendanceQuery, [studentId]);
@@ -1648,17 +1685,36 @@ app.get('/api/users/chess-ratings', async (req, res) => {
   }
 });
 
-// Serve React app
+// Serve static files from the React app
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'build')));
+} else {
+  // In development, serve the public folder
+  app.use(express.static(path.join(__dirname, 'public')));
+}
+
+// The "catchall" handler: for any request that doesn't
+// match an API route, send back the React app's index.html file.
 app.get('*', (req, res) => {
+  // Skip API routes
+  if (req.url.startsWith('/api/')) {
+    return res.status(404).json({
+      success: false,
+      message: 'API endpoint not found'
+    });
+  }
+  
+  // For both production and development, send the index.html file
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 // Initialize database and start server
 initializeDatabase().then(() => {
+  const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    console.log(`Environment: ${config.NODE_ENV}`);
-    console.log(`Database: ${config.DB_CONFIG.database}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
+    console.log(`Database: ${db.dbName}`);
     console.log('Note: Default password policy has been updated - all users now use their student ID as password');
   });
-}); 
+});

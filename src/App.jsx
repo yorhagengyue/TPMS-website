@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Header } from './components/ui/layout/Header';
-import { EventsPage as ChessRankPage } from './components/pages/EventsPage';
+import { EventsPage } from './components/pages/EventsPage';
 import { CheckinPage } from './components/pages/CheckinPage';
 import { HomePage } from './components/pages/HomePage';
 import LoginPage from './components/pages/LoginPage';
@@ -9,13 +9,15 @@ import RegisterPage from './components/pages/RegisterPage';
 import JoinUsPage from './components/pages/JoinUsPage';
 import { StudentDashboard } from './components/pages/StudentDashboard';
 import { NewsPage } from './components/pages/NewsPage';
+import ChessRankPage from './components/pages/ChessRankPage';
 import ProfilePage from './components/pages/ProfilePage';
+import { IntroSection } from './components/ui/layout/IntroSection';
 import { BannerSection } from './components/ui/layout/BannerSection';
 import LoadingScreen from './components/ui/LoadingScreen';
 import PageTransition from './components/ui/PageTransition';
 import './styles/loading-screen.css';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiCalendar, FiArrowRight, FiAward, FiBell, FiBook, FiUsers, FiAlertCircle, FiInstagram } from 'react-icons/fi';
+import { FiCalendar, FiArrowRight, FiAward, FiBell, FiBook, FiUsers, FiAlertCircle } from 'react-icons/fi';
 
 // Main App Component
 const TPMSApp = () => {
@@ -145,8 +147,7 @@ const TPMSApp = () => {
     }
     
     if (requiredAuth && !user) {
-      // Redirect to login, but save the current location
-      navigate('/login', { state: { from: location.pathname } });
+      navigate('/login');
       return null;
     }
     
@@ -172,6 +173,13 @@ const TPMSApp = () => {
             onLogout={handleLogout}
           />
           
+          {/* 首页部分处理，包括IntroSection */}
+          {currentPage === 'home' && (
+            <div>
+              <IntroSection user={user} />
+            </div>
+          )}
+          
           {/* 其他页面时只显示Banner */}
           {currentPage !== 'home' && currentPage !== 'login' && currentPage !== 'register' && (
             <div className="pt-20">
@@ -184,7 +192,7 @@ const TPMSApp = () => {
             currentPage === 'login' || currentPage === 'register' || currentPage === 'joinus'
             ? 'pt-32' 
             : currentPage === 'home'
-            ? 'pt-0' // 首页不需要额外的padding
+            ? 'pt-0' // 首页不需要额外的padding，因为IntroSection已经包含了
             : 'pt-8'
           }`}>
             {error && (
@@ -209,10 +217,15 @@ const TPMSApp = () => {
               <Route path="/register" element={<RegisterPage onLogin={handleLogin} />} />
               <Route path="/joinus" element={<JoinUsPage />} />
               <Route path="/news" element={<NewsPage />} />
-              <Route path="/chess-rank" element={<ChessRankPage user={user} />} />
+              <Route path="/chess-rank" element={<ChessRankPage />} />
               <Route path="/profile" element={
                 <AuthGuard requiredAuth={true}>
                   <ProfilePage user={user} />
+                </AuthGuard>
+              } />
+              <Route path="/events" element={
+                <AuthGuard requiredAuth={true}>
+                  <EventsPage user={user} />
                 </AuthGuard>
               } />
               <Route path="/check-in" element={
@@ -232,8 +245,8 @@ const TPMSApp = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
                   <h3 className="text-xl font-bold mb-4">Contact Us</h3>
-                  <p>Email: yorha16608@gmail.com</p>
-                  <p>President Phone: +65 8051 5424</p>
+                  <p>Email: mindsport@tp.edu.sg</p>
+                  <p>Phone: +65 6789 1234</p>
                 </div>
                 <div>
                   <h3 className="text-xl font-bold mb-4">Location</h3>
@@ -245,20 +258,11 @@ const TPMSApp = () => {
                   <h3 className="text-xl font-bold mb-4">Follow Us</h3>
                   <div className="flex space-x-4">
                     {/* Add social media icons here */}
-                    <a 
-                      href="https://www.instagram.com/tp_mindsports/" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-white hover:text-primary-300 transition-colors"
-                      aria-label="Follow us on Instagram"
-                    >
-                      <FiInstagram size={24} />
-                    </a>
                   </div>
                 </div>
               </div>
               <div className="mt-8 pt-8 border-t border-primary-700 text-center">
-                <p>&copy; 2025 TP Mindsport Club. All rights reserved.</p>
+                <p>&copy; 2024 TP Mindsport Club. All rights reserved.</p>
               </div>
             </div>
           </footer>
