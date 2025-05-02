@@ -19,10 +19,8 @@ export const CheckinPage = ({ user }) => {
   const [successMessage, setSuccessMessage] = useState('');
 
   // Check if current time is within allowed check-in times
-  // 暂时设置为始终允许签到，用于测试
-  const [isWithinCheckinHours, setIsWithinCheckinHours] = useState(true);
+  const [isWithinCheckinHours, setIsWithinCheckinHours] = useState(false);
   
-  /*
   // Update check-in time validity every minute
   useEffect(() => {
     const checkValidTime = () => {
@@ -42,7 +40,6 @@ export const CheckinPage = ({ user }) => {
     
     return () => clearInterval(interval);
   }, []);
-  */
 
   // TP Campus location - updated with precise coordinates
   const tpLocation = { 
@@ -385,7 +382,7 @@ export const CheckinPage = ({ user }) => {
             <br />
             You must be within campus boundaries or within 1.5 kilometers of the campus center to check in.
             <br />
-            <span className="text-amber-600 font-medium">测试模式：签到时间限制已暂时关闭</span>
+            <span className="text-amber-600 font-medium">Check-in is only available on Fridays between 6:00 PM and 9:00 PM</span>
           </p>
         </div>
       </motion.div>
