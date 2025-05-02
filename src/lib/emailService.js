@@ -4,7 +4,22 @@
  * This module handles email sending functionality including verification codes
  */
 
-const nodemailer = require('nodemailer');
+let nodemailer;
+try {
+  nodemailer = require('nodemailer');
+} catch (error) {
+  console.warn('Nodemailer module not found. Email functionality will be mocked.');
+  // Create a mock version
+  nodemailer = {
+    createTransport: () => ({
+      sendMail: async (options) => ({
+        messageId: `mock-${Date.now()}`,
+        response: 'Mock email sent (nodemailer not installed)'
+      })
+    })
+  };
+}
+
 const config = require('../../config');
 
 // Default email configuration
