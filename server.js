@@ -771,12 +771,41 @@ app.post('/api/attendance', authenticate, async (req, res) => {
       return res.status(404).json({ error: 'Student not found' });
     }
     
-    // Record attendance
-    const insertQuery = db.isPostgres
-      ? 'INSERT INTO attendance (student_id, location_lat, location_lng) VALUES ($1, $2, $3)'
-      : 'INSERT INTO attendance (student_id, location_lat, location_lng) VALUES (?, ?, ?)';
+    // 获取当前日期并设置为最近的周五
+    const now = new Date();
+    const currentDay = now.getDay(); // 0是周日，5是周五
+    let fridayDate;
     
-    await db.query(insertQuery, [students[0].id, locationLat, locationLng]);
+    if (currentDay === 5) {
+      // 如果今天是周五，使用今天的日期
+      fridayDate = now;
+    } else if (currentDay < 5) {
+      // 如果今天是周日到周四，使用上周五的日期
+      const daysToSubtract = currentDay + 2; // 周日=0，需要-2天；周一=1，需要-3天...
+      fridayDate = new Date(now);
+      fridayDate.setDate(now.getDate() - daysToSubtract);
+    } else {
+      // 如果今天是周六，使用昨天（周五）的日期
+      fridayDate = new Date(now);
+      fridayDate.setDate(now.getDate() - 1);
+    }
+    
+    // 设置时间为当前时间
+    fridayDate.setHours(now.getHours());
+    fridayDate.setMinutes(now.getMinutes());
+    fridayDate.setSeconds(now.getSeconds());
+    
+    console.log(`Recording attendance for ${indexNumber} with date adjusted to Friday: ${fridayDate.toISOString()}`);
+    
+    // Record attendance with Friday date
+    let insertQuery;
+    if (db.isPostgres) {
+      insertQuery = 'INSERT INTO attendance (student_id, location_lat, location_lng, check_in_time) VALUES ($1, $2, $3, $4)';
+      await db.query(insertQuery, [students[0].id, locationLat, locationLng, fridayDate]);
+    } else {
+      insertQuery = 'INSERT INTO attendance (student_id, location_lat, location_lng, check_in_time) VALUES (?, ?, ?, ?)';
+      await db.query(insertQuery, [students[0].id, locationLat, locationLng, fridayDate]);
+    }
 
     // Update student attendance stats
     const updateQuery = db.isPostgres
