@@ -782,8 +782,7 @@ app.post('/api/attendance', authenticate, async (req, res) => {
     const updateQuery = db.isPostgres
       ? `UPDATE students SET 
         attended_sessions = attended_sessions + 1,
-        attendance_rate = (attended_sessions + 1) / (CASE WHEN total_sessions = 0 THEN 1 ELSE total_sessions END) * 100,
-        last_attendance = NOW()
+        attendance_rate = (attended_sessions + 1) / (CASE WHEN total_sessions = 0 THEN 1 ELSE total_sessions END) * 100
          WHERE id = $1`
       : `UPDATE students SET 
           attended_sessions = attended_sessions + 1,
