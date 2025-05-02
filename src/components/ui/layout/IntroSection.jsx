@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "../button";
 import { FiChevronRight, FiUsers, FiCalendar, FiAward, FiBookOpen, FiLogIn, FiUserPlus } from 'react-icons/fi';
+import { Carousel } from "../carousel";
 import { Link } from 'react-router-dom';
 import { useMediaQuery } from '../../../hooks/useMediaQuery';
 
@@ -38,6 +39,14 @@ export const IntroSection = ({ user }) => {
 
   return (
     <>
+      {/* Responsive Carousel Section - Increased Height */}
+      <div className={`w-full ${isMobile ? 'aspect-ratio-16-9 carousel-mobile-height' : 'h-[700px]'}`}>
+        <Carousel 
+          aspectRatio="16/9"
+          height={isMobile ? null : "700px"}
+          maxHeight={isMobile ? "65vh" : "85vh"}
+        />
+      </div>
 
       {/* Hero Content - Responsive layout improvements */}
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-12 md:py-20">
