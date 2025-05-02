@@ -7,8 +7,10 @@ export const ProfilePage = ({ user }) => {
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState(null);
   const [chessUsername, setChessUsername] = useState('');
-  const [bindStatus, setBindStatus] = useState(null); // null, 'success', 'error'
+  const [bindStatus, setBindStatus] = useState(null); // null, 'success', 'error', 'pending_verification'
   const [errorMessage, setErrorMessage] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationStep, setVerificationStep] = useState(1); // 1 = request verification, 2 = verify
 
   // Fetch user data
   useEffect(() => {
@@ -41,7 +43,8 @@ export const ProfilePage = ({ user }) => {
     fetchUserData();
   }, [user]);
 
-  const handleBindChessAccount = async (e) => {
+  // Step 1: Request verification code
+  const handleRequestVerification = async (e) => {
     e.preventDefault();
     
     // Trim the username to avoid spaces
@@ -55,9 +58,10 @@ export const ProfilePage = ({ user }) => {
 
     setLoading(true);
     setBindStatus(null);
+    setErrorMessage('');
     
     try {
-      const response = await fetch('/api/user/link-chess', {
+      const response = await fetch('/api/user/request-chess-verification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,8 +73,48 @@ export const ProfilePage = ({ user }) => {
       const data = await response.json();
 
       if (response.ok) {
+        setBindStatus('pending_verification');
+        setVerificationCode(data.verificationCode);
+        setVerificationStep(2);
+        setErrorMessage('');
+      } else {
+        setBindStatus('error');
+        setErrorMessage(data.message || 'Failed to validate Chess.com account');
+      }
+    } catch (error) {
+      console.error('Error requesting Chess.com verification:', error);
+      setBindStatus('error');
+      setErrorMessage('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Step 2: Verify and link account
+  const handleVerifyChessAccount = async (e) => {
+    e.preventDefault();
+    
+    setLoading(true);
+    setBindStatus(null);
+    setErrorMessage('');
+    
+    try {
+      const response = await fetch('/api/user/verify-chess-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ chessUsername: chessUsername.trim() })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
         setBindStatus('success');
         setErrorMessage('');
+        setVerificationStep(1);
+        setVerificationCode('');
         
         // Update the user data to reflect the binding
         setUserData(prev => ({
@@ -85,15 +129,21 @@ export const ProfilePage = ({ user }) => {
         }));
       } else {
         setBindStatus('error');
-        setErrorMessage(data.message || 'Failed to bind Chess.com account');
+        setErrorMessage(data.message || 'Verification failed');
       }
     } catch (error) {
-      console.error('Error binding Chess.com account:', error);
+      console.error('Error verifying Chess.com account:', error);
       setBindStatus('error');
       setErrorMessage('An unexpected error occurred');
     } finally {
       setLoading(false);
     }
+  };
+  
+  // Legacy handler (redirects to new flow)
+  const handleBindChessAccount = async (e) => {
+    e.preventDefault();
+    handleRequestVerification(e);
   };
 
   if (!user) {
@@ -202,66 +252,129 @@ export const ProfilePage = ({ user }) => {
               </p>
             )}
 
-            <form onSubmit={handleBindChessAccount} className="mt-4">
-              <div className="mb-4">
-                <label htmlFor="chessUsername" className="block text-sm font-medium text-gray-700 mb-1">
-                  Chess.com Username
-                </label>
-                <input
-                  type="text"
-                  id="chessUsername"
-                  value={chessUsername}
-                  onChange={(e) => setChessUsername(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter your Chess.com username"
-                />
-              </div>
-
-              {bindStatus === 'error' && (
-                <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">
-                  <div className="flex items-center">
-                    <FiAlertCircle className="mr-2" />
-                    <p>{errorMessage}</p>
-                  </div>
+            {verificationStep === 1 ? (
+              <form onSubmit={handleRequestVerification} className="mt-4">
+                <div className="mb-4">
+                  <label htmlFor="chessUsername" className="block text-sm font-medium text-gray-700 mb-1">
+                    Chess.com Username
+                  </label>
+                  <input
+                    type="text"
+                    id="chessUsername"
+                    value={chessUsername}
+                    onChange={(e) => setChessUsername(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter your Chess.com username"
+                    disabled={loading}
+                  />
                 </div>
-              )}
 
-              {bindStatus === 'success' && (
-                <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg">
-                  <div className="flex items-center">
-                    <FiCheckCircle className="mr-2" />
-                    <p>Successfully bound your Chess.com account!</p>
+                {bindStatus === 'error' && (
+                  <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">
+                    <div className="flex items-center">
+                      <FiAlertCircle className="mr-2" />
+                      <p>{errorMessage}</p>
+                    </div>
                   </div>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className={`px-6 py-2 rounded-lg font-medium flex items-center ${
-                  loading
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
-              >
-                {loading ? (
-                  <>
-                    <FiLoader className="animate-spin mr-2" />
-                    Binding...
-                  </>
-                ) : userData?.chess_username ? (
-                  <>
-                    <FiEdit className="mr-2" />
-                    Update Binding
-                  </>
-                ) : (
-                  <>
-                    <FiCheck className="mr-2" />
-                    Bind Account
-                  </>
                 )}
-              </button>
-            </form>
+
+                {bindStatus === 'success' && (
+                  <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg">
+                    <div className="flex items-center">
+                      <FiCheckCircle className="mr-2" />
+                      <p>Successfully bound your Chess.com account!</p>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`px-6 py-2 rounded-lg font-medium flex items-center ${
+                    loading
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {loading ? (
+                    <>
+                      <FiLoader className="animate-spin mr-2" />
+                      Processing...
+                    </>
+                  ) : userData?.chess_username ? (
+                    <>
+                      <FiEdit className="mr-2" />
+                      Update Chess.com Binding
+                    </>
+                  ) : (
+                    <>
+                      <FiCheck className="mr-2" />
+                      Start Verification
+                    </>
+                  )}
+                </button>
+              </form>
+            ) : (
+              <div className="mt-4">
+                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="font-medium text-blue-700 mb-2">Verification Required</h4>
+                  <p className="text-blue-600 mb-4">
+                    Please follow these steps to verify your Chess.com account:
+                  </p>
+                  <ol className="list-decimal pl-5 mb-4 text-blue-600 space-y-2">
+                    <li>Log in to your Chess.com account</li>
+                    <li>Go to Profile → Location</li>
+                    <li>Enter the following verification code in the location field:</li>
+                  </ol>
+                  <div className="bg-white p-3 rounded border border-blue-300 font-mono text-center text-blue-800 text-lg mb-4">
+                    {verificationCode}
+                  </div>
+                  <p className="text-blue-600 text-sm">
+                    After saving your location on Chess.com, click the button below to complete verification.
+                  </p>
+                </div>
+
+                {bindStatus === 'error' && (
+                  <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">
+                    <div className="flex items-center">
+                      <FiAlertCircle className="mr-2" />
+                      <p>{errorMessage}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setVerificationStep(1)}
+                    className="px-4 py-2 rounded-lg font-medium border border-gray-300 text-gray-600 hover:bg-gray-100"
+                    disabled={loading}
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={handleVerifyChessAccount}
+                    disabled={loading}
+                    className={`flex-1 px-6 py-2 rounded-lg font-medium flex items-center justify-center ${
+                      loading
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
+                    {loading ? (
+                      <>
+                        <FiLoader className="animate-spin mr-2" />
+                        Verifying...
+                      </>
+                    ) : (
+                      <>
+                        <FiCheck className="mr-2" />
+                        I've Updated My Location - Verify Now
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </motion.div>
       </div>

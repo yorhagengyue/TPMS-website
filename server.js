@@ -103,6 +103,19 @@ async function initializeDatabase() {
         CREATE INDEX IF NOT EXISTS idx_expiry ON revoked_tokens (expiry);
       `);
       
+      // Create chess verification codes table - Postgres version
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS chess_verification_codes (
+          id SERIAL PRIMARY KEY,
+          user_id INT NOT NULL,
+          chess_username VARCHAR(50) NOT NULL,
+          verification_code VARCHAR(20) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          verified BOOLEAN DEFAULT FALSE,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+      `);
+      
       // Add Chess.com columns for PostgreSQL - this is what was missing
       try {
         console.log('Checking and adding Chess.com columns in PostgreSQL...');
@@ -192,6 +205,19 @@ async function initializeDatabase() {
         revoked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         INDEX (token_id),
         INDEX (expiry)
+      )
+    `);
+    
+    // Create chess verification codes table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS chess_verification_codes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        chess_username VARCHAR(50) NOT NULL,
+        verification_code VARCHAR(20) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        verified BOOLEAN DEFAULT FALSE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
     `);
     
@@ -339,7 +365,7 @@ app.post('/api/auth/set-password', async (req, res) => {
         return res.status(400).json({
           success: false,
           message: 'Invalid or expired verification code'
-        });
+      });
       }
     }
     
@@ -490,7 +516,7 @@ app.post('/api/auth/verify-student', async (req, res) => {
     // Student exists but has no account, create an account without a password
     const auth = require('./src/lib/auth');
     const createResult = await auth.createUserAccount(normalizedStudentId);
-    
+      
     if (createResult.success) {
       return res.json({
         success: true,
@@ -591,8 +617,8 @@ app.post('/api/auth/register', async (req, res) => {
       if (users.length > 0) {
         if (password) {
           // If password is provided, set it (for backward compatibility)
-          const setPasswordResult = await setUserPassword(users[0].id, password);
-          return res.json(setPasswordResult);
+        const setPasswordResult = await setUserPassword(users[0].id, password);
+        return res.json(setPasswordResult);
         } else {
           // Return success with needsPasswordSetup flag
           return res.json({
@@ -945,7 +971,7 @@ app.post('/api/attendance', authenticate, async (req, res) => {
             WHEN total_sessions > 0 THEN (attended_sessions + 1) * 100.0 / GREATEST(total_sessions, 1)
             ELSE 100.0 -- 如果总课程数为0, 设置为第一次出勤，出勤率为100%
           END,
-          last_attendance = NOW()
+        last_attendance = NOW()
          WHERE id = ?`;
     
     await db.query(updateQuery, [students[0].id]);
@@ -1343,7 +1369,54 @@ app.post('/api/auth/send-password-reset-code', async (req, res) => {
 });
 
 // Chess.com账号绑定API
-app.post('/api/user/link-chess', authenticate, async (req, res) => {
+// Helper function to fetch Chess.com data
+async function fetchChessData(username) {
+  try {
+    // Get user profile
+    const profileResponse = await fetch(`https://api.chess.com/pub/player/${username}`);
+    if (!profileResponse.ok) {
+      throw new Error('Chess.com user not found');
+    }
+    
+    const profile = await profileResponse.json();
+    
+    // Get user stats
+    const statsResponse = await fetch(`https://api.chess.com/pub/player/${username}/stats`);
+    const stats = statsResponse.ok ? await statsResponse.json() : {};
+    
+    return {
+      success: true,
+      username,
+      location: profile.location || '',
+      profile,
+      chess_rating: stats.chess_blitz?.last?.rating || 0,
+      chess_rapid_rating: stats.chess_rapid?.last?.rating || 0, 
+      chess_bullet_rating: stats.chess_bullet?.last?.rating || 0,
+      chess_daily_rating: stats.chess_daily?.last?.rating || 0,
+      chess_tactics_rating: stats.tactics?.highest?.rating || 0,
+      chess_puzzle_rush_rating: stats.puzzle_rush?.best?.score || 0
+    };
+  } catch (error) {
+    console.error(`Error fetching Chess.com data for ${username}:`, error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+// Function to generate random verification code
+function generateVerificationCode() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let code = 'TPMS-';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+// Step 1: Request verification code
+app.post('/api/user/request-chess-verification', authenticate, async (req, res) => {
   try {
     const { chessUsername } = req.body;
     
@@ -1356,55 +1429,108 @@ app.post('/api/user/link-chess', authenticate, async (req, res) => {
     
     const userId = req.user.id;
     
-    // 获取Chess.com API数据
-    async function fetchChessData(username) {
-      try {
-        // 获取用户资料
-        const profileResponse = await fetch(`https://api.chess.com/pub/player/${username}`);
-        if (!profileResponse.ok) {
-          throw new Error('Chess.com user not found');
-        }
-        
-        // 获取用户的blitz评分
-        const statsResponse = await fetch(`https://api.chess.com/pub/player/${username}/stats`);
-        if (!statsResponse.ok) {
-          throw new Error('Failed to fetch Chess.com stats');
-        }
-        
-        const stats = await statsResponse.json();
-        
-        return {
-          success: true,
-          username,
-          chess_rating: stats.chess_blitz?.last?.rating || 0,
-          chess_rapid_rating: stats.chess_rapid?.last?.rating || 0, 
-          chess_bullet_rating: stats.chess_bullet?.last?.rating || 0,
-          chess_daily_rating: stats.chess_daily?.last?.rating || 0,
-          chess_tactics_rating: stats.tactics?.highest?.rating || 0,
-          chess_puzzle_rush_rating: stats.puzzle_rush?.best?.score || 0
-        };
-      } catch (error) {
-        console.error(`Error fetching Chess.com data for ${username}:`, error);
-        return {
-          success: false,
-          error: error.message
-        };
-      }
-    }
-    
-    // 获取Chess.com数据
+    // Validate that the Chess.com user exists
     const chessData = await fetchChessData(chessUsername);
     
     if (!chessData.success) {
       return res.status(400).json({
         success: false,
-        message: chessData.error || 'Failed to validate Chess.com account'
+        message: chessData.error || 'Failed to find Chess.com account'
       });
     }
     
-    // 更新用户表中的Chess.com信息
+    // Generate verification code
+    const verificationCode = generateVerificationCode();
+    
+    // Save to database
     try {
-      // 先更新user表中关联的student_id
+      // First clear any previous verification codes for this user
+      const clearQuery = db.isPostgres
+        ? 'DELETE FROM chess_verification_codes WHERE user_id = $1'
+        : 'DELETE FROM chess_verification_codes WHERE user_id = ?';
+      
+      await db.query(clearQuery, [userId]);
+      
+      // Insert new verification code
+      const insertQuery = db.isPostgres
+        ? 'INSERT INTO chess_verification_codes (user_id, chess_username, verification_code) VALUES ($1, $2, $3)'
+        : 'INSERT INTO chess_verification_codes (user_id, chess_username, verification_code) VALUES (?, ?, ?)';
+      
+      await db.query(insertQuery, [userId, chessUsername, verificationCode]);
+      
+      return res.json({
+        success: true,
+        message: 'Verification code generated',
+        verificationCode,
+        chessUsername
+      });
+    } catch (error) {
+      console.error('Error saving verification code:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to save verification code'
+      });
+    }
+  } catch (error) {
+    console.error('Error requesting Chess.com verification:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error, please try again later'
+    });
+  }
+});
+
+// Step 2: Verify and link Chess.com account
+app.post('/api/user/verify-chess-account', authenticate, async (req, res) => {
+  try {
+    const { chessUsername } = req.body;
+    const userId = req.user.id;
+    
+    // Get the pending verification from database
+    const verifyQuery = db.isPostgres
+      ? 'SELECT * FROM chess_verification_codes WHERE user_id = $1 AND chess_username = $2 AND verified = FALSE ORDER BY created_at DESC LIMIT 1'
+      : 'SELECT * FROM chess_verification_codes WHERE user_id = ? AND chess_username = ? AND verified = FALSE ORDER BY created_at DESC LIMIT 1';
+    
+    const verifications = await db.query(verifyQuery, [userId, chessUsername]);
+    
+    if (verifications.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No pending verification found. Please request a new verification code.'
+      });
+    }
+    
+    const verification = verifications[0];
+    const expectedCode = verification.verification_code;
+    
+    // Fetch current Chess.com profile
+    const chessData = await fetchChessData(chessUsername);
+    
+    if (!chessData.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to fetch Chess.com profile'
+      });
+    }
+    
+    // Check if verification code matches the location
+    if (chessData.location !== expectedCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification failed. Please ensure you have updated your Chess.com location with the provided code.'
+      });
+    }
+    
+    // Mark verification as successful
+    const markVerifiedQuery = db.isPostgres
+      ? 'UPDATE chess_verification_codes SET verified = TRUE WHERE id = $1'
+      : 'UPDATE chess_verification_codes SET verified = TRUE WHERE id = ?';
+    
+    await db.query(markVerifiedQuery, [verification.id]);
+    
+    // Update user's Chess.com information
+    try {
+      // Get student_id from users table
       const userQuery = db.isPostgres
         ? 'SELECT student_id FROM users WHERE id = $1'
         : 'SELECT student_id FROM users WHERE id = ?';
@@ -1420,7 +1546,7 @@ app.post('/api/user/link-chess', authenticate, async (req, res) => {
       
       const studentId = users[0].student_id;
       
-      // 检查数据库中是否有Chess.com相关列
+      // Update Chess.com data in students table
       const updateQuery = db.isPostgres
         ? `UPDATE students SET 
             chess_username = $1,
@@ -1452,10 +1578,10 @@ app.post('/api/user/link-chess', authenticate, async (req, res) => {
         studentId
       ]);
       
-      // 返回更新后的信息
+      // Return success with all Chess.com data
       return res.json({
         success: true,
-        message: 'Chess.com account linked successfully',
+        message: 'Chess.com account verified and linked successfully',
         chess_username: chessUsername,
         chess_rating: chessData.chess_rating,
         chess_rapid_rating: chessData.chess_rapid_rating,
@@ -1472,12 +1598,21 @@ app.post('/api/user/link-chess', authenticate, async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Error linking Chess.com account:', error);
+    console.error('Error verifying Chess.com account:', error);
     res.status(500).json({
       success: false,
       message: 'Server error, please try again later'
     });
   }
+});
+
+// Legacy endpoint (redirects to the new flow)
+app.post('/api/user/link-chess', authenticate, async (req, res) => {
+  return res.status(400).json({
+    success: false,
+    message: 'Please use the new verification flow',
+    useNewFlow: true
+  });
 });
 
 // 获取所有用户的Chess.com评分
