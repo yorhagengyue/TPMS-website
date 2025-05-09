@@ -27,3 +27,5 @@ yarn-error.log*
 .vscode/
 *.sublime-project
 *.sublime-workspace 
+# SpecStory explanation file
+.specstory/.what-is-this.md
