@@ -26,7 +26,7 @@ const TPMSApp = () => {
   // 可以根据当前路径动态获取当前页面
   const getCurrentPage = () => {
     const path = location.pathname;
-    if (path === '/') return 'home';
+    if (path === '/') return 'chess-rank';
     // 去掉前导斜杠返回页面名称
     return path.substring(1);
   };

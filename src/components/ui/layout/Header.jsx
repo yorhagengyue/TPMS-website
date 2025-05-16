@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "../button";
-import { FiSearch, FiMenu, FiX, FiChevronDown, FiHome, FiCalendar, FiCheckSquare, FiUser, FiLogOut, FiLogIn, FiBell } from 'react-icons/fi';
+import { FiSearch, FiMenu, FiX, FiChevronDown, FiHome, FiCalendar, FiCheckSquare, FiUser, FiLogOut, FiLogIn, FiBell, FiAward } from 'react-icons/fi';
 import { Link, useNavigate } from 'react-router-dom';
 
 export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
@@ -21,9 +21,9 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
   ];
   
   const navItems = [
-    { id: 'home', label: 'Home', icon: <FiHome />, requiresAuth: false, path: '/' },
+    { id: 'chess-rank', label: 'Chess Rank', icon: <FiAward />, requiresAuth: false, path: '/' },
+    { id: 'home', label: 'Home', icon: <FiHome />, requiresAuth: false, path: '/home' },
     { id: 'news', label: 'News', icon: <FiBell />, requiresAuth: false, path: '/news' },
-    { id: 'events', label: 'Chess Rank', icon: <FiCalendar />, requiresAuth: false, path: '/chess-rank' },
     { id: 'check-in', label: 'Check-in', icon: <FiCheckSquare />, requiresAuth: true, path: '/check-in' },
   ];
 
