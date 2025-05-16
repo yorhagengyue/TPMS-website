@@ -173,14 +173,14 @@ const TPMSApp = () => {
             onLogout={handleLogout}
           />
           
-          {/* 首页部分处理，包括IntroSection */}
+          {/* 仅在home页面显示IntroSection */}
           {currentPage === 'home' && (
             <div>
               <IntroSection user={user} />
             </div>
           )}
           
-          {/* 其他页面时只显示Banner */}
+          {/* 在不是login和register的页面显示Banner (包括chess-rank作为首页) */}
           {currentPage !== 'home' && currentPage !== 'login' && currentPage !== 'register' && (
             <div className="pt-20">
               <BannerSection currentPage={currentPage} />

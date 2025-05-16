@@ -6,6 +6,7 @@ export const BannerSection = ({ currentPage }) => {
     'news': 'Latest News & Updates',
     'events': 'Events Calendar',
     'check-in': 'Digital Attendance System',
+    'chess-rank': 'TPMS Chess Rankings',
     // Default for any other page
     'default': 'Mindsport Club'
   };
@@ -14,6 +15,7 @@ export const BannerSection = ({ currentPage }) => {
     'news': 'Stay updated with the latest happenings in the club',
     'events': 'Discover and participate in our upcoming activities',
     'check-in': 'Manage attendance and track participation',
+    'chess-rank': 'View and track live Chess.com ratings of TPMS members',
     // Default for any other page
     'default': 'Temasek Polytechnic Strategic Gaming Community'
   };
