@@ -209,7 +209,7 @@ const TPMSApp = () => {
             <Routes>
               <Route path="/" element={
                 <>
-                  <HomePage user={user} />
+                  <ChessRankPage user={user} />
                   {user && <StudentDashboard user={user} />}
                 </>
               } />
@@ -217,6 +217,7 @@ const TPMSApp = () => {
               <Route path="/register" element={<RegisterPage onLogin={handleLogin} />} />
               <Route path="/joinus" element={<JoinUsPage />} />
               <Route path="/news" element={<NewsPage />} />
+              <Route path="/home" element={<HomePage user={user} />} />
               <Route path="/events" element={
                 <AuthGuard requiredAuth={true}>
                   <EventsPage user={user} />

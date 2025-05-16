@@ -47,7 +47,7 @@ const RegisterPage = ({ onLogin }) => {
           }, 1500);
         } else {
           // For other errors, show the error message
-          setError(data.message || 'Student ID verification failed');
+        setError(data.message || 'Student ID verification failed');
         }
         setIsLoading(false);
         return;
@@ -194,67 +194,67 @@ const RegisterPage = ({ onLogin }) => {
           {/* Step 1: Student ID Verification */}
           {step === 1 && (
             <div>
-              <div className="mb-6">
-                <label htmlFor="studentId" className="block text-gray-700 text-sm font-medium mb-2">
-                  Student ID
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiUser className="text-gray-400" />
-                  </div>
-                  <input
-                    id="studentId"
-                    type="text"
-                    value={studentId}
-                    onChange={(e) => setStudentId(e.target.value)}
-                    className="pl-10 block w-full border border-gray-300 rounded-md py-3 px-4 bg-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                    placeholder="Enter your student ID"
-                  />
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Example: 2401360i (Your student ID will be your username)
-                </p>
+          <div className="mb-6">
+            <label htmlFor="studentId" className="block text-gray-700 text-sm font-medium mb-2">
+              Student ID
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FiUser className="text-gray-400" />
               </div>
+              <input
+                id="studentId"
+                type="text"
+                value={studentId}
+                onChange={(e) => setStudentId(e.target.value)}
+                className="pl-10 block w-full border border-gray-300 rounded-md py-3 px-4 bg-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                placeholder="Enter your student ID"
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Example: 2401360i (Your student ID will be your username)
+            </p>
+          </div>
 
-              <div className="mb-6">
-                <button
-                  type="submit"
-                  className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
-                    isLoading ? 'opacity-75 cursor-not-allowed' : ''
-                  }`}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Verifying...
-                    </>
-                  ) : (
-                    <>
-                      <FiArrowRight className="mr-2" /> Verify Student ID
-                    </>
-                  )}
-                </button>
-              </div>
+          <div className="mb-6">
+            <button
+              type="submit"
+              className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${
+                isLoading ? 'opacity-75 cursor-not-allowed' : ''
+              }`}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Verifying...
+                </>
+              ) : (
+                <>
+                  <FiArrowRight className="mr-2" /> Verify Student ID
+                </>
+              )}
+            </button>
+          </div>
             </div>
           )}
           

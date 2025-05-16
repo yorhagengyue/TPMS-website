@@ -1125,7 +1125,7 @@ app.get('/api/students/:id/attendance', authenticate, async (req, res) => {
   try {
     const paramId = req.params.id;
     let studentId = paramId;
-
+    
     // Check ID type and convert - user ID may be different from student ID
     // If it's a user ID, first query the corresponding student ID
     if (req.user.role === 'student' && req.user.id.toString() === paramId) {
@@ -1154,8 +1154,8 @@ app.get('/api/students/:id/attendance', authenticate, async (req, res) => {
          ORDER BY check_in_time DESC 
          LIMIT 10`
       : `SELECT * FROM attendance 
-         WHERE student_id = ? 
-         ORDER BY check_in_time DESC 
+       WHERE student_id = ? 
+       ORDER BY check_in_time DESC 
          LIMIT 10`;
     
     const attendance = await db.query(attendanceQuery, [studentId]);
@@ -1717,4 +1717,4 @@ initializeDatabase().then(() => {
     console.log(`Database: ${db.dbName}`);
     console.log('Note: Default password policy has been updated - all users now use their student ID as password');
   });
-});
+}); 
