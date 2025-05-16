@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Header } from './components/ui/layout/Header';
 import { EventsPage } from './components/pages/EventsPage';
 import { CheckinPage } from './components/pages/CheckinPage';
@@ -109,7 +109,7 @@ const TPMSApp = () => {
 
   const handleLogin = (userData) => {
     setUser(userData);
-    navigate('/');
+    navigate('/'); // 登录后导航到首页
   };
 
   const handleLogout = async () => {
@@ -180,7 +180,7 @@ const TPMSApp = () => {
             </div>
           )}
           
-          {/* 在不是login和register的页面显示Banner (包括chess-rank作为首页) */}
+          {/* 在不是login, register和home的页面显示Banner */}
           {currentPage !== 'home' && currentPage !== 'login' && currentPage !== 'register' && (
             <div className="pt-20">
               <BannerSection currentPage={currentPage} />
@@ -207,16 +207,13 @@ const TPMSApp = () => {
             )}
             
             <Routes>
-              <Route path="/" element={
-                <>
-                  <ChessRankPage user={user} />
-                  {user && <StudentDashboard user={user} />}
-                </>
-              } />
+              {/* 将根路径重定向到/chess-rank */}
+              <Route path="/" element={<Navigate to="/chess-rank" replace />} />
               <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
               <Route path="/register" element={<RegisterPage onLogin={handleLogin} />} />
               <Route path="/joinus" element={<JoinUsPage />} />
               <Route path="/news" element={<NewsPage />} />
+              {/* Restore original HomePage for the /home route */}
               <Route path="/home" element={<HomePage user={user} />} />
               <Route path="/events" element={
                 <AuthGuard requiredAuth={true}>
@@ -236,6 +233,12 @@ const TPMSApp = () => {
                     setStudentData={setStudentData}
                     user={user} 
                   />
+                </AuthGuard>
+              } />
+              {/* 添加StudentDashboard作为独立路由 */}
+              <Route path="/dashboard" element={
+                <AuthGuard requiredAuth={true}>
+                  <StudentDashboard user={user} />
                 </AuthGuard>
               } />
             </Routes>
