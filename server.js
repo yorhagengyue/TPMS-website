@@ -1685,6 +1685,197 @@ app.get('/api/users/chess-ratings', async (req, res) => {
   }
 });
 
+// Public endpoint for exporting all attendance data to XLSX (for Render deployment)
+// Requires password authentication: "Iammaincomm"
+app.get('/api/public/export-attendance', async (req, res) => {
+  try {
+    // Check password in query parameters or headers
+    const password = req.query.password || req.headers['x-export-password'];
+    
+    if (password !== 'Iammaincomm') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid password'
+      });
+    }
+    
+    console.log('Starting attendance export for Render...');
+    
+    // Get all attendance data with detailed student information
+    const attendanceQuery = db.isPostgres
+      ? `SELECT 
+          a.id,
+          s.name,
+          s.index_number,
+          s.course,
+          s.email,
+          s.phone_number,
+          a.check_in_time,
+          a.location_lat,
+          a.location_lng,
+          a.session_id,
+          s.total_sessions,
+          s.attended_sessions,
+          s.attendance_rate
+        FROM attendance a
+        JOIN students s ON a.student_id = s.id
+        ORDER BY a.check_in_time DESC`
+      : `SELECT 
+          a.id,
+          s.name,
+          s.index_number,
+          s.course,
+          s.email,
+          s.phone_number,
+          a.check_in_time,
+          a.location_lat,
+          a.location_lng,
+          a.session_id,
+          s.total_sessions,
+          s.attended_sessions,
+          s.attendance_rate
+        FROM attendance a
+        JOIN students s ON a.student_id = s.id
+        ORDER BY a.check_in_time DESC`;
+    
+    const records = await db.query(attendanceQuery);
+    console.log(`Found ${records.length} attendance records`);
+    
+    if (records.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No attendance records found'
+      });
+    }
+    
+    // Format data for Excel export
+    const formattedData = records.map(record => ({
+      'ID': record.id,
+      '学生姓名': record.name,
+      '学号': record.index_number,
+      '课程': record.course || 'N/A',
+      '邮箱': record.email || 'N/A',
+      '电话': record.phone_number || 'N/A',
+      '签到时间': new Date(record.check_in_time).toLocaleString('zh-CN', {
+        timeZone: 'Asia/Singapore',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }),
+      '签到日期': new Date(record.check_in_time).toLocaleDateString('zh-CN'),
+      '签到时刻': new Date(record.check_in_time).toLocaleTimeString('zh-CN'),
+      '纬度': record.location_lat || 'N/A',
+      '经度': record.location_lng || 'N/A',
+      '会话ID': record.session_id || 'N/A',
+      '总会话数': record.total_sessions || 0,
+      '已参加会话数': record.attended_sessions || 0,
+      '出勤率 (%)': record.attendance_rate || 0
+    }));
+    
+    // Create Excel workbook
+    const workbook = XLSX.utils.book_new();
+    
+    // Main attendance data sheet
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
+    
+    // Set column widths
+    const columnsWidth = [
+      { wch: 8 },   // ID
+      { wch: 15 },  // 学生姓名
+      { wch: 12 },  // 学号
+      { wch: 20 },  // 课程
+      { wch: 25 },  // 邮箱
+      { wch: 15 },  // 电话
+      { wch: 20 },  // 签到时间
+      { wch: 12 },  // 签到日期
+      { wch: 10 },  // 签到时刻
+      { wch: 10 },  // 纬度
+      { wch: 10 },  // 经度
+      { wch: 10 },  // 会话ID
+      { wch: 12 },  // 总会话数
+      { wch: 15 },  // 已参加会话数
+      { wch: 12 }   // 出勤率
+    ];
+    worksheet['!cols'] = columnsWidth;
+    
+    XLSX.utils.book_append_sheet(workbook, worksheet, '签到记录');
+    
+    // Add statistics sheet
+    const stats = {
+      '总记录数': records.length,
+      '独特学生数': new Set(records.map(r => r.index_number)).size,
+      '导出时间': new Date().toLocaleString('zh-CN'),
+      '导出环境': 'Render Production',
+      '数据范围': '所有记录'
+    };
+    
+    const statsData = Object.entries(stats).map(([key, value]) => ({
+      '统计项目': key,
+      '数值': value
+    }));
+    
+    const statsWorksheet = XLSX.utils.json_to_sheet(statsData);
+    XLSX.utils.book_append_sheet(workbook, statsWorksheet, '统计信息');
+    
+    // Generate filename with timestamp
+    const now = new Date();
+    const timestamp = now.toISOString().substring(0, 19).replace(/[:-]/g, '');
+    const fileName = `签到记录_全量导出_${timestamp}.xlsx`;
+    
+    // Create uploads directory if it doesn't exist
+    const uploadsDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    
+    // Save to temporary file
+    const filePath = path.join(uploadsDir, fileName);
+    XLSX.writeFile(workbook, filePath);
+    
+    console.log(`Excel file created: ${fileName}`);
+    
+    // Set response headers for file download
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
+    res.setHeader('X-Total-Records', records.length);
+    res.setHeader('X-Export-Time', now.toISOString());
+    
+    // Send file to client
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error('Error sending file:', err);
+        if (!res.headersSent) {
+          res.status(500).json({
+            success: false,
+            message: 'Failed to send file'
+          });
+        }
+      } else {
+        console.log('File sent successfully');
+      }
+      
+      // Clean up temporary file
+      try {
+        fs.unlinkSync(filePath);
+        console.log('Temporary file deleted');
+      } catch (cleanupError) {
+        console.error('Error deleting temporary file:', cleanupError);
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error in public attendance export:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export attendance data',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
 // Serve static files from the React app
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, 'build')));
