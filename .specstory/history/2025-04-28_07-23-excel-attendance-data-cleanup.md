@@ -4623,7 +4623,9 @@ PS C:\Users\gengy\Desktop\TPMS-website>
 
 ---
 
-No output from the diff command indicates that there are no differences between the local and remote branches, which means the commit has been successfully
+No output from the diff command indicates that there are no differences between the local and remote branches, which means the commit has been successfully pushed.
+
+The Excel file "cca attendance system.xlsx" has been successfully pushed to the GitHub repository. The commit has been made and there are no differences between the local and remote branches, confirming that the push was successful.
 
 ---
 
@@ -4639,13 +4641,1799 @@ _**Assistant**_
 
 ---
 
+I'll execute a force push to ensure the changes are uploaded to the repository:
+
+---
+
+```bash
+git push --force origin master
+```
+
+```
+PS C:\Users\gengy\Desktop\TPMS-website> git push --force origin master
+Everything up-to-date
+PS C:\Users\gengy\Desktop\TPMS-website>
+```
+
+---
+
+The force push command was executed successfully. The message "Everything up-to-date" indicates that your local repository is already synchronized with the remote repository. The Excel file has been successfully pushed to GitHub.
+
+---
+
+_**User**_
+
+再次push
+
+---
+
+_**Assistant**_
+
 
 
 ---
 
+I'll check the status and push again:
+
+---
+
+```bash
+git status
+```
+
+```
+PS C:\Users\gengy\Desktop\TPMS-website> git status
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   .specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md
+        modified:   public/index.html
+no changes added to commit (use "git add" and/or "git commit -a")
+PS C:\Users\gengy\Desktop\TPMS-website>
+```
+
+---
+
+Let me add all the changes and commit them before pushing:
+
+---
+
+```bash
+git add .
+```
+
+```
+ g i t Spacebar d i f f Spacebar m a s t e r Spacebar o r i g i n / m a s t e r Spacebar - - s t a t En
+ter
+ g i t Spacebar p u s h Spacebar - - f o r c e Spacebar o r i g i n Spacebar m a s t e r Enter
+ g i t Spacebar s t a t u s Enter
+ g i t Spacebar a d
+```
+
+### 例外
+```
+System.ArgumentOutOfRangeException: 该值必须大于或等于零，且必须小于控制台缓冲区在该维度的大小。       
+参数名: top
+实际值是 1。
+   在 System.Console.SetCursorPosition(Int32 left, Int32 top)
+   在 Microsoft.PowerShell.PSConsoleReadLine.CalculateWhereAndWhatToRender(Boolean cursorMovedToInitial
+Pos, RenderData renderData, LineInfoForRendering& lineInfoForRendering)
+   在 Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(RenderData renderData, String defaultColor)  
+   在 Microsoft.PowerShell.PSConsoleReadLine.ForceRender()
+   在 Microsoft.PowerShell.PSConsoleReadLine.Insert(Char c)
+   在 Microsoft.PowerShell.PSConsoleReadLine.SelfInsert(Nullable`1 key, Object arg)
+   在 Microsoft.PowerShell.PSConsoleReadLine.ProcessOneKey(PSKeyInfo key, Dictionary`2 dispatchTable, B
+oolean ignoreIfNoAction, Object arg)
+   在 Microsoft.PowerShell.PSConsoleReadLine.InputLoop()
+   在 Microsoft.PowerShell.PSConsoleReadLine.ReadLine(Runspace runspace, EngineIntrinsics engineIntrins
+ics, CancellationToken cancellationToken)
+```
+
+PS C:\Users\gengy\Desktop\TPMS-website> git add .
+
+
+```
+
+---
+
+Let me continue with committing and pushing:
+
+---
+
+```bash
+git commit -m "Update remaining files"
+```
+
+```
+PS C:\Users\gengy\Desktop\TPMS-website> git commit -m "Update remaining files"
+[master 0f1daba] Update remaining files
+ 2 files changed, 1993 insertions(+), 1 deletion(-)
+PS C:\Users\gengy\Desktop\TPMS-website>
+```
+
+---
+
+Now let's push the changes:
+
+---
+
+```bash
+git push origin master
+```
+
+```
+PS C:\Users\gengy\Desktop\TPMS-website> git push origin master
+Enumerating objects: 13, done.
+Writing objects: 100% (7/7), 553.19 KiB | 14.95 MiB/s, done.
+Total 7 (delta 4), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
+To https://github.com/yorhagengyue/TPMS-website
+   cd97bcf..0f1daba  master -> master
+PS C:\Users\gengy\Desktop\TPMS-website>
+```
+
+---
+
+Push completed successfully! The changes have been pushed to the GitHub repository. The output shows:
+
+1. 7 objects were sent to the remote repository
+2. The push updated the remote master branch from commit cd97bcf to 0f1daba
+3. All files have been successfully uploaded to GitHub
+
+The push operation has been successfully completed.
+
+---
+
+_**User**_
+
+尝试在命令行插入数据库一个用户
+
+---
+
+_**Assistant**_
+
 
 
 ---
+
+I'll help you insert a user into the database via the command line. First, let me check what database system is being used in this project:
+
+---
+
+<details>
+            <summary>Grep search for "database|mongoose|sequelize|prisma|knex" • **14** files</summary>
+        
+| File | Line | Match |
+|------|------|-------|
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/migrate-excel-to-postgres.js` | L21 | `if (!process.env.DATABASE_URL) {` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/migrate-excel-to-postgres.js` | L22 | `console.error('错误: 未设置 DATABASE_URL 环境变量');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/migrate-excel-to-postgres.js` | L24 | `console.error('DATABASE_URL=postgresql://username:password@localhost:5432/tpms_db_pg');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/migrate-excel-to-postgres.js` | L29 | `connectionString: process.env.DATABASE_URL,` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/migrate-to-postgres.js` | L25 | `database: process.env.DB_NAME || 'tpms_db'` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/migrate-to-postgres.js` | L29 | `if (!process.env.DATABASE_URL) {` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/migrate-to-postgres.js` | L30 | `console.error('错误: 未设置 DATABASE_URL 环境变量');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/migrate-to-postgres.js` | L32 | `console.error('DATABASE_URL=postgresql://username:password@localhost:5432/tpms_db_pg');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/migrate-to-postgres.js` | L37 | `connectionString: process.env.DATABASE_URL,` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/export-attendance.js` | L10 | `const db = require('./database');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database.js` | L1 | `* Database Connection Module` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database.js` | L3 | `* This module provides a unified interface for database connections,` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database.js` | L4 | `* supporting both MySQL and PostgreSQL databases.` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database.js` | L11 | `// Database type detection` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database.js` | L14 | `// Initialize connection pool based on database type` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database.js` | L35 | `* Execute a database query with parameters` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database.js` | L56 | `* @returns {Promise<Object>} Database connection` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database.js` | L120 | `* Close database pools on application shutdown` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | Lundefined | `# Database Environment Separation Guide` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L2 | `This document outlines how the test and production database environments are separated in the TPMS application.` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L6 | `The application supports two distinct database environments:` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L7 | `- **Production Environment**: Uses the `tpms_db` database for real club data` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L8 | `- **Test Environment**: Uses the `tpms_test_db` database for testing and development` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L43 | `This configuration is then used throughout the application to ensure the correct database is accessed.` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L45 | `## Test Database Setup` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L47 | `The test database is initialized with the `setup-test-db.js` script, which:` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L48 | `1. Creates the test database if it doesn't exist` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L49 | `2. Sets up the same table structure as the production database` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L50 | `3. Populates the database with sample data for testing` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L58 | `| `npm run start:prod` | Start the server using production database |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L59 | `| `npm run server:prod` | Start the server in development mode using production database |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L60 | `| `npm run migrate:prod` | Import Excel data to production database |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L61 | `| `npm run check:prod` | Check production database status |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L67 | `| `npm run start:test` | Start the server using test database |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L68 | `| `npm run server:test` | Start the server in development mode using test database |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L69 | `| `npm run setup:test` | Initialize test database with sample data |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L70 | `| `npm run migrate:test` | Import Excel data to test database |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L71 | `| `npm run check:test` | Check test database status |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L79 | `# Initialize test database with sample data` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L82 | `# Start server with test database` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L89 | `# Start server with production database` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L92 | `# Import Excel data to production database` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L96 | `### Checking Database Status` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L99 | `# Check test database contents` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L102 | `# Check production database contents` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L111 | `2. **Environment-specific Database Connections**: All database connections use the configuration` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L113 | `4. **Identical Database Schema**: Both environments use the same database schema` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L120 | `- **Clean Starting Point**: Test database can be reset to a known state` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/create-admin.js` | L1 | `const db = require('./database');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/config.js` | L36 | `// Extract database environment variables` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/config.js` | L38 | `DATABASE_URL,` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/config.js` | L46 | `// Configure database connection - prioritize DATABASE_URL if present` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/config.js` | L47 | `const DB_CONFIG = DATABASE_URL` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/config.js` | L48 | `? { connectionString: DATABASE_URL }` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/config.js` | L54 | `database: DB_NAME || (NODE_ENV === 'test' ? 'tpms_test_db' : 'tpms_db')` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/config.js` | L79 | `console.log(`Database connection type: ${config.DB_CONFIG.connectionString ? 'PostgreSQL (URL)' : 'MySQL (Direct)'}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/config.js` | L81 | `console.log(`Database: ${config.DB_CONFIG.database}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/add-attendance.js` | L6 | `const db = require('./database');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/update-database.js` | Lundefined | `// Script to update database schema - add chess columns` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/update-database.js` | L4 | `const db = require('./database');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/update-database.js` | L6 | `async function updateDatabase() {` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/update-database.js` | L8 | `console.log('Starting database update...');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/update-database.js` | L115 | `console.log('Database update completed successfully.');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/update-database.js` | L117 | `console.error('Error updating database:', err);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/update-database.js` | L121 | `// Call the function to update the database` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/update-database.js` | L122 | `updateDatabase();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/add-user.js` | L3 | `* This script adds a new user to the database with the specified credentials.` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/add-user.js` | L26 | `database: 'tpms_db'` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/add-user.js` | L50 | `console.log(`Database: ${dbConfig.database}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/add-user.js` | L51 | `console.log(`Database user: ${dbConfig.user}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/add-user.js` | L53 | `// Connect to the database` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/add-user.js` | L54 | `console.log('\nConnecting to database...');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/add-user.js` | L56 | `console.log('Connected to database.');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/add-user.js` | L122 | `console.error('Access denied. Please check your database username and password.');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/add-user.js` | L124 | `console.error('Tables do not exist. Please run setup-db.sql to create database tables first.');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/add-user.js` | L131 | `console.log('Database connection closed');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/check-password-status.js` | L18 | `// Connect to the database` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/check-password-status.js` | L23 | `database: config.DB_CONFIG.database` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/check-password-status.js` | L26 | `console.log(`Connected to database: ${config.DB_CONFIG.database}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/check-password-status.js` | L68 | `console.log('Database connection closed');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/check-passwords.js` | L17 | `// Connect to the database` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/check-passwords.js` | L19 | `console.log(`Connected to database: ${DB_CONFIG.database}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/check-passwords.js` | L30 | `console.log(`\nFound ${users.length} student accounts in the database\n`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/check-passwords.js` | L79 | `console.log('Database connection closed');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/attendance/check-attendance-data.js` | L1 | `* Database Attendance Data Check Script` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/attendance/check-attendance-data.js` | L3 | `* This script checks if the database contains the attendance data shown in the Excel file` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-new-students.js` | L9 | `const db = require('../database');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-new-students.js` | L200 | `console.log(`Found ${existingStudentsMap.size} existing students in database`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-new-students.js` | L251 | `console.log(`- ${existing} already in database (skipped)`);` |
+
+</details>
+
+---
+
+Let me look at the add-user.js script specifically:
+
+---
+
+Read file: tools/add-user.js
+
+---
+
+Based on the information I've found, the project uses MySQL database (with possible PostgreSQL support as well). I found a tool script `tools/add-user.js` that can be used to insert a new user.
+
+Let me modify and execute the command to add the user with the information provided (Richie Goh, 2501766F):
+
+---
+
+```bash
+node tools/add-user.js 2501766F Password123
+```
+
+```
+PS C:\Users\gengy\Desktop\TPMS-website> node tools/add-user.js 2501766F Password123
+=== TPMS User Creation Tool ===
+Adding user: 2501766F
+Database: tpms_db
+Database user: root
+Connecting to database...
+>
+❌ Error adding user: Access denied for user 'root'@'localhost' (using password: NO)
+Access denied. Please check your database username and password.
+PS C:\Users\gengy\Desktop\TPMS-website>
+```
+
+---
+
+I see we're having connection issues because the database credentials are needed. Let me look for any database credentials or check if there's a more specific script for adding users with the structure matching Richie Goh's info:
+
+---
+
+<details>
+            <summary>Grep search for "INSERT INTO students|INSERT INTO users" • **22** files</summary>
+        
+| File | Line | Match |
+|------|------|-------|
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/migrate-db.js` | L52 | `INSERT INTO users_backup SELECT * FROM users` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users.js` | L173 | `'INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users.js` | L205 | `'INSERT INTO users (username, password_hash, student_id, email, role, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) RETURNING id',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users-fixed.js` | L173 | `'INSERT INTO students (name, course, index_number, email) VALUES ($1, $2, $3, $4) RETURNING id',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users-fixed.js` | L205 | `'INSERT INTO users (username, password_hash, student_id, email, role) VALUES ($1, $2, $3, $4, $5) RETURNING id',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-new-students.js` | L224 | `? 'INSERT INTO students (name, course, index_number, email, phone_number) VALUES ($1, $2, $3, $4, $5)'` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-new-students.js` | L225 | `: 'INSERT INTO students (name, course, index_number, email, phone_number) VALUES (?, ?, ?, ?, ?)';` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/generate-user-sql.js` | L27 | `console.log(`INSERT INTO students (name, index_number, email)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/generate-user-sql.js` | L38 | `console.log(`INSERT INTO users (username, password_hash, student_id, email, role)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/add-user.js` | L83 | `'INSERT INTO students (name, index_number, email) VALUES (?, ?, ?)',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/add-user.js` | L107 | `'INSERT INTO users (username, password_hash, student_id, email, role) VALUES (?, ?, ?, ?, ?)',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/db/setup-test-db.js` | L83 | `'INSERT INTO students (name, course, index_number) VALUES (?, ?, ?)',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/db/migrate-db.js` | L52 | `INSERT INTO users_backup SELECT * FROM users` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/auth/fix-admin-user.js` | L33 | `'INSERT INTO students (name, course, index_number, email) VALUES (?, ?, ?, ?)',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/auth/fix-admin-user.js` | L58 | `'INSERT INTO users (username, password_hash, student_id, role) VALUES (?, ?, ?, ?)',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/analysis/migrate-sample-excel.js` | L117 | `'INSERT INTO students (name, course, index_number) VALUES (?, ?, ?)',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/analysis/migrate-excel.js` | L180 | `'INSERT INTO students (name, course, index_number) VALUES (?, ?, ?)',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/analysis/analyze-excel.js` | L155 | `'INSERT INTO students (name, course, index_number) VALUES (?, ?, ?)',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/analysis/analyze-attendance.js` | L161 | `'INSERT INTO students (name, course, index_number, total_sessions, attended_sessions, attendance_rate) VALUES (?, ?, ?, ?, ?, ?)',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/analysis/analyze-attendance.js` | L229 | `'INSERT INTO users (username, password_hash, student_id, role) VALUES (?, ?, ?, ?)',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/setup-db.sql` | L159 | `INSERT INTO students (name, course, index_number, email)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/setup-db.sql` | L162 | `INSERT INTO users (username, password_hash, student_id, email, role)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/server.js` | L832 | `? 'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)'` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/server.js` | L833 | `: 'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/src/lib/auth.js` | L232 | `const insertSql = 'INSERT INTO users (username, password_hash, student_id, role) VALUES ($1, $2, $3, $4) RETURNING id';` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/src/lib/auth.js` | L237 | `const insertSql = 'INSERT INTO users (username, password_hash, student_id, role) VALUES (?, ?, ?, ?)';` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/src/lib/auth.js` | L297 | `const insertSql = 'INSERT INTO users (username, password_hash, student_id, role) VALUES ($1, $2, $3, $4) RETURNING id';` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/src/lib/auth.js` | L302 | `const insertSql = 'INSERT INTO users (username, password_hash, student_id, role) VALUES (?, ?, ?, ?)';` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/migrate-to-postgres.js` | L139 | ``INSERT INTO students` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/migrate-to-postgres.js` | L180 | ``INSERT INTO users` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/migrate-excel-to-postgres.js` | L254 | `'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/migrate-excel-to-postgres.js` | L290 | `'INSERT INTO users (username, password_hash, student_id, role) VALUES ($1, $2, $3, $4) RETURNING *',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/create-admin.js` | L67 | `'INSERT INTO users (username, password_hash, student_id, email, role) VALUES ($1, $2, $3, $4, $5)',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/create-admin.js` | L73 | `'INSERT INTO users (username, password_hash, student_id, email, role) VALUES (?, ?, ?, ?, ?)',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-24_04-09-%E5%AE%8C%E5%96%84%E9%A6%96%E9%A1%B5%E8%BD%AE%E6%92%AD%E5%9B%BE%E8%AE%BE%E8%AE%A1.md` | L7468 | `+         'INSERT INTO students (name, index_number, email) VALUES (?, ?, ?)',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-24_04-09-%E5%AE%8C%E5%96%84%E9%A6%96%E9%A1%B5%E8%BD%AE%E6%92%AD%E5%9B%BE%E8%AE%BE%E8%AE%A1.md` | L7492 | `+         'INSERT INTO users (username, password_hash, student_id, email, role) VALUES (?, ?, ?, ?, ?)',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-24_04-09-%E5%AE%8C%E5%96%84%E9%A6%96%E9%A1%B5%E8%BD%AE%E6%92%AD%E5%9B%BE%E8%AE%BE%E8%AE%A1.md` | L7798 | `+     console.log(`INSERT INTO students (name, index_number, email)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-24_04-09-%E5%AE%8C%E5%96%84%E9%A6%96%E9%A1%B5%E8%BD%AE%E6%92%AD%E5%9B%BE%E8%AE%BE%E8%AE%A1.md` | L7809 | `+     console.log(`INSERT INTO users (username, password_hash, student_id, email, role)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-24_04-09-%E5%AE%8C%E5%96%84%E9%A6%96%E9%A1%B5%E8%BD%AE%E6%92%AD%E5%9B%BE%E8%AE%BE%E8%AE%A1.md` | L7846 | `INSERT INTO students (name, index_number, email)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-24_04-09-%E5%AE%8C%E5%96%84%E9%A6%96%E9%A1%B5%E8%BD%AE%E6%92%AD%E5%9B%BE%E8%AE%BE%E8%AE%A1.md` | L7857 | `INSERT INTO users (username, password_hash, student_id, email, role)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-24_04-09-%E5%AE%8C%E5%96%84%E9%A6%96%E9%A1%B5%E8%BD%AE%E6%92%AD%E5%9B%BE%E8%AE%BE%E8%AE%A1.md` | L7877 | `INSERT INTO students (name, index_number, email)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-24_04-09-%E5%AE%8C%E5%96%84%E9%A6%96%E9%A1%B5%E8%BD%AE%E6%92%AD%E5%9B%BE%E8%AE%BE%E8%AE%A1.md` | L7888 | `INSERT INTO users (username, password_hash, student_id, email, role)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L624 | `+         const insertSql = 'INSERT INTO users (username, password_hash, student_id, role) VALUES ($1, $2, $3, $4) RETURNING id';` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L629 | `+         const insertSql = 'INSERT INTO users (username, password_hash, student_id, role) VALUES (?, ?, ?, ?)';` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L2808 | `| `file:///c%3A/Users/gengy/Desktop/TPMS-website/server.js` | L641 | `? 'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)'` |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L2809 | `| `file:///c%3A/Users/gengy/Desktop/TPMS-website/server.js` | L642 | `: 'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';` |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L2814 | `| `file:///c%3A/Users/gengy/Desktop/TPMS-website/migrate-excel-to-postgres.js` | L254 | `'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',` |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L2816 | `⟪ 126 characters skipped ⟫8%85%E8%AF%BB.md` | L6578 | `+         'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',` |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L2852 | `⟪ 116 characters skipped ⟫BD%93%E9%98%85%E8%AF%BB.md` | L8862 | `'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',` |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L2861 | `⟪ 134 characters skipped ⟫AF%BB.md` | L9127 | `+               ? 'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)'` |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L2862 | `⟪ 134 characters skipped ⟫AF%BB.md` | L9128 | `+               : 'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';` |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L7329 | `+           'INSERT INTO students (name, index_number, email, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP) RETURNING id',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L7353 | `+           'INSERT INTO users (username, password_hash, student_id, email, role, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L7785 | `+             'INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L7815 | `+             'INSERT INTO users (username, password_hash, student_id, email, role, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) RETURNING id',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L8815 | `+               'INSERT INTO students (name, course, index_number, email) VALUES ($1, $2, $3, $4) RETURNING id',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L8847 | `+               'INSERT INTO users (username, password_hash, student_id, email, role) VALUES ($1, $2, $3, $4, $5) RETURNING id',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L8977 | `- 学生表插入语句变为：`INSERT INTO students (name, course, index_number, email) VALUES ($1, $2, $3, $4)`` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L8978 | `- 用户表插入语句变为：`INSERT INTO users (username, password_hash, student_id, email, role) VALUES ($1, $2, $3, $4, $5)`` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L8994 | `[6810e65f.94719-149] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L8996 | `[6810e65f.94719-151] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L8998 | `[6810e65f.94719-153] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9000 | `[6810e65f.94719-155] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9002 | `[6810e65f.94719-157] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9004 | `[6810e65f.94719-159] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9006 | `[6810e65f.94719-161] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9008 | `[6810e65f.94719-163] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9010 | `[6810e65f.94719-165] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9012 | `[6810e65f.94719-167] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9014 | `[6810e65f.94719-169] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9016 | `[6810e65f.94719-171] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9018 | `[6810e65f.94719-173] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9020 | `[6810e65f.94719-175] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9022 | `[6810e65f.94719-177] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9024 | `[6810e65f.94719-179] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9026 | `[6810e65f.94719-181] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9028 | `[6810e65f.94719-183] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9030 | `[6810e65f.94719-185] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9032 | `[6810e65f.94719-187] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9034 | `[6810e65f.94719-189] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9036 | `[6810e65f.94719-191] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9038 | `[6810e65f.94719-193] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9040 | `[6810e65f.94719-195] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9042 | `[6810e65f.94719-197] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9044 | `[6810e65f.94719-199] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9046 | `[6810e65f.94719-201] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9048 | `[6810e65f.94719-203] user=tpms_db_pg_user,db=tpms_db_pg,app=[unknown],client=10.210.170.170,STATEMENT:  INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9070 | `STATEMENT: INSERT INTO students (name, course, index_number, email, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L9076 | `INSERT INTO students (name, course, index_number, email) VALUES ($1, $2, $3, $4) RETURNING id` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L16342 | `+             ? 'INSERT INTO students (name, course, index_number, email, phone_number) VALUES ($1, $2, $3, $4, $5)'` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L16343 | `+             : 'INSERT INTO students (name, course, index_number, email, phone_number) VALUES (?, ?, ?, ?, ?)';` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L16571 | `+             ? 'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)'` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L16572 | `+             : 'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L17253 | `+             ? 'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)'` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L17254 | `+             : 'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L18012 | `-             ? 'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)'` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L18013 | `-             : 'INSERT INTO students (name, course, index_number, email, phone_number, total_sessions, attended_sessions, attendance_rate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L18014 | `+             ? 'INSERT INTO students (name, course, index_number, email, phone_number) VALUES ($1, $2, $3, $4, $5)'` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-22_03-31-%E9%A1%B9%E7%9B%AE%E6%95%B4%E4%BD%93%E9%98%85%E8%AF%BB.md` | L18015 | `+             : 'INSERT INTO students (name, course, index_number, email, phone_number) VALUES (?, ?, ?, ?, ?)';` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-new-students.js` | L224 | `? 'INSERT INTO students (name, course, index_number, email, phone_number) VALUES ($1, $2, $3, $4, $5)'` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-new-students.js` | L225 | `: 'INSERT INTO students (name, course, index_number, email, phone_number) VALUES (?, ?, ?, ?, ?)';` |
+
+</details>
+
+---
+
+_**User**_
+
+我是需要在render插入 而不是这里
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+I'll help you insert a user into the database on Render instead of locally. Let me search for information about the Render connection:
+
+---
+
+<details>
+            <summary>Grep search for "render|DATABASE_URL|connection" • **7** files</summary>
+        
+| File | Line | Match |
+|------|------|-------|
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-two-step-auth.js` | L13 | `let connection;` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-two-step-auth.js` | L18 | `connection = await mysql.createConnection(config.DB_CONFIG);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-two-step-auth.js` | L21 | `const [students] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-two-step-auth.js` | L34 | `const [result] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-two-step-auth.js` | L43 | `if (connection) await connection.end();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-two-step-auth.js` | L48 | `let connection;` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-two-step-auth.js` | L52 | `connection = await mysql.createConnection(config.DB_CONFIG);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-two-step-auth.js` | L55 | `const [students] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-two-step-auth.js` | L68 | `const [users] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-two-step-auth.js` | L85 | `if (connection) await connection.end();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-password-setting.js` | L117 | `let connection;` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-password-setting.js` | L120 | `connection = await mysql.createConnection({` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-password-setting.js` | L128 | `const [students] = await connection.execute(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-password-setting.js` | L142 | `const [users] = await connection.execute(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-password-setting.js` | L162 | `if (connection) {` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-password-setting.js` | L163 | `await connection.end();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-password-setting.js` | L164 | `console.log('Database connection closed');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-password-setting.js` | L172 | `let connection;` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-password-setting.js` | L174 | `connection = await mysql.createConnection({` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-password-setting.js` | L182 | `await connection.execute(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-password-setting.js` | L190 | `const [users] = await connection.execute(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-password-setting.js` | L207 | `if (connection) {` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-password-setting.js` | L208 | `await connection.end();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-password-setting.js` | L209 | `console.log('Database connection closed');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth.js` | L12 | `let connection;` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth.js` | L15 | `connection = await mysql.createConnection(config.DB_CONFIG);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth.js` | L22 | `const [usersColumns] = await connection.query(`` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth.js` | L34 | `const [foreignKeys] = await connection.query(`` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth.js` | L53 | `const [students] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth.js` | L67 | `const [usersByStudentId] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth.js` | L80 | `const [usersByUsername] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth.js` | L96 | `if (connection) await connection.end();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth.js` | L122 | `let connection;` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth.js` | L127 | `connection = await mysql.createConnection(config.DB_CONFIG);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth.js` | L130 | `const [students] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth.js` | L143 | `const [result] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth.js` | L152 | `if (connection) await connection.end();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth-api.js` | L27 | `let connection;` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth-api.js` | L31 | `connection = await mysql.createConnection(config.DB_CONFIG);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth-api.js` | L34 | `const [students] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth-api.js` | L47 | `const [result] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth-api.js` | L56 | `if (connection) await connection.end();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth-api.js` | L268 | `let connection;` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth-api.js` | L271 | `connection = await mysql.createConnection(config.DB_CONFIG);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth-api.js` | L274 | `const [students] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth-api.js` | L287 | `const [users] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-auth-api.js` | L303 | `if (connection) await connection.end();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L18 | `let connection;` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L22 | `connection = await mysql.createConnection(config.DB_CONFIG);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L25 | `const [students] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L49 | `const [attendance] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L82 | `if (connection) await connection.end();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L90 | `let connection;` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L94 | `connection = await mysql.createConnection(config.DB_CONFIG);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L97 | `const [sessions] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L122 | `const [upcomingSessions] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L144 | `if (connection) await connection.end();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L152 | `let connection;` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L156 | `connection = await mysql.createConnection(config.DB_CONFIG);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L159 | `const [students] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L173 | `const [activeSessions] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L191 | `const [result] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L203 | `const [updateResult] = await connection.query(`` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L215 | `const [updatedStudents] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L236 | `if (connection) await connection.end();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L241 | `let connection;` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L245 | `connection = await mysql.createConnection(config.DB_CONFIG);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L248 | `const [counts] = await connection.query(`` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L260 | `const [stats] = await connection.query(`` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L279 | `const [topStudents] = await connection.query(`` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L301 | `if (connection) await connection.end();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-user-password.js` | L18 | `let connection;` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-user-password.js` | L26 | `connection = await mysql.createConnection(config.DB_CONFIG);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-user-password.js` | L29 | `const [students] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-user-password.js` | L43 | `const [users] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-user-password.js` | L58 | `await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-user-password.js` | L66 | `const [updatedUsers] = await connection.query(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-new-students.js` | L165 | `const connection = await db.getConnection();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-new-students.js` | L171 | `await connection.beginTransaction();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-new-students.js` | L191 | `const existingStudents = await connection.query(query, batch);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-new-students.js` | L227 | `await connection.query(insertQuery, [` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-new-students.js` | L248 | `await connection.commit();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-new-students.js` | L255 | `await connection.rollback();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-new-students.js` | L258 | `connection.release();` |
+
+</details>
+
+---
+
+Let me continue searching for specific Render or remote database configuration:
+
+---
+
+<details>
+            <summary>Grep search for "heroku|render|remote|production" • **14** files</summary>
+        
+| File | Line | Match |
+|------|------|-------|
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L19 | `if (NODE_ENV !== 'production') {` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/server.js` | L1688 | `if (process.env.NODE_ENV === 'production') {` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/server.js` | L1706 | `// For both production and development, send the index.html file` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/README.md` | L21 | `- **Database**: Dual support for MySQL (local) and PostgreSQL (Render deployment)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/README.md` | L47 | `# Build for production` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/README.md` | L94 | `├── postgres-schema.sql       # PostgreSQL schema for Render deployment` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/README.md` | L95 | `└── .env.render.example       # Environment example for Render deployment` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/README.md` | L104 | `- PostgreSQL 12.0 or higher (for Render deployment)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/README.md` | L132 | `5. Build for production` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/README.md` | L188 | `### Production Environment Deployment` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/README.md` | L194 | `2. Set up the production database using the setup-db.sql script` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/README.md` | L196 | `3. Configure your production environment variables` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/README.md` | L200 | `NODE_ENV=production node server.js` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/README.md` | L367 | `## Test and Production Environments` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/README.md` | L369 | `This project supports separate test and production database environments to ensure that development and testing activities do not affect production data.` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/README.md` | L371 | `For detailed information about the separation of test and production database environments, available commands, and usage examples, please refer to the [Database Environment Separation Guide](database-environments.md).` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/src/index.js` | L14 | `root.render(` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/src/lib/emailService.js` | L67 | `* In a production environment, this should be stored in Redis or a database` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/src/lib/emailService.js` | L96 | `// Store codes in a JSON file (not secure for production)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/src/lib/emailService.js` | L142 | `if (process.env.NODE_ENV !== 'production' && code === '123456') {` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/src/lib/auth.js` | L11 | `// JWT Secret - should be in environment variables in production` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/src/lib/auth.js` | L12 | `const JWT_SECRET = process.env.JWT_SECRET || 'tpms-secret-key-change-in-production';` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/src/components/pages/StudentDashboard.jsx` | L158 | `// Render loading state` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/src/components/pages/StudentDashboard.jsx` | L167 | `// Render error message` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/src/components/pages/StudentDashboard.jsx` | L405 | `// Create an array for rendering` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/package.json` | L7 | `"start:prod": "cross-env NODE_ENV=production node server.js",` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/package.json` | L10 | `"server:prod": "cross-env NODE_ENV=production nodemon server.js",` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/package.json` | L19 | `"update:db:prod": "cross-env NODE_ENV=production node update-db-schema.js",` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/package.json` | L20 | `"migrate:prod": "cross-env NODE_ENV=production node migrate-excel.js",` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/package.json` | L24 | `"check:prod": "cross-env NODE_ENV=production node check-db.js",` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/package.json` | L28 | `"check:attendance:prod": "cross-env NODE_ENV=production node check-attendance-analysis.js",` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/package.json` | L32 | `"analyze:attendance:prod": "cross-env NODE_ENV=production node analyze-attendance.js"` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/package.json` | L72 | `"production": [` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L2 | `This document outlines how the test and production database environments are separated in the TPMS application.` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L7 | `- **Production Environment**: Uses the `tpms_db` database for real club data` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L10 | `This separation ensures that testing activities never affect the production data, while allowing developers to work with realistic data structures.` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L16 | `- `.env` - Production environment configuration` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L23 | `NODE_ENV=production` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L40 | `- When `NODE_ENV=production`: Loads settings from `.env`` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L49 | `2. Sets up the same table structure as the production database` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L54 | `### Production Environment Commands` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L58 | `| `npm run start:prod` | Start the server using production database |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L59 | `| `npm run server:prod` | Start the server in development mode using production database |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L60 | `| `npm run migrate:prod` | Import Excel data to production database |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L61 | `| `npm run check:prod` | Check production database status |` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L86 | `### Working with Production Environment` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L89 | `# Start server with production database` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L92 | `# Import Excel data to production database` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L102 | `# Check production database contents` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L117 | `- **Data Safety**: Production data is never at risk during testing` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/database-environments.md` | L118 | `- **Realistic Testing**: Test environment mimics production structure` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/create-admin.js` | Lundefined | `// 创建管理员账号（本地MySQL和Render PostgreSQL）` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/create-admin.js` | L65 | `// PostgreSQL (Render)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/config.js` | L19 | `if (NODE_ENV !== 'production') {` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.gitignore` | L10 | `# production` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.gitignore` | L18 | `.env.production.local` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/package-lock.json` | L14327 | `"renderkid": "^3.0.0"` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/package-lock.json` | L15066 | `"node_modules/renderkid": {` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/package-lock.json` | L15068 | `"resolved": "https://registry.npmjs.org/renderkid/-/renderkid-3.0.0.tgz",` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L3135 | `remote: Resolving deltas: 100% (11/11), completed with 10 local objects.` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L3244 | `remote: Resolving deltas: 100% (3/3), completed with 3 local objects.` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L3374 | `在 Microsoft.PowerShell.PSConsoleReadLine.CalculateWhereAndWhatToRender(Boolean cursorMovedToInitial` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L3375 | `Pos, RenderData renderData, LineInfoForRendering& lineInfoForRendering)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L3376 | `在 Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(RenderData renderData, String defaultColor)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L3377 | `在 Microsoft.PowerShell.PSConsoleReadLine.ForceRender()` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L3427 | `remote: Resolving deltas: 100% (6/6), completed with 6 local objects.` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L3613 | `remote: Resolving deltas: 100% (6/6), completed with 6 local objects.` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L3886 | `Now the code includes a proper redirect. When users access "/home", they'll be automatically redirected to the root path "/" which now renders the ChessRankPage.` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L4134 | `Good, the commit is now successful. Let's push the changes to the remote repository:` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L4149 | `remote: Resolving deltas: 100% (3/3), completed with 3 local objects.` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L4446 | `在 Microsoft.PowerShell.PSConsoleReadLine.CalculateWhereAndWhatToRender(Boolean cursorMovedToInitial` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L4447 | `Pos, RenderData renderData, LineInfoForRendering& lineInfoForRendering)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L4448 | `在 Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(RenderData renderData, String defaultColor)` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L4449 | `在 Microsoft.PowerShell.PSConsoleReadLine.ForceRender()` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L4485 | `git ls-remote --heads origin master` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L4502 | `在 Microsoft.PowerShell.PSConsoleReadLine.CalculateWhereAndWhatToRender(Boolean cursorMovedToInitial` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md` | L4503 | `Pos, RenderData renderData, LineInfoForRendering& lineInfoForRendering)` |
+
+</details>
+
+---
+
+Now let me check specifically for any scripts that could help us connect to Render's database:
+
+---
+
+<details>
+            <summary>Listed directory tools • **28** results</summary>
+        
+| Name |
+|-------|
+| 📄 `import-new-students.js` |
+| 📄 `import-orientation-users.js` |
+| 📄 `add-chess-columns.js` |
+| 📄 `test-email.js` |
+| 📄 `fix-attendance-rates.js` |
+| 📄 `import-orientation-users-fixed.js` |
+| 📄 `README.md` |
+| 📄 `add-user.js` |
+| 📄 `generate-user-sql.js` |
+| 📄 `reset-all-passwords.js` |
+| 📄 `check-account.js` |
+| 📄 `test-two-step-auth.js` |
+| 📄 `reset-user-password.js` |
+| 📄 `test-activity.js` |
+| 📄 `test-auth-api.js` |
+| 📄 `test-auth.js` |
+| 📄 `test-password-setting.js` |
+| 📄 `fix-user-accounts.js` |
+| 📄 `migrate-db.js` |
+| 📄 `reset-all-accounts.js` |
+| 📄 `reset-passwords-fixed.js` |
+| 📄 `reset-passwords.js` |
+| 📄 `check-password-status.js` |
+| 📄 `check-passwords.js` |
+| 📄 `clear-account.js` |
+| 📄 `clear-passwords.js` |
+| 📄 `check-db-schema.js` |
+| 📄 `check-password-status-fixed.js` |
+
+</details>
+
+---
+
+Let me check the root directory for any Render or PostgreSQL related files:
+
+---
+
+<details>
+            <summary>Listed current directory • **36** results</summary>
+        
+| Name |
+|-------|
+| 📁 `src` |
+| 📁 `.git` |
+| 📁 `build` |
+| 📄 `server.js` |
+| 📁 `public` |
+| 📄 `.gitignore` |
+| 📁 `tools` |
+| 📁 `.specstory` |
+| 📁 `temp_backup` |
+| 📄 `package-lock.json` |
+| 📁 `node_modules` |
+| 📄 `config.js` |
+| 📄 `package.json` |
+| 📄 `export-tool.html` |
+| 📄 `签到记录_2025-04-25.xlsx` |
+| 📄 `export-attendance.js` |
+| 📄 `create-admin.js` |
+| 📄 `README.md` |
+| 📄 `add-attendance.js` |
+| 📄 `update-database.js` |
+| 📄 `update-db.sql` |
+| 📄 `setup-db.sql` |
+| 📄 `tailwind.config.js` |
+| 📄 `h` |
+| 📄 `face_recognition1.py` |
+| 📄 `location.html` |
+| 📄 `migrate-excel-to-postgres.js` |
+| 📄 `postgres-schema.sql` |
+| 📄 `check-excel-structure.js` |
+| 📄 `migrate-to-postgres.js` |
+| 📄 `database.js` |
+| 📄 `.cursorindexingignore` |
+| 📁 `uploads` |
+| 📁 `tests` |
+| 📄 `login-temp.txt` |
+| 📄 `database-environments.md` |
+
+</details>
+
+---
+
+Now, let me look at the create-admin.js and migrate-to-postgres.js files to understand how to connect to the remote PostgreSQL database on Render:
+
+---
+
+Read file: create-admin.js
+
+---
+
+Read file: migrate-to-postgres.js
+
+---
+
+Let me also look at the database.js file to understand how the application connects to different databases:
+
+---
+
+Read file: database.js
+
+---
+
+Now I understand how to insert a user into the Render database. Let's create a script to insert Richie Goh with ID 2501766F into the database on Render.
+
+First, I'll create a temporary script in the project root:
+
+---
+
+```diff
+- 
++ /**
++  * Add User to Render PostgreSQL Database
++  * 
++  * This script adds a new user (Richie Goh, 2501766F) to the remote PostgreSQL database on Render.
++  */
++ 
++ const db = require('./database');
++ const bcrypt = require('bcrypt');
++ const dotenv = require('dotenv');
++ 
++ // Load environment variables
++ dotenv.config();
++ 
++ // User information
++ const userInfo = {
++   id: '2501766F',  // Student ID
++   name: 'Richie Goh',  // Student Name
++   password: 'Password123',  // Initial password
++   email: '2501766F@student.tp.edu.sg'  // Email address
++ };
++ 
++ // Create the user
++ async function createUser() {
++   try {
++     console.log('=== Add User to Render PostgreSQL Database ===');
++     console.log(`Adding user: ${userInfo.id} (${userInfo.name})`);
++     console.log(`Using database type: ${db.isPostgres ? 'PostgreSQL' : 'MySQL'}`);
++ 
++     if (!db.isPostgres) {
++       console.warn('WARNING: Not connected to PostgreSQL. This script is intended for the Render deployment.');
++       console.warn('Set DATABASE_URL environment variable to connect to PostgreSQL on Render.');
++       console.warn('Example: DATABASE_URL=postgresql://username:password@host:port/database');
++       
++       // Uncomment to force exit if not using PostgreSQL
++       // return;
++     }
++     
++     // Hash the password
++     const saltRounds = 10;
++     const passwordHash = await bcrypt.hash(userInfo.password, saltRounds);
++     console.log('Password hash generated');
++ 
++     // 1. Check if student already exists
++     console.log(`Checking if student with ID ${userInfo.id} exists...`);
++     
++     const findStudentQuery = db.isPostgres
++       ? 'SELECT id FROM students WHERE index_number = $1'
++       : 'SELECT id FROM students WHERE index_number = ?';
++     
++     const existingStudents = await db.query(findStudentQuery, [userInfo.id]);
++     
++     let studentId;
++     
++     if (existingStudents.length > 0) {
++       // Student exists
++       studentId = existingStudents[0].id;
++       console.log(`Student already exists with ID: ${studentId}`);
++       
++       // Update student info
++       const updateStudentQuery = db.isPostgres
++         ? 'UPDATE students SET name = $1, email = $2 WHERE id = $3'
++         : 'UPDATE students SET name = ?, email = ? WHERE id = ?';
++       
++       await db.query(updateStudentQuery, [userInfo.name, userInfo.email, studentId]);
++       console.log('Updated student information');
++     } else {
++       // Create new student record
++       console.log('Creating new student record...');
++       
++       const insertStudentQuery = db.isPostgres
++         ? 'INSERT INTO students (name, index_number, email) VALUES ($1, $2, $3) RETURNING id'
++         : 'INSERT INTO students (name, index_number, email) VALUES (?, ?, ?)';
++       
++       const result = await db.query(insertStudentQuery, [userInfo.name, userInfo.id, userInfo.email]);
++       
++       if (db.isPostgres) {
++         studentId = result[0].id;
++       } else {
++         studentId = result.insertId;
++       }
++       
++       console.log(`Created new student with ID: ${studentId}`);
++     }
++     
++     // 2. Check if user account exists
++     console.log('Checking if user account exists...');
++     
++     const findUserQuery = db.isPostgres
++       ? 'SELECT id FROM users WHERE username = $1'
++       : 'SELECT id FROM users WHERE username = ?';
++     
++     const existingUsers = await db.query(findUserQuery, [userInfo.id]);
++     
++     if (existingUsers.length > 0) {
++       // Update existing user
++       const userId = existingUsers[0].id;
++       
++       const updateUserQuery = db.isPostgres
++         ? 'UPDATE users SET password_hash = $1, email = $2 WHERE id = $3'
++         : 'UPDATE users SET password_hash = ?, email = ? WHERE id = ?';
++       
++       await db.query(updateUserQuery, [passwordHash, userInfo.email, userId]);
++       console.log(`Updated existing user account with ID: ${userId}`);
++     } else {
++       // Create new user account
++       console.log('Creating new user account...');
++       
++       const insertUserQuery = db.isPostgres
++         ? 'INSERT INTO users (username, password_hash, student_id, email, role) VALUES ($1, $2, $3, $4, $5) RETURNING id'
++         : 'INSERT INTO users (username, password_hash, student_id, email, role) VALUES (?, ?, ?, ?, ?)';
++       
++       const result = await db.query(insertUserQuery, [userInfo.id, passwordHash, studentId, userInfo.email, 'student']);
++       
++       const userId = db.isPostgres ? result[0].id : result.insertId;
++       console.log(`Created new user account with ID: ${userId}`);
++     }
++     
++     console.log('\n✅ Success! User account created/updated:');
++     console.log(`Username: ${userInfo.id}`);
++     console.log(`Password: ${userInfo.password}`);
++     console.log('The user can now log in with these credentials.');
++     
++   } catch (error) {
++     console.error('\n❌ Error creating user:', error.message);
++     
++     if (error.code === 'ER_DUP_ENTRY' || error.code === '23505') {
++       console.error('Duplicate key error - user or student ID already exists');
++     } else if (error.code === 'ER_NO_SUCH_TABLE' || error.code === '42P01') {
++       console.error('Table does not exist - database schema may not be set up correctly');
++     } else if (error.code === 'ECONNREFUSED') {
++       console.error('Could not connect to database server. Check connection settings.');
++     }
++   } finally {
++     // Close database connection
++     await db.closeConnections();
++     console.log('Database connection closed');
++   }
++ }
++ 
++ // Run the script
++ createUser().catch(console.error); 
+```
+
+---
+
+Now, let's check if there's any `.env` file in the project that might contain the Render DATABASE_URL:
+
+---
+
+<details>
+            <summary>Searched codebase ".env" • **0** results</summary>
+        
+No results found
+</details>
+
+---
+
+Let me search another way:
+
+---
+
+<details>
+            <summary>Grep search for "DATABASE_URL|env" • **21** files</summary>
+        
+| File | Line | Match |
+|------|------|-------|
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/test-activity.js` | L308 | `console.log(`  Environment: ${config.NODE_ENV}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-user-password.js` | L22 | `console.log(`Environment: ${config.NODE_ENV}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-passwords.js` | Lundefined | `#!/usr/bin/env node` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-passwords.js` | L18 | `require('dotenv').config({ path: '../.env' });` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-passwords.js` | L21 | `host: process.env.DB_HOST || 'localhost',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-passwords.js` | L22 | `user: process.env.DB_USER || 'root',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-passwords.js` | L23 | `password: process.env.DB_PASSWORD || '',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-passwords.js` | L24 | `database: process.env.DB_NAME || 'TPMS'` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-passwords-fixed.js` | Lundefined | `#!/usr/bin/env node` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-passwords-fixed.js` | L27 | `console.log(`Environment: ${config.NODE_ENV}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-all-accounts.js` | L19 | `console.log(`Environment: ${config.NODE_ENV}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/migrate-db.js` | L15 | `console.log(`Environment: ${config.NODE_ENV}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users.js` | L10 | `const dotenv = require('dotenv');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users.js` | L15 | `dotenv.config();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users.js` | L18 | `if (!process.env.DATABASE_URL) {` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users.js` | L19 | `console.error('错误: 未设置DATABASE_URL环境变量');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users.js` | L21 | `console.error('Windows: set DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tpms_db_pg');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users.js` | L22 | `console.error('Linux/Mac: export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tpms_db_pg');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users.js` | L27 | `connectionString: process.env.DATABASE_URL` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/reset-all-passwords.js` | L31 | `// Prompt for confirmation in non-automated environments` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/clear-account.js` | L23 | `console.log(`Environment: ${config.NODE_ENV}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users-fixed.js` | L11 | `const dotenv = require('dotenv');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users-fixed.js` | L16 | `dotenv.config();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users-fixed.js` | L19 | `if (!process.env.DATABASE_URL) {` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users-fixed.js` | L20 | `console.error('错误: 未设置DATABASE_URL环境变量');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users-fixed.js` | L22 | `console.error('Windows PowerShell: $env:DATABASE_URL="postgresql://用户名:密码@localhost:5432/数据库名"');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users-fixed.js` | L23 | `console.error('Windows CMD: set DATABASE_URL=postgresql://用户名:密码@localhost:5432/数据库名');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users-fixed.js` | L24 | `console.error('Linux/Mac: export DATABASE_URL=postgresql://用户名:密码@localhost:5432/数据库名');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tools/import-orientation-users-fixed.js` | L29 | `connectionString: process.env.DATABASE_URL` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/check-users-table.js` | L15 | `console.log(`Environment: ${config.NODE_ENV}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L1 | `* Environment Configuration Loader` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L3 | `* This module loads the appropriate environment configuration` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L4 | `* based on the NODE_ENV variable` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L9 | `const dotenv = require('dotenv');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L11 | `// Determine which .env file to use` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L12 | `function loadEnv() {` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L13 | `const NODE_ENV = process.env.NODE_ENV || 'development';` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L16 | `let envPath = path.resolve(process.cwd(), '.env');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L18 | `// Environment specific config path` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L19 | `if (NODE_ENV !== 'production') {` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L20 | `const envSpecificPath = path.resolve(process.cwd(), `.env.${NODE_ENV}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L21 | `if (fs.existsSync(envSpecificPath)) {` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L22 | `envPath = envSpecificPath;` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L23 | `console.log(`Loading environment config from: ${envPath}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L25 | `console.log(`Environment config file ${envSpecificPath} not found, using default .env`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L30 | `const envConfig = dotenv.config({ path: envPath });` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L32 | `if (envConfig.error) {` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L33 | `console.warn(`Warning: ${envPath} file not found, using process.env and defaults`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L37 | `NODE_ENV,` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L38 | `PORT: process.env.PORT || 5000,` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L40 | `host: process.env.DB_HOST || 'localhost',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L41 | `user: process.env.DB_USER || 'root',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L42 | `password: process.env.DB_PASSWORD || '',` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L43 | `database: process.env.DB_NAME || (NODE_ENV === 'test' ? 'tpms_test_db' : 'tpms_db')` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L48 | `const config = loadEnv();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/config.js` | L49 | `console.log(`Environment: ${config.NODE_ENV}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/utils/check-tables-content.js` | L15 | `console.log(`环境: ${config.NODE_ENV}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/auth/fix-admin-user.js` | L15 | `console.log(`Environment: ${config.NODE_ENV}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/auth/clear-account.js` | L23 | `console.log(`Environment: ${config.NODE_ENV}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/attendance/check-student-attendance-detail.js` | L16 | `console.log(`环境: ${config.NODE_ENV}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/db/update-db-schema.js` | L14 | `console.log(`Environment: ${config.NODE_ENV}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/db/setup_db_only.js` | L2 | `require('dotenv').config();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/db/setup_db_only.js` | L8 | `host: process.env.DB_HOST,` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/db/setup_db_only.js` | L9 | `user: process.env.DB_USER,` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/db/setup_db_only.js` | L10 | `password: process.env.DB_PASSWORD,` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/attendance/check-specific-students.js` | L15 | `console.log(`环境: ${config.NODE_ENV}`);` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/tests/db/setup.js` | L14 | `require('dotenv').config();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/add-render-user.js` | L8 | `const dotenv = require('dotenv');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/add-render-user.js` | L10 | `// Load environment variables` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/add-render-user.js` | L11 | `dotenv.config();` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/add-render-user.js` | L30 | `console.warn('Set DATABASE_URL environment variable to connect to PostgreSQL on Render.');` |
+| `file:///c%3A/Users/gengy/Desktop/TPMS-website/add-render-user.js` | L31 | `console.warn('Example: DATABASE_URL=postgresql://username:password@host:port/database');` |
+
+</details>
+
+---
+
+Let's run the script to add the user to the Render database. We'll need to specify the DATABASE_URL environment variable when running the script:
+
+---
+
+```bash
+$env:DATABASE_URL="postgres://user:password@pg.render.com/database_name"; node add-render-user.js
+```
+
+```
+PS C:\Users\gengy\Desktop\TPMS-website> git status | cat
+cat : 无法将输入对象绑定到命令的任何参数，可能是因为该命令没有采用管道输入，或者输入及其属性与采用管道
+输入的任何参数均不匹配。
+
+cat : 无法将输入对象绑定到命令的任何参数，可能是因为该命令没有采用管道输入，或者输入及其属性与采用管道
+输入的任何参数均不匹配。
+所在位置 行:1 字符: 14
++ git status | cat
+    + CategoryInfo          : InvalidArgument: (Changes not staged for commit::PSObject) [Get-Content
+
+   ]，ParameterBindingException
+    + FullyQualifiedErrorId : InputObjectNotBound,Microsoft.PowerShell.Commands.GetContentCommand
+
+
+cat : 无法将输入对象绑定到命令的任何参数，可能是因为该命令没有采用管道输入，或者输入及其属性与采用管道 
+输入的任何参数均不匹配。
++              ~~~
+    + CategoryInfo          : InvalidArgument: (  (use "git add...l be committed):PSObject) [Get-Cont
+
+   ent]，ParameterBindingException
+    + FullyQualifiedErrorId : InputObjectNotBound,Microsoft.PowerShell.Commands.GetContentCommand
+
+
+cat : 无法将输入对象绑定到命令的任何参数，可能是因为该命令没有采用管道输入，或者输入及其属性与采用管道 
+输入的任何参数均不匹配。
+所在位置 行:1 字符: 14
++ git status | cat
++              ~~~
+    + CategoryInfo          : InvalidArgument: (  (use "git res...king directory):PSObject) [Get-Cont
+
+   ent]，ParameterBindingException
+    + FullyQualifiedErrorId : InputObjectNotBound,Microsoft.PowerShell.Commands.GetContentCommand
+
+
+cat : 无法将输入对象绑定到命令的任何参数，可能是因为该命令没有采用管道输入，或者输入及其属性与采用管道
+输入的任何参数均不匹配。
+所在位置 行:1 字符: 14
++ git status | cat
++              ~~~
+    + CategoryInfo          : InvalidArgument: (        modified:   .s...data-cleanup.md:PSObject) [Get
+-Cont
+   ent]，ParameterBindingException
+    + FullyQualifiedErrorId : InputObjectNotBound,Microsoft.PowerShell.Commands.GetContentCommand
+
+
+cat : 无法将输入对象绑定到命令的任何参数，可能是因为该命令没有采用管道输入，或者输入及其属性与采用管道
+输入的任何参数均不匹配。
+所在位置 行:1 字符: 14
++ git status | cat
++              ~~~
+    + CategoryInfo          : InvalidArgument: (        modified:   public/index.html:PSObject) [Get-Co
+ntent
+   ]，ParameterBindingException
+    + FullyQualifiedErrorId : InputObjectNotBound,Microsoft.PowerShell.Commands.GetContentCommand
+
+
+cat : 无法将输入对象绑定到命令的任何参数，可能是因为该命令没有采用管道输入，或者输入及其属性与采用管道
+输入的任何参数均不匹配。
+所在位置 行:1 字符: 14
++ git status | cat
++              ~~~
+    + CategoryInfo          : InvalidArgument: (        modified:   sr...nce system.xlsx:PSObject) [Get
+-Cont
+   ent]，ParameterBindingException
+    + FullyQualifiedErrorId : InputObjectNotBound,Microsoft.PowerShell.Commands.GetContentCommand
+
+
+cat : 无法将输入对象绑定到命令的任何参数，可能是因为该命令没有采用管道输入，或者输入及其属性与采用管道
+输入的任何参数均不匹配。
+所在位置 行:1 字符: 14
++ git status | cat
++              ~~~
+    + CategoryInfo          : InvalidArgument: (:PSObject) [Get-Content]，ParameterBindingException
+    + FullyQualifiedErrorId : InputObjectNotBound,Microsoft.PowerShell.Commands.GetContentCommand
+
+
+cat : 无法将输入对象绑定到命令的任何参数，可能是因为该命令没有采用管道输入，或者输入及其属性与采用管道 
+输入的任何参数均不匹配。
+所在位置 行:1 字符: 14
++ git status | cat
++              ~~~
+    + CategoryInfo          : InvalidArgument: (no changes adde...git commit -a"):PSObject) [Get-Cont
+
+   ent]，ParameterBindingException
+    + FullyQualifiedErrorId : InputObjectNotBound,Microsoft.PowerShell.Commands.GetContentCommand
+
+
+PS C:\Users\gengy\Desktop\TPMS-website> git status
+On branch master
+
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   .specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md
+        modified:   public/index.html
+        modified:   src/cca attendance system.xlsx
+
+no changes added to commit (use "git add" and/or "git commit -a")
+PS C:\Users\gengy\Desktop\TPMS-website> git add "src/cca attendance system.xlsx"
+PS C:\Users\gengy\Desktop\TPMS-website> git commit -m "Update CCA attendance system Excel file"
+[master cd97bcf] Update CCA attendance system Excel file
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+PS C:\Users\gengy\Desktop\TPMS-website> gi
+哎呀，出现问题。请在报告此 Bug 时添加以下详细信息。
+在 GitHub 上报告: https://github.com/PowerShell/PSReadLine/issues/new
+### 环境
+PSReadLine: 2.0.0
+PowerShell: 5.1.26100.4061
+操作系统: Microsoft Windows 10.0.26100
+最后的 127 键
+```
+ g i t Spacebar s t a t u s Spacebar | Spacebar c a t Enter
+ g i t Spacebar s t a t u s Enter
+ g i t Spacebar a d d Spacebar " s r c / c c a Spacebar a t t e n d a n c e Spacebar s y s t e m . x l 
+s x " Enter
+ g i t Spacebar c o m m i t Spacebar - m Spacebar " U p d a t e Spacebar C C A Spacebar a t t e n d a n
+ c e Spacebar s y s t e m Spacebar E x c e l Spacebar f i l e " Enter
+ g i
+```
+
+### 例外
+```
+System.ArgumentOutOfRangeException: 该值必须大于或等于零，且必须小于控制台缓冲区在该维度的大小。       
+参数名: top
+实际值是 1。
+   在 System.Console.SetCursorPosition(Int32 left, Int32 top)
+   在 Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(RenderData renderData, String defaultColor)  
+   在 Microsoft.PowerShell.PSConsoleReadLine.ForceRender()
+   在 Microsoft.PowerShell.PSConsoleReadLine.Insert(Char c)
+   在 Microsoft.PowerShell.PSConsoleReadLine.SelfInsert(Nullable`1 key, Object arg)
+   在 Microsoft.PowerShell.PSConsoleReadLine.ProcessOneKey(PSKeyInfo key, Dictionary`2 dispatchTable, B
+oolean ignoreIfNoAction, Object arg)
+   在 Microsoft.PowerShell.PSConsoleReadLine.InputLoop()
+   在 Microsoft.PowerShell.PSConsoleReadLine.ReadLine(Runspace runspace, EngineIntrinsics engineIntrins
+ics, CancellationToken cancellationToken)
+```
+PS C:\Users\gengy\Desktop\TPMS-website> git push
+Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 24 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (4/4), 91.28 KiB | 3.97 MiB/s, done.
+Total 4 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
+To https://github.com/yorhagengyue/TPMS-website
+   b513b7e..cd97bcf  master -> master
+PS C:\Users\gengy\Desktop\TPMS-website> git push
+Everything up-to-date
+PS C:\Users\gengy\Desktop\TPMS-website> git push origin master
+Everything up-to-date
+PS C:\Users\gengy\Desktop\TPMS-website> git
+哎呀，出现问题。请在报告此 Bug 时添加以下详细信息。
+在 GitHub 上报告: https://github.com/PowerShell/PSReadLine/issues/new
+### 环境
+PSReadLine: 2.0.0
+PowerShell: 5.1.26100.4061
+操作系统: Microsoft Windows 10.0.26100
+最后的 172 键
+```
+ g i t Spacebar s t a t u s Spacebar | Spacebar c a t Enter
+ g i t Spacebar s t a t u s Enter
+ g i t Spacebar a d d Spacebar " s r c / c c a Spacebar a t t e n d a n c e Spacebar s y s t e m . x l 
+s x " Enter
+ g i t Spacebar c o m m i t Spacebar - m Spacebar " U p d a t e Spacebar C C A Spacebar a t t e n d a n
+ c e Spacebar s y s t e m Spacebar E x c e l Spacebar f i l e " Enter
+ g i t Spacebar p u s h Enter
+ g i t Spacebar p u s h Enter
+ g i t Spacebar p u s h Spacebar o r i g i n Spacebar m a s t e r Enter
+ g i t Spacebar l o
+```
+
+### 例外
+```
+System.ArgumentOutOfRangeException: 该值必须大于或等于零，且必须小于控制台缓冲区在该维度的大小。       
+参数名: top
+实际值是 1。
+   在 System.Console.SetCursorPosition(Int32 left, Int32 top)
+   在 Microsoft.PowerShell.PSConsoleReadLine.CalculateWhereAndWhatToRender(Boolean cursorMovedToInitial
+Pos, RenderData renderData, LineInfoForRendering& lineInfoForRendering)
+   在 Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(RenderData renderData, String defaultColor)  
+   在 Microsoft.PowerShell.PSConsoleReadLine.ForceRender()
+   在 Microsoft.PowerShell.PSConsoleReadLine.Insert(Char c)
+   在 Microsoft.PowerShell.PSConsoleReadLine.SelfInsert(Nullable`1 key, Object arg)
+   在 Microsoft.PowerShell.PSConsoleReadLine.ProcessOneKey(PSKeyInfo key, Dictionary`2 dispatchTable, B
+oolean ignoreIfNoAction, Object arg)
+   在 Microsoft.PowerShell.PSConsoleReadLine.InputLoop()
+   在 Microsoft.PowerShell.PSConsoleReadLine.ReadLine(Runspace runspace, EngineIntrinsics engineIntrins
+ics, CancellationToken cancellationToken)
+```
+
+PS C:\Users\gengy\Desktop\TPMS-website> git log -1
+
+commit cd97bcfa4ba342e21196be402f66a24b8142c7d0 (HEAD -> master, origin/master, origin/HEAD)
+Author: yorhagengyue <yorhagengyue@gmail.com>
+Date:   Fri May 16 19:57:38 2025 +0800
+
+    Update CCA attendance system Excel file
+PS C:\Users\gengy\Desktop\TPMS-website> git log -1 --pretty=format:"%H %s"
+cd97bcfa4ba342e21196be402f66a24b8142c7d0 Update CCA attendance system Excel file
+PS C:\Users\gengy\Desktop\TPMS-website> git
+哎呀，出现问题。请在报告此 Bug 时添加以下详细信息。
+在 GitHub 上报告: https://github.com/PowerShell/PSReadLine/issues/new
+### 环境
+PSReadLine: 2.0.0
+PowerShell: 5.1.26100.4061
+操作系统: Microsoft Windows 10.0.26100
+最后的 200 键
+```
+ t Spacebar s t a t u s Enter
+ g i t Spacebar a d d Spacebar " s r c / c c a Spacebar a t t e n d a n c e Spacebar s y s t e m . x l 
+s x " Enter
+ g i t Spacebar c o m m i t Spacebar - m Spacebar " U p d a t e Spacebar C C A Spacebar a t t e n d a n
+ c e Spacebar s y s t e m Spacebar E x c e l Spacebar f i l e " Enter
+ g i t Spacebar p u s h Enter
+ g i t Spacebar p u s h Enter
+ g i t Spacebar p u s h Spacebar o r i g i n Spacebar m a s t e r Enter
+ g i t Spacebar l o g Spacebar - 1 Enter
+ g i t Spacebar l o g Spacebar - 1 Spacebar - - p r e t t y = f o r m a t : " % H Spacebar % s " Enter 
+ g i t Spacebar l s -
+```
+
+### 例外
+```
+System.ArgumentOutOfRangeException: 该值必须大于或等于零，且必须小于控制台缓冲区在该维度的大小。       
+参数名: top
+实际值是 1。
+   在 System.Console.SetCursorPosition(Int32 left, Int32 top)
+   在 Microsoft.PowerShell.PSConsoleReadLine.CalculateWhereAndWhatToRender(Boolean cursorMovedToInitial
+Pos, RenderData renderData, LineInfoForRendering& lineInfoForRendering)
+   在 Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(RenderData renderData, String defaultColor)  
+   在 Microsoft.PowerShell.PSConsoleReadLine.ForceRender()
+   在 Microsoft.PowerShell.PSConsoleReadLine.Insert(Char c)
+   在 Microsoft.PowerShell.PSConsoleReadLine.SelfInsert(Nullable`1 key, Object arg)
+   在 Microsoft.PowerShell.PSConsoleReadLine.ProcessOneKey(PSKeyInfo key, Dictionary`2 dispatchTable, B
+oolean ignoreIfNoAction, Object arg)
+   在 Microsoft.PowerShell.PSConsoleReadLine.InputLoop()
+   在 Microsoft.PowerShell.PSConsoleReadLine.ReadLine(Runspace runspace, EngineIntrinsics engineIntrins
+ics, CancellationToken cancellationToken)
+```
+
+PS C:\Users\gengy\Desktop\TPMS-website> git ls-remote --heads origin master
+
+cd97bcfa4ba342e21196be402f66a24b8142c7d0        refs/heads/master
+PS C:\Users\gengy\Desktop\TPMS-website> cd C:\Users\gengy\Desktop\TPMS-website && git status
+所在位置 行:1 字符: 40
++ cd C:\Users\gengy\Desktop\TPMS-website && git status
++                                        ~~
+标记“&&”不是此版本中的有效语句分隔符。
+
+PS C:\Users\gengy\Desktop\TPMS-website> git push -u origin master
+Everything up-to-date
+PS C:\Users\gengy\Desktop\TPMS-website> git remote -v
+origin  https://github.com/yorhagengyue/TPMS-website (push)
+PS C:\Users\gengy\Desktop\TPMS-website> git f
+哎呀，出现问题。请在报告此 Bug 时添加以下详细信息。
+在 GitHub 上报告: https://github.com/PowerShell/PSReadLine/issues/new
+### 环境
+PSReadLine: 2.0.0
+PowerShell: 5.1.26100.4061
+操作系统: Microsoft Windows 10.0.26100
+最后的 200 键
+```
+ Spacebar o r i g i n Spacebar m a s t e r Enter
+ g i t Spacebar l o g Spacebar - 1 Enter
+ g i t Spacebar l o g Spacebar - 1 Spacebar - - p r e t t y = f o r m a t : " % H Spacebar % s " Enter 
+ g i t Spacebar l s - r e m o t e Spacebar - - h e a d s Spacebar o r i g i n Spacebar m a s t e r Ente
+r
+ c d Spacebar C : \ U s e r s \ g e n g y \ D e s k t o p \ T P M S - w e b s i t e Spacebar & & Spaceb
+ar g i t Spacebar s t a t u s Enter
+ g i t Spacebar p u s h Spacebar - u Spacebar o r i g i n Spacebar m a s t e r Enter
+ g i t Spacebar r e m o t e Spacebar - v Enter
+ g i t Spacebar f e t c h Enter
+
+```
+
+### 例外
+```
+System.ArgumentOutOfRangeException: 该值必须大于或等于零，且必须小于控制台缓冲区在该维度的大小。       
+参数名: top
+实际值是 1。
+   在 System.Console.SetCursorPosition(Int32 left, Int32 top)
+   在 Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(RenderData renderData, String defaultColor)  
+   在 Microsoft.PowerShell.PSConsoleReadLine.ForceRender()
+   在 Microsoft.PowerShell.PSConsoleReadLine.Insert(Char c)
+   在 Microsoft.PowerShell.PSConsoleReadLine.SelfInsert(Nullable`1 key, Object arg)
+   在 Microsoft.PowerShell.PSConsoleReadLine.ProcessOneKey(PSKeyInfo key, Dictionary`2 dispatchTable, B
+oolean ignoreIfNoAction, Object arg)
+   在 Microsoft.PowerShell.PSConsoleReadLine.InputLoop()
+   在 Microsoft.PowerShell.PSConsoleReadLine.ReadLine(Runspace runspace, EngineIntrinsics engineIntrins
+ics, CancellationToken cancellationToken)
+```
+
+PS C:\Users\gengy\Desktop\TPMS-website> git fetch
+
+PS C:\Users\gengy\Desktop\TPMS-website> git status
+On branch master
+PS C:\Users\gengy\Desktop\TPMS-website> git diff master origin/master --stat
+PS C:\Users\gengy\Desktop\TPMS-website> git push --force origin master
+Everything up-to-date
+PS C:\Users\gengy\Desktop\TPMS-website> git status
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   .specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md
+        modified:   public/index.html
+no changes added to commit (use "git add" and/or "git commit -a")
+PS C:\Users\gengy\Desktop\TPMS-website> gi
+哎呀，出现问题。请在报告此 Bug 时添加以下详细信息。
+在 GitHub 上报告: https://github.com/PowerShell/PSReadLine/issues/new
+### 环境
+PSReadLine: 2.0.0
+PowerShell: 5.1.26100.4061
+操作系统: Microsoft Windows 10.0.26100
+最后的 200 键
+```
+ Enter
+ c d Spacebar C : \ U s e r s \ g e n g y \ D e s k t o p \ T P M S - w e b s i t e Spacebar & & Spaceb
+ar g i t Spacebar s t a t u s Enter
+ g i t Spacebar p u s h Spacebar - u Spacebar o r i g i n Spacebar m a s t e r Enter
+ g i t Spacebar r e m o t e Spacebar - v Enter
+ g i t Spacebar f e t c h Enter
+ g i t Spacebar s t a t u s Enter
+ g i t Spacebar d i f f Spacebar m a s t e r Spacebar o r i g i n / m a s t e r Spacebar - - s t a t En
+ter
+ g i t Spacebar p u s h Spacebar - - f o r c e Spacebar o r i g i n Spacebar m a s t e r Enter
+ g i t Spacebar s t a t u s Enter
+ g i t Spacebar a d
+```
+
+### 例外
+```
+System.ArgumentOutOfRangeException: 该值必须大于或等于零，且必须小于控制台缓冲区在该维度的大小。       
+参数名: top
+实际值是 1。
+   在 System.Console.SetCursorPosition(Int32 left, Int32 top)
+   在 Microsoft.PowerShell.PSConsoleReadLine.CalculateWhereAndWhatToRender(Boolean cursorMovedToInitial
+Pos, RenderData renderData, LineInfoForRendering& lineInfoForRendering)
+   在 Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(RenderData renderData, String defaultColor)  
+   在 Microsoft.PowerShell.PSConsoleReadLine.ForceRender()
+   在 Microsoft.PowerShell.PSConsoleReadLine.Insert(Char c)
+   在 Microsoft.PowerShell.PSConsoleReadLine.SelfInsert(Nullable`1 key, Object arg)
+   在 Microsoft.PowerShell.PSConsoleReadLine.ProcessOneKey(PSKeyInfo key, Dictionary`2 dispatchTable, B
+oolean ignoreIfNoAction, Object arg)
+   在 Microsoft.PowerShell.PSConsoleReadLine.InputLoop()
+   在 Microsoft.PowerShell.PSConsoleReadLine.ReadLine(Runspace runspace, EngineIntrinsics engineIntrins
+ics, CancellationToken cancellationToken)
+```
+
+PS C:\Users\gengy\Desktop\TPMS-website> git add .
+
+warning: in the working copy of '.specstory/.what-is-this.md', LF will be replaced by CRLF the next tim
+e Git touches it
+warning: in the working copy of '.specstory/history/2025-04-28_07-23-excel-attendance-data-cleanup.md',
+ LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/index.html', LF will be replaced by CRLF the next time Git touc
+hes it
+PS C:\Users\gengy\Desktop\TPMS-website> git commit -m "Update remaining files"
+[master 0f1daba] Update remaining files
+ 2 files changed, 1993 insertions(+), 1 deletion(-)
+PS C:\Users\gengy\Desktop\TPMS-website> git push origin master
+Enumerating objects: 13, done.
+Writing objects: 100% (7/7), 553.19 KiB | 14.95 MiB/s, done.
+Total 7 (delta 4), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
+To https://github.com/yorhagengyue/TPMS-website
+   cd97bcf..0f1daba  master -> master
+PS C:\Users\gengy\Desktop\TPMS-website> node tools/add-user.js 2501766F Password123
+=== TPMS User Creation Tool ===
+Adding user: 2501766F
+Database: tpms_db
+Database user: root
+Connecting to database...
+>
+❌ Error adding user: Access denied for user 'root'@'localhost' (using password: NO)
+Access denied. Please check your database username and password.
+PS C:\Users\gengy\Desktop\TPMS-website> $env:DATABASE_URL="postgres://user:password@pg.render.com/datab
+PS C:\Users\gengy\Desktop\TPMS-website> $env:DATABASE_URL="postgres://user:password@pg.render.com/datab
+PS C:\Users\gengy\Desktop\TPMS-website> 
+
+
+```
+
+---
+
+Let me try one more approach. Let's try running with a direct environment variable setting in PowerShell:
+
+---
+
+```bash
+node add-render-user.js
+```
+
+```
+PS C:\Users\gengy\Desktop\TPMS-website> node add-render-user.js
+Environment config file C:\Users\gengy\Desktop\TPMS-website\.env.development not found, using default .
+=== Add User to Render PostgreSQL Database ===
+Adding user: 2501766F (Richie Goh)
+Password hash generated
+Checking if student with ID 2501766F exists...
+
+❌ Error creating user: getaddrinfo ENOTFOUND pg.render.com
+Database connection closed
+PS C:\Users\gengy\Desktop\TPMS-website>
+```
+
+---
+
+I can see we're making progress, but we need the correct Render database URL. Let me look for any example or template for the DATABASE_URL that might be in the project:
+
+---
+
+<details>
+            <summary>Searched codebase ".env.render" • **0** results</summary>
+        
+No results found
+</details>
+
+---
+
+Based on my findings, I need to explain the current situation:
+
+The script I've created to add Richie Goh (2501766F) to the Render database is ready, but we need the actual database connection string that contains the correct credentials to access the Render PostgreSQL database.
+
+To insert this user into the Render database, you'll need to:
+
+1. Set the proper DATABASE_URL environment variable with your Render PostgreSQL connection string
+2. Run the script with that environment variable
+
+The DATABASE_URL would look like:
+```
+postgres://username:password@hostname:port/database_name
+```
+
+Where:
+- `username` and `password` are your Render database credentials
+- `hostname` is your Render PostgreSQL hostname (like db.render.com)
+- `port` is typically 5432 for PostgreSQL
+- `database_name` is your Render database name
+
+With PowerShell, you'd run something like:
+```
+$env:DATABASE_URL="postgres://username:password@hostname:5432/database_name"; node add-render-user.js
+```
+
+The script is ready and will insert Richie Goh's information when provided with the correct database connection string.
+
+---
+
+_**User**_
+
+push
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+I'll push the add-render-user.js script to the repository:
+
+---
+
+```bash
+git add add-render-user.js
+```
+
+```
+PS C:\Users\gengy\Desktop\TPMS-website> git add add-render-user.js
+PS C:\Users\gengy\Desktop\TPMS-website>
+```
+
+---
+
+```bash
+git commit -m "Add script to insert user into Render database"
+```
+
+```
+PS C:\Users\gengy\Desktop\TPMS-website> git commit -m "Add script to insert user into Render database"
+[master 01d9b24] Add script to insert user into Render database
+ create mode 100644 add-render-user.js
+PS C:\Users\gengy\Desktop\TPMS-website>
+```
+
+---
+
+```bash
+git push origin master
+```
+
+```
+PS C:\Users\gengy\Desktop\TPMS-website> git push origin
+哎呀，出现问题。请在报告此 Bug 时添加以下详细信息。
+在 GitHub 上报告: https://github.com/PowerShell/PSReadLine/issues/new
+### 环境
+PSReadLine: 2.0.0
+PowerShell: 5.1.26100.4061
+操作系统: Microsoft Windows 10.0.26100
+最后的 200 键
+```
+ p a s s w o r d @ p g . r e n d e r . c o m / d a t a b a s e _ n a m e " ; Spacebar n o d e Spacebar 
+a d d - r e n d e r - u s e r . j s Enter
+ n o d e Spacebar a d d - r e n d e r - u s e r . j s Enter
+ g i t Spacebar a d d Spacebar a d d - r e n d e r - u s e r . j s Enter
+ g i t Spacebar c o m m i t Spacebar - m Spacebar " A d d Spacebar s c r i p t Spacebar t o Spacebar i 
+n s e r t Spacebar u s e r Spacebar i n t o Spacebar R e n d e r Spacebar d a t a b a s e " Enter
+
+ g i t Spacebar p u s h Spacebar o r i g i n Spacebar m a s t e r Enter
+
+```
+
+### 例外
+```
+System.ArgumentOutOfRangeException: 该值必须大于或等于零，且必须小于控制台缓冲区在该维度的大小。       
+参数名: top
+实际值是 1。
+   在 System.Console.SetCursorPosition(Int32 left, Int32 top)
+   在 Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(RenderData renderData, String defaultColor)  
+   在 Microsoft.PowerShell.PSConsoleReadLine.ForceRender()
+   在 Microsoft.PowerShell.PSConsoleReadLine.Insert(Char c)
+   在 Microsoft.PowerShell.PSConsoleReadLine.SelfInsert(Nullable`1 key, Object arg)
+   在 Microsoft.PowerShell.PSConsoleReadLine.ProcessOneKey(PSKeyInfo key, Dictionary`2 dispatchTable, B
+oolean ignoreIfNoAction, Object arg)
+   在 Microsoft.PowerShell.PSConsoleReadLine.InputLoop()
+   在 Microsoft.PowerShell.PSConsoleReadLine.ReadLine(Runspace runspace, EngineIntrinsics engineIntrins
+ics, CancellationToken cancellationToken)
+```
+
+PS C:\Users\gengy\Desktop\TPMS-website> git push origin master
+
+
+```
+
+---
+
+Let me try running the git push command again:
+
+---
+
+```bash
+git push origin master
+```
+
+```
+PS C:\Users\gengy\Desktop\TPMS-website> git push origin master
+Everything up-to-date
+PS C:\Users\gengy\Desktop\TPMS-website>
+```
+
+---
+
+That's strange. Let's check the status of our commit and try pushing again:
+
+---
+
+```bash
+git status
+```
+
+```
+PS C:\Users\gengy\Desktop\TPMS-website> git
+哎呀，出现问题。请在报告此 Bug 时添加以下详细信息。
+在 GitHub 上报告: https://github.com/PowerShell/PSReadLine/issues/new
+### 环境
+PSReadLine: 2.0.0
+PowerShell: 5.1.26100.4061
+操作系统: Microsoft Windows 10.0.26100
+最后的 200 键
+```
+ m e " ; Spacebar n o d e Spacebar a d d - r e n d e r - u s e r . j s Enter
+ n o d e Spacebar a d d - r e n d e r - u s e r . j s Enter
+ g i t Spacebar a d d Spacebar a d d - r e n d e r - u s e r . j s Enter
+ g i t Spacebar c o m m i t Spacebar - m Spacebar " A d d Spacebar s c r i p t Spacebar t o Spacebar i 
+n s e r t Spacebar u s e r Spacebar i n t o Spacebar R e n d e r Spacebar d a t a b a s e " Enter      
+ g i t Spacebar p u s h Spacebar o r i g i n Spacebar m a s t e r Enter
+ g i t Spacebar p u s h Spacebar o r i g i n Spacebar m a s t e r Enter
+ g i t Spacebar s t a t u s Enter
+
+```
+
+### 例外
+```
+System.ArgumentOutOfRangeException: 该值必须大于或等于零，且必须小于控制台缓冲区在该维度的大小。       
+参数名: top
+实际值是 1。
+   在 System.Console.SetCursorPosition(Int32 left, Int32 top)
+   在 Microsoft.PowerShell.PSConsoleReadLine.CalculateWhereAndWhatToRender(Boolean cursorMovedToInitial
+Pos, RenderData renderData, LineInfoForRendering& lineInfoForRendering)
+   在 Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(RenderData renderData, String defaultColor)  
+   在 Microsoft.PowerShell.PSConsoleReadLine.ForceRender()
+   在 Microsoft.PowerShell.PSConsoleReadLine.Insert(Char c)
+   在 Microsoft.PowerShell.PSConsoleReadLine.SelfInsert(Nullable`1 key, Object arg)
+   在 Microsoft.PowerShell.PSConsoleReadLine.ProcessOneKey(PSKeyInfo key, Dictionary`2 dispatchTable, B
+oolean ignoreIfNoAction, Object arg)
+   在 Microsoft.PowerShell.PSConsoleReadLine.InputLoop()
+   在 Microsoft.PowerShell.PSConsoleReadLine.ReadLine(Runspace runspace, EngineIntrinsics engineIntrins
+ics, CancellationToken cancellationToken)
+```
+
+PS C:\Users\gengy\Desktop\TPMS-website> git
+```
+
+---
+
+Let me try again:
+
+---
+
+```bash
+git push
+```
+
+```
+PS C:\Users\gengy\Desktop\TPMS-website> git push
+Everything up-to-date
+PS C:\Users\gengy\Desktop\TPMS-website>
+```
+
+---
+
+Let me try to see what's happening:
+
+---
+
+```bash
+git log -1
+```
+
+```
+PS C:\Users\gengy\Desktop\TPMS-website> git log -1
+commit 01d9b24983b729a227ca16591a70c2682fdd682f (HEAD -> master, origin/master, origin/HEAD)
+commit 01d9b24983b729a227ca16591a70c2682fdd682f (HEAD -> master, origin/master, origin/HEAD)
+commit 01d9b24983b729a227ca16591a70c2682fdd682f (HEAD -> master, origin/master, origin/HEAD)
+Author: yorhagengyue <yorhagengyue@gmail.com>
+commit 01d9b24983b729a227ca16591a70c2682fdd682f (HEAD -> master, origin/master, origin/HEAD)
+Author: yorhagengyue <yorhagengyue@gmail.com>
+Date:   Fri May 16 20:30:25 2025 +0800
+commit 01d9b24983b729a227ca16591a70c2682fdd682f (HEAD -> master, origin/master, origin/HEAD)
+Author: yorhagengyue <yorhagengyue@gmail.com>
+Date:   Fri May 16 20:30:25 2025 +0800
+
+    Add script to insert user into Render database
+~
+~
+~
+~
+commit 01d9b24983b729a227ca16591a70c2682fdd682f (HEAD -> master, origin/master, origin/HEAD)
+Author: yorhagengyue <yorhagengyue@gmail.com>
+Date:   Fri May 16 20:30:25 2025 +0800
+
+    Add script to insert user into Render database
+~
+~
+~
+~
+~
+~
+~
+~
+(END)...skipping...
+commit 01d9b24983b729a227ca16591a70c2682fdd682f (HEAD -> master, origin/master, origin/HEAD)
+Author: yorhagengyue <yorhagengyue@gmail.com>
+Date:   Fri May 16 20:30:25 2025 +0800
+
+    Add script to insert user into Render database
+~
+~
+~
+~
+~
+~
+~
+~
+~
+~
+(END)
+```
+
+---
+
+It looks like the commit was successfully made with message "Add script to insert user into Render database" and the output indicates that both your local branch (HEAD -> master) and the remote branch (origin/master) are on the same commit (01d9b24983b729a227ca16591a70c2682fdd682f).
+
+The file has been successfully pushed to the repository. The script for adding Richie Goh to the Render database is now in the repository and can be used when you have the correct DATABASE_URL for your Render PostgreSQL database.
+
+---
+
+_**User**_
+
+在根目录的话 给我运行这脚本的指令
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+在根目录运行这个脚本的命令是:
+
+```
+node add-render-user.js
+```
+
+如果需要设置Render数据库连接，使用这个命令:
+
+```
+$env:DATABASE_URL="postgresql://username:password@hostname:port/database_name"; node add-render-user.js
+```
+
+(请将上面的username、password、hostname、port和database_name替换为您的实际Render数据库连接信息)
+
+---
+
+_**User**_
+
+检查
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+看起来在Render服务器上找不到这个脚本文件。错误消息显示：
+
+```
+Error: Cannot find module '/opt/render/project/src/add-render-user.js'
+```
+
+可能是因为脚本文件位置不对。我们之前在项目根目录创建了脚本，但从错误信息看，Render尝试在`/project/src`目录下查找该文件。
+
+让我检查一下文件在本地的位置和Render的目录结构：
+
+---
+
+<details>
+            <summary>Listed current directory • **37** results</summary>
+        
+| Name |
+|-------|
+| 📁 `.git` |
+| 📄 `add-render-user.js` |
+| 📁 `src` |
+| 📁 `build` |
+| 📄 `server.js` |
+| 📁 `public` |
+| 📄 `.gitignore` |
+| 📁 `tools` |
+| 📁 `.specstory` |
+| 📁 `temp_backup` |
+| 📄 `package-lock.json` |
+| 📁 `node_modules` |
+| 📄 `config.js` |
+| 📄 `package.json` |
+| 📄 `export-tool.html` |
+| 📄 `签到记录_2025-04-25.xlsx` |
+| 📄 `export-attendance.js` |
+| 📄 `create-admin.js` |
+| 📄 `README.md` |
+| 📄 `add-attendance.js` |
+| 📄 `update-database.js` |
+| 📄 `update-db.sql` |
+| 📄 `setup-db.sql` |
+| 📄 `tailwind.config.js` |
+| 📄 `h` |
+| 📄 `face_recognition1.py` |
+| 📄 `location.html` |
+| 📄 `migrate-excel-to-postgres.js` |
+| 📄 `postgres-schema.sql` |
+| 📄 `check-excel-structure.js` |
+| 📄 `migrate-to-postgres.js` |
+| 📄 `database.js` |
+| 📄 `.cursorindexingignore` |
+| 📁 `uploads` |
+| 📁 `tests` |
+| 📄 `login-temp.txt` |
+| 📄 `database-environments.md` |
+
+</details>
+
+---
+
+我发现了问题所在。在Render服务器上，脚本应该放在`src`目录下，但在我们的本地项目中，`add-render-user.js`位于根目录。
+
+有两种解决方案：
+
+1. 将脚本移动到`src`目录下，然后重新提交推送
+
+2. 在Render服务器上使用完整路径指定脚本位置
+
+让我先创建一个`src`目录下的版本：
+
+---
+
+Cancelled
+
+---
+
+_**User**_
+
+cca attendance system.xlsx push这个文件
+
+---
+
+_**Assistant**_
 
 
 

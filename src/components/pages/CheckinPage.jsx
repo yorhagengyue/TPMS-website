@@ -29,7 +29,7 @@ export const CheckinPage = ({ user }) => {
       const hour = now.getHours();
       
       // CCA is on Friday 6pm-9pm only
-      setIsWithinCheckinHours(dayOfWeek === 5 && hour >= 18 && hour < 21);
+      setIsWithinCheckinHours(dayOfWeek === 5 && hour >= 18 && hour < 22);
     };
     
     // Check immediately
@@ -220,7 +220,7 @@ export const CheckinPage = ({ user }) => {
             Record your attendance at TP Mindsport Club activities
           </p>
           <div className={`mt-2 text-sm font-medium ${isWithinCheckinHours ? 'text-green-600' : 'text-amber-600'}`}>
-            <span className="font-semibold">Check-in time:</span> Fridays 6:00 PM - 9:00 PM
+            <span className="font-semibold">Check-in time:</span> Fridays 6:00 PM - 
           </div>
         </div>
         
@@ -382,7 +382,7 @@ export const CheckinPage = ({ user }) => {
             <br />
             You must be within campus boundaries or within 1.5 kilometers of the campus center to check in.
             <br />
-            <span className="text-amber-600 font-medium">Check-in is only available on Fridays between 6:00 PM and 9:00 PM</span>
+            <span className="text-amber-600 font-medium">Check-in is only available on Fridays between 6:00 PM and 9:30 PM</span>
           </p>
         </div>
       </motion.div>
