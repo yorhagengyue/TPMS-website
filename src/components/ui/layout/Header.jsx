@@ -21,9 +21,8 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
   ];
   
   const navItems = [
-    { id: 'chess-rank', label: 'Chess Rank', icon: <FiAward />, requiresAuth: false, path: '/' },
-    { id: 'home', label: 'Home', icon: <FiHome />, requiresAuth: false, path: '/home' },
-    { id: 'news', label: 'News', icon: <FiBell />, requiresAuth: false, path: '/news' },
+    { id: 'profile', label: 'Profile', icon: <FiUser />, requiresAuth: true, path: '/' },
+    { id: 'chess-rank', label: 'Chess Rank', icon: <FiAward />, requiresAuth: false, path: '/chess-rank' },
     { id: 'check-in', label: 'Check-in', icon: <FiCheckSquare />, requiresAuth: true, path: '/check-in' },
   ];
 
@@ -145,7 +144,7 @@ export const Header = ({ currentPage, setCurrentPage, user, onLogout }) => {
           <div className="md:hidden flex items-center">
             {!user && (
               <div className="mr-2 bg-primary-50 text-primary-700 text-xs py-1 px-2 rounded-full border border-primary-200 animate-pulse">
-                Login to take attendance
+                Login to view profile
               </div>
             )}
             <button

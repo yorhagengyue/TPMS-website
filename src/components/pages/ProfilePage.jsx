@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiUser, FiEdit, FiCheck, FiLoader, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiUser, FiEdit, FiCheck, FiLoader, FiCheckCircle, FiAlertCircle, FiCalendar, FiTrendingUp } from 'react-icons/fi';
 import PageTransition from '../ui/PageTransition';
+import * as XLSX from 'xlsx';
 
 export const ProfilePage = ({ user }) => {
   const [loading, setLoading] = useState(false);
@@ -11,6 +12,9 @@ export const ProfilePage = ({ user }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [verificationStep, setVerificationStep] = useState(1); // 1 = request verification, 2 = verify
+  const [attendanceData, setAttendanceData] = useState(null);
+  const [attendanceRate, setAttendanceRate] = useState(0);
+  const [attendanceHistory, setAttendanceHistory] = useState([]);
 
   // Fetch user data
   useEffect(() => {
@@ -41,6 +45,64 @@ export const ProfilePage = ({ user }) => {
     };
 
     fetchUserData();
+  }, [user]);
+
+  // Load and process attendance data
+  useEffect(() => {
+    const loadAttendanceData = async () => {
+      if (!user) return;
+      
+      try {
+        // Fetch the Excel file
+        const response = await fetch('/cca attendance system.xlsx');
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const data = XLSX.utils.sheet_to_json(worksheet);
+        
+        // Find user's attendance records
+        const userStudentId = user.student_id || user.id;
+        const userRecords = data.filter(record => record['Admin No.'] === userStudentId);
+        
+        if (userRecords.length > 0) {
+          // Get all date columns (columns that contain '/')
+          const dateColumns = Object.keys(data[0]).filter(col => col.includes('/'));
+          
+          // Calculate attendance for each date
+          const history = [];
+          let totalSessions = 0;
+          let attendedSessions = 0;
+          
+          dateColumns.forEach(dateCol => {
+            totalSessions++;
+            // Check if user attended (value is 1)
+            const attended = userRecords.some(record => record[dateCol] === 1);
+            if (attended) {
+              attendedSessions++;
+            }
+            
+            history.push({
+              date: dateCol,
+              attended: attended
+            });
+          });
+          
+          // Calculate attendance rate
+          const rate = totalSessions > 0 ? (attendedSessions / totalSessions * 100).toFixed(1) : 0;
+          
+          setAttendanceRate(rate);
+          setAttendanceHistory(history.reverse()); // Show most recent first
+          setAttendanceData({
+            total: totalSessions,
+            attended: attendedSessions
+          });
+        }
+      } catch (error) {
+        console.error('Error loading attendance data:', error);
+      }
+    };
+    
+    loadAttendanceData();
   }, [user]);
 
   // Step 1: Request verification code
@@ -184,6 +246,66 @@ export const ProfilePage = ({ user }) => {
                 <p className="text-gray-600">Email: {userData?.email || user.email}</p>
               </div>
             </div>
+          </div>
+
+          {/* Attendance Statistics Card */}
+          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-6 text-gray-800 flex items-center">
+              <FiCalendar className="mr-2" />
+              Attendance Statistics
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-blue-600">Attendance Rate</span>
+                  <FiTrendingUp className="text-blue-600" />
+                </div>
+                <div className="text-3xl font-bold text-blue-700">{attendanceRate}%</div>
+              </div>
+              
+              <div className="bg-green-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-green-600">Sessions Attended</span>
+                  <FiCheckCircle className="text-green-600" />
+                </div>
+                <div className="text-3xl font-bold text-green-700">{attendanceData?.attended || 0}</div>
+              </div>
+              
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-purple-600">Total Sessions</span>
+                  <FiCalendar className="text-purple-600" />
+                </div>
+                <div className="text-3xl font-bold text-purple-700">{attendanceData?.total || 0}</div>
+              </div>
+            </div>
+
+            {/* Attendance History */}
+            {attendanceHistory.length > 0 && (
+              <div>
+                <h3 className="text-lg font-medium mb-4">Recent Attendance History</h3>
+                <div className="max-h-64 overflow-y-auto">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {attendanceHistory.slice(0, 20).map((session, index) => (
+                      <div
+                        key={index}
+                        className={`p-2 rounded text-sm text-center ${
+                          session.attended
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-red-100 text-red-700'
+                        }`}
+                      >
+                        <div className="font-medium">{session.date}</div>
+                        <div className="text-xs">
+                          {session.attended ? 'Present' : 'Absent'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Chess.com Account Binding */}

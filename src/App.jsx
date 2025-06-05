@@ -3,12 +3,10 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import { Header } from './components/ui/layout/Header';
 import { EventsPage } from './components/pages/EventsPage';
 import { CheckinPage } from './components/pages/CheckinPage';
-import { HomePage } from './components/pages/HomePage';
 import LoginPage from './components/pages/LoginPage';
 import RegisterPage from './components/pages/RegisterPage';
 import JoinUsPage from './components/pages/JoinUsPage';
 import { StudentDashboard } from './components/pages/StudentDashboard';
-import { NewsPage } from './components/pages/NewsPage';
 import ChessRankPage from './components/pages/ChessRankPage';
 import ProfilePage from './components/pages/ProfilePage';
 import { IntroSection } from './components/ui/layout/IntroSection';
@@ -26,7 +24,7 @@ const TPMSApp = () => {
   // 可以根据当前路径动态获取当前页面
   const getCurrentPage = () => {
     const path = location.pathname;
-    if (path === '/') return 'chess-rank';
+    if (path === '/') return 'profile';
     // 去掉前导斜杠返回页面名称
     return path.substring(1);
   };
@@ -168,20 +166,13 @@ const TPMSApp = () => {
         <div className="min-h-screen bg-gray-50">
           <Header 
             currentPage={currentPage} 
-            setCurrentPage={(page) => navigate(`/${page === 'home' ? '' : page}`)} 
+            setCurrentPage={(page) => navigate(`/${page === 'profile' ? '' : page}`)} 
             user={user}
             onLogout={handleLogout}
           />
           
-          {/* 仅在home页面显示IntroSection */}
-          {currentPage === 'home' && (
-            <div>
-              <IntroSection user={user} />
-            </div>
-          )}
-          
-          {/* 在不是login, register和home的页面显示Banner */}
-          {currentPage !== 'home' && currentPage !== 'login' && currentPage !== 'register' && (
+          {/* 在不是login, register和profile的页面显示Banner */}
+          {currentPage !== 'profile' && currentPage !== 'login' && currentPage !== 'register' && (
             <div className="pt-20">
               <BannerSection currentPage={currentPage} />
             </div>
@@ -191,8 +182,8 @@ const TPMSApp = () => {
           <main className={`animate-fade-in ${
             currentPage === 'login' || currentPage === 'register' || currentPage === 'joinus'
             ? 'pt-32' 
-            : currentPage === 'home'
-            ? 'pt-0' // 首页不需要额外的padding，因为IntroSection已经包含了
+            : currentPage === 'profile'
+            ? 'pt-24' // Profile page needs some padding
             : 'pt-8'
           }`}>
             {error && (
@@ -207,14 +198,15 @@ const TPMSApp = () => {
             )}
             
             <Routes>
-              {/* 将根路径重定向到/chess-rank */}
-              <Route path="/" element={<Navigate to="/chess-rank" replace />} />
+              {/* 将根路径重定向到/profile */}
+              <Route path="/" element={
+                <AuthGuard requiredAuth={true}>
+                  <ProfilePage user={user} />
+                </AuthGuard>
+              } />
               <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
               <Route path="/register" element={<RegisterPage onLogin={handleLogin} />} />
               <Route path="/joinus" element={<JoinUsPage />} />
-              <Route path="/news" element={<NewsPage />} />
-              {/* Restore original HomePage for the /home route */}
-              <Route path="/home" element={<HomePage user={user} />} />
               <Route path="/events" element={
                 <AuthGuard requiredAuth={true}>
                   <EventsPage user={user} />
