@@ -1,0 +1,258 @@
+/* Enhanced Loading Screen Styles */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;700&display=swap');
+
+/* 棋盘格动画 */
+@keyframes chessboard-fade {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) rotate(-5deg);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.05) rotate(2deg);
+  }
+  100% {
+    opacity: 0.2;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* 光晕效果 */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5),
+                0 0 40px rgba(59, 130, 246, 0.3),
+                0 0 60px rgba(59, 130, 246, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.8),
+                0 0 60px rgba(59, 130, 246, 0.5),
+                0 0 90px rgba(59, 130, 246, 0.3);
+  }
+}
+
+/* 棋子浮动动画 */
+@keyframes chess-float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+  75% {
+    transform: translateY(5px) rotate(-5deg);
+  }
+}
+
+/* 波纹扩散效果 */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* 文字闪烁效果 */
+@keyframes text-flicker {
+  0%, 100% {
+    opacity: 1;
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.8),
+                 0 0 20px rgba(59, 130, 246, 0.6),
+                 0 0 30px rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    opacity: 0.8;
+    text-shadow: 0 0 5px rgba(59, 130, 246, 0.4),
+                 0 0 10px rgba(59, 130, 246, 0.2);
+  }
+}
+
+/* 进度条光效 */
+@keyframes progress-shine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* 粒子旋转 */
+@keyframes particle-rotate {
+  0% {
+    transform: rotate(0deg) translateX(100px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(100px) rotate(-360deg);
+  }
+}
+
+/* 增强版标题样式 */
+.loading-title {
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  position: relative;
+}
+
+.loading-title span {
+  display: inline-block;
+  position: relative;
+}
+
+.loading-title span:nth-child(odd) {
+  animation: chess-float 3s ease-in-out infinite;
+}
+
+.loading-title span:nth-child(even) {
+  animation: chess-float 3s ease-in-out infinite reverse;
+}
+
+/* 棋子符号特殊效果 */
+.loading-title .chess-symbol {
+  animation: text-flicker 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.8));
+}
+
+/* 副标题样式 */
+.loading-subtitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  opacity: 0.8;
+}
+
+/* 进度条容器 */
+.progress-container {
+  position: relative;
+  background: rgba(31, 41, 55, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 进度条填充 */
+.progress-fill {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, 
+    #3b82f6 0%, 
+    #60a5fa 50%, 
+    #3b82f6 100%);
+  background-size: 200% 100%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+/* 进度条光效 */
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.4), 
+    transparent);
+  animation: progress-shine 2s infinite;
+}
+
+/* Canvas 背景模糊 */
+.canvas-bg {
+  filter: blur(1px);
+  opacity: 0.7;
+}
+
+/* 装饰性棋盘格 */
+.chess-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  animation: chessboard-fade 2s ease-out forwards;
+}
+
+.chess-grid-item {
+  width: 16px;
+  height: 16px;
+  transition: all 0.3s ease;
+}
+
+.chess-grid-item:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+}
+
+/* 系统状态指示器 */
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: relative;
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.status-dot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: inherit;
+  animation: ripple 2s ease-out infinite;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .loading-title {
+    font-size: 4rem;
+  }
+  
+  .loading-subtitle {
+    font-size: 0.875rem;
+  }
+  
+  .chess-grid-item {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* 暗色模式优化 */
+@media (prefers-color-scheme: dark) {
+  .progress-container {
+    background: rgba(17, 24, 39, 0.8);
+  }
+}
+
+/* 减少动画（用户偏好） */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+} 

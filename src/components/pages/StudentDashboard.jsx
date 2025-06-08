@@ -51,16 +51,16 @@ export const StudentDashboard = ({ user }) => {
         const totalSessions = studentResult.student.total_sessions || 0;
         const attendedSessions = studentResult.student.attended_sessions || 0;
         
-        // 处理出勤率的计算逻辑
+        // Handle attendance rate calculation logic
         let attendanceRate;
         if (totalSessions > 0) {
-          // 如果有总课程数，计算真实出勤率
+          // If total sessions exist, calculate real attendance rate
           attendanceRate = (attendedSessions * 100.0 / totalSessions).toFixed(2);
         } else if (attendedSessions > 0) {
-          // 如果没有总课程数但有出席记录，显示出勤率为0
+          // If no total sessions but attendance records exist, show attendance rate as 0
           attendanceRate = "0.00";
         } else {
-          // 如果既没有总课程数也没有出席记录，显示为0
+          // If neither total sessions nor attendance records exist, show as 0
           attendanceRate = "0.00";
         }
         
@@ -217,7 +217,7 @@ export const StudentDashboard = ({ user }) => {
               </div>
             </div>
             
-            {/* 导出签到数据工具 */}
+            {/* Export attendance data tool */}
             <ExportAttendance />
           </motion.div>
         )}
@@ -420,7 +420,7 @@ export const StudentDashboard = ({ user }) => {
                     // Check if this date is in the attendance records
                     const attendance = attendanceData.find(record => {
                       const recordDate = new Date(record.check_in_time);
-                      // 使用本地日期比较，避免时区问题
+                      // Use local date comparison to avoid timezone issues
                       return recordDate.getDate() === day &&
                              recordDate.getMonth() === month &&
                              recordDate.getFullYear() === year;

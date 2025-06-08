@@ -88,7 +88,7 @@ export const ProfilePage = ({ user }) => {
         }
         
                  // Fallback to Excel file if API fails
-         const response = await fetch('/cca attendance system.xlsx');
+        const response = await fetch('/cca attendance system.xlsx');
         if (!response.ok) {
           throw new Error(`Failed to fetch Excel file: ${response.status}`);
         }
@@ -144,14 +144,14 @@ export const ProfilePage = ({ user }) => {
           setAttendanceHistory([]);
           return;
         }
-        
-        // Calculate attendance for each date
-        const history = [];
-        let totalSessions = 0;
-        let attendedSessions = 0;
-        
-        dateColumns.forEach(dateCol => {
-          totalSessions++;
+          
+          // Calculate attendance for each date
+          const history = [];
+          let totalSessions = 0;
+          let attendedSessions = 0;
+          
+          dateColumns.forEach(dateCol => {
+            totalSessions++;
           
           // Check if user attended - handle multiple possible values
           const attended = userRecords.some(record => {
@@ -163,25 +163,25 @@ export const ProfilePage = ({ user }) => {
                    String(value).toLowerCase() === "present";
           });
           
-          if (attended) {
-            attendedSessions++;
-          }
-          
-          history.push({
-            date: dateCol,
-            attended: attended
+            if (attended) {
+              attendedSessions++;
+            }
+            
+            history.push({
+              date: dateCol,
+              attended: attended
+            });
           });
-        });
-        
-        // Calculate attendance rate
-        const rate = totalSessions > 0 ? (attendedSessions / totalSessions * 100).toFixed(1) : 0;
-        
-        setAttendanceRate(rate);
-        setAttendanceHistory(history.reverse()); // Show most recent first
-        setAttendanceData({
-          total: totalSessions,
-          attended: attendedSessions
-        });
+          
+          // Calculate attendance rate
+          const rate = totalSessions > 0 ? (attendedSessions / totalSessions * 100).toFixed(1) : 0;
+          
+          setAttendanceRate(rate);
+          setAttendanceHistory(history.reverse()); // Show most recent first
+          setAttendanceData({
+            total: totalSessions,
+            attended: attendedSessions
+          });
         
         console.log(`Loaded attendance data: ${attendedSessions}/${totalSessions} sessions (${rate}%)`);
         

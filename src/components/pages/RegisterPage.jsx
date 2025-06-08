@@ -39,7 +39,7 @@ const RegisterPage = ({ onLogin }) => {
 
       if (!data.success) {
         // If student ID doesn't exist, redirect to join us page
-        if (data.message === 'Student ID does not exist' || data.message === '学生ID不存在') {
+        if (data.message === 'Student ID does not exist') {
           setMessage('Redirecting to registration form...');
           setTimeout(() => {
             window.history.pushState(null, '', '/joinus');

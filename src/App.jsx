@@ -11,7 +11,7 @@ import ChessRankPage from './components/pages/ChessRankPage';
 import ProfilePage from './components/pages/ProfilePage';
 import { IntroSection } from './components/ui/layout/IntroSection';
 import { BannerSection } from './components/ui/layout/BannerSection';
-import LoadingScreen from './components/ui/LoadingScreen';
+import LoadingScreenImpact from './components/ui/LoadingScreenImpact';
 import PageTransition from './components/ui/PageTransition';
 import './styles/loading-screen.css';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,18 +21,18 @@ import { FiCalendar, FiArrowRight, FiAward, FiBell, FiBook, FiUsers, FiAlertCirc
 const TPMSApp = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  // 可以根据当前路径动态获取当前页面
+  // Get current page based on the current path
   const getCurrentPage = () => {
     const path = location.pathname;
     if (path === '/') return 'profile';
-    // 去掉前导斜杠返回页面名称
+    // Remove leading slash to return page name
     return path.substring(1);
   };
   
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  // 每次页面加载时，总是从false开始，确保加载动画显示
+  // Always start from false on each page load to ensure loading animation shows
   const [isAppReady, setIsAppReady] = useState(false);
   
   // Initialize student data from localStorage with error handling
@@ -46,21 +46,21 @@ const TPMSApp = () => {
     }
   });
 
-  // 应用启动后显示加载页面，然后过渡到主应用
+  // Show loading page after app startup, then transition to main app
   useEffect(() => {
-    // 确保每次页面刷新或重新访问时都会显示加载动画
-    // 清除任何现有的会话标记
+    // Ensure loading animation shows on every page refresh or revisit
+    // Clear any existing session markers
     sessionStorage.removeItem('loadingShown');
     
-    // 模拟应用初始化过程
+    // Simulate app initialization process
     const appInitTimeout = setTimeout(() => {
       setIsAppReady(true);
-      // 加载完成后，记录此次会话已显示过加载页面
+      // Record that loading page has been shown for this session
       sessionStorage.setItem('loadingShown', 'true');
-    }, 3000); // 3秒的加载动画
+    }, 4000); // 4 seconds of loading animation for full impact
 
     return () => clearTimeout(appInitTimeout);
-  }, []); // 空依赖数组确保只在组件挂载时执行一次
+  }, []); // Empty dependency array ensures execution only on component mount
 
   // Check if user is logged in on page load
   useEffect(() => {
@@ -107,7 +107,7 @@ const TPMSApp = () => {
 
   const handleLogin = (userData) => {
     setUser(userData);
-    navigate('/'); // 登录后导航到首页
+    navigate('/'); // Navigate to homepage after login
   };
 
   const handleLogout = async () => {
@@ -152,12 +152,12 @@ const TPMSApp = () => {
     return children;
   };
 
-  // 如果应用尚未准备好，显示加载页面
+  // Show loading page if app is not ready yet
   if (!isAppReady) {
-    return <LoadingScreen onComplete={() => setIsAppReady(true)} />;
+    return <LoadingScreenImpact onComplete={() => setIsAppReady(true)} />;
   }
 
-  // 获取当前页面
+  // Get current page
   const currentPage = getCurrentPage();
 
   return (
@@ -171,14 +171,14 @@ const TPMSApp = () => {
             onLogout={handleLogout}
           />
           
-          {/* 在不是login, register和profile的页面显示Banner */}
+          {/* Show Banner on pages other than login, register and profile */}
           {currentPage !== 'profile' && currentPage !== 'login' && currentPage !== 'register' && (
             <div className="pt-20">
               <BannerSection currentPage={currentPage} />
             </div>
           )}
 
-          {/* 主要内容区域 */}
+          {/* Main content area */}
           <main className={`animate-fade-in ${
             currentPage === 'login' || currentPage === 'register' || currentPage === 'joinus'
             ? 'pt-32' 
@@ -198,7 +198,7 @@ const TPMSApp = () => {
             )}
             
             <Routes>
-              {/* 将根路径重定向到/profile */}
+              {/* Redirect root path to /profile */}
               <Route path="/" element={
                 <AuthGuard requiredAuth={true}>
                   <ProfilePage user={user} />
@@ -227,7 +227,7 @@ const TPMSApp = () => {
                   />
                 </AuthGuard>
               } />
-              {/* 添加StudentDashboard作为独立路由 */}
+              {/* Add StudentDashboard as independent route */}
               <Route path="/dashboard" element={
                 <AuthGuard requiredAuth={true}>
                   <StudentDashboard user={user} />

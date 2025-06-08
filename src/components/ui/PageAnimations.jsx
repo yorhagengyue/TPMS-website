@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-// 翻转卡片组件
+// Flip card component
 export const FlipCard = ({ frontContent, backContent, isFlipped, onClick }) => {
   return (
     <div 
@@ -13,12 +13,12 @@ export const FlipCard = ({ frontContent, backContent, isFlipped, onClick }) => {
           isFlipped ? 'rotate-y-180' : ''
         }`}
       >
-        {/* 正面 */}
+        {/* Front face */}
         <div className="flip-card-front absolute w-full h-full backface-hidden rounded-xl overflow-hidden shadow-md">
           {frontContent}
         </div>
         
-        {/* 背面 */}
+        {/* Back face */}
         <div className="flip-card-back absolute w-full h-full backface-hidden rounded-xl overflow-hidden shadow-md rotate-y-180">
           {backContent}
         </div>
@@ -42,7 +42,7 @@ export const FlipCard = ({ frontContent, backContent, isFlipped, onClick }) => {
   );
 };
 
-// 浮动动画元素
+// Floating animation element
 export const FloatingElement = ({ children, delay = 0, duration = 3, yOffset = 10 }) => {
   return (
     <motion.div
@@ -62,7 +62,7 @@ export const FloatingElement = ({ children, delay = 0, duration = 3, yOffset = 1
   );
 };
 
-// 星形碎片动画
+// Starburst effect animation
 export const StarburstEffect = ({ color = "#22c55e", size = 100, count = 6 }) => {
   const particles = Array.from({ length: count });
   
@@ -105,7 +105,7 @@ export const StarburstEffect = ({ color = "#22c55e", size = 100, count = 6 }) =>
   );
 };
 
-// 渐现动画（上升/下降/左右）
+// Fade-in animation (up/down/left/right)
 export const FadeInMotion = ({ 
   children, 
   direction = "up", 
@@ -154,7 +154,7 @@ export const FadeInMotion = ({
   );
 };
 
-// 滚动出现效果
+// Scroll reveal effect
 export const ScrollReveal = ({ 
   children, 
   threshold = 0.1,
@@ -174,7 +174,7 @@ export const ScrollReveal = ({
   );
 };
 
-// 循环旋转动画
+// Continuous rotation animation
 export const RotateAnimation = ({ 
   children, 
   duration = 20,
@@ -196,7 +196,7 @@ export const RotateAnimation = ({
   );
 };
 
-// 脉冲点动画 - 适合指示器、徽章等
+// Pulse animation - suitable for indicators, badges, etc.
 export const PulseAnimation = ({ 
   children, 
   scale = [1, 1.05], 
@@ -221,7 +221,7 @@ export const PulseAnimation = ({
   );
 };
 
-// 波纹效果 - 适合按钮点击等
+// Ripple effect - suitable for button clicks, etc.
 export const RippleEffect = ({ color = "rgba(255,255,255,0.7)", size = 100, duration = 1.5 }) => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">

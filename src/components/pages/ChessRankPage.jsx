@@ -8,7 +8,7 @@ const ChessRankPage = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 获取棋手排名数据
+  // Fetch chess player rankings data
   useEffect(() => {
     const fetchChessRankings = async () => {
       try {
@@ -37,7 +37,7 @@ const ChessRankPage = ({ user }) => {
 
     fetchChessRankings();
     
-    // 设置事件监听器，在窗口获得焦点时刷新数据
+    // Set event listener to refresh data when window gains focus
     const handleFocus = () => {
       fetchChessRankings();
     };
@@ -75,7 +75,7 @@ const ChessRankPage = ({ user }) => {
             Connect your Chess.com account in your profile to appear on this leaderboard!
           </p>
           
-          {/* 添加绑定Chess.com账号的按钮 - 仅当用户登录但未绑定账号时显示 */}
+          {/* Add Chess.com account binding button - only shown when user is logged in but has no linked account */}
           {user && !chessRankings.some(rank => rank.id === user.id) && (
             <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-md p-4 mb-6 flex items-center justify-between">
               <div>

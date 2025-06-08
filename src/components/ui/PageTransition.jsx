@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-// 页面过渡动画组件
+// Page transition animation component
 const PageTransition = ({ children }) => {
   return (
     <motion.div
