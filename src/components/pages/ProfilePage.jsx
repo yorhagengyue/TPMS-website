@@ -53,52 +53,144 @@ export const ProfilePage = ({ user }) => {
       if (!user) return;
       
       try {
-        // Fetch the Excel file
-        const response = await fetch('/cca attendance system.xlsx');
+        // First try to get attendance data from API
+        try {
+          const apiResponse = await fetch(`/api/students/${user.student_id || user.id}/attendance`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+          
+          if (apiResponse.ok) {
+            const apiData = await apiResponse.json();
+            if (apiData.success && apiData.attendance && apiData.attendance.length > 0) {
+              // Use API data if available
+              const attendanceCount = apiData.attendance.length;
+              const rate = 100; // Assume all API records are attendance (present)
+              
+              setAttendanceRate(rate);
+              setAttendanceData({
+                total: attendanceCount,
+                attended: attendanceCount
+              });
+              
+              const history = apiData.attendance.map(record => ({
+                date: new Date(record.check_in_time).toLocaleDateString(),
+                attended: true
+              }));
+              
+              setAttendanceHistory(history.reverse());
+              return; // Exit early if API data is successfully loaded
+            }
+          }
+        } catch (apiError) {
+          console.log('API attendance data not available, falling back to Excel:', apiError.message);
+        }
+        
+                 // Fallback to Excel file if API fails
+         const response = await fetch('/cca attendance system.xlsx');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch Excel file: ${response.status}`);
+        }
+        
         const arrayBuffer = await response.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        
+        if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+          throw new Error('No worksheets found in Excel file');
+        }
+        
         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
         const data = XLSX.utils.sheet_to_json(worksheet);
         
-        // Find user's attendance records
-        const userStudentId = user.student_id || user.id;
-        const userRecords = data.filter(record => record['Admin No.'] === userStudentId);
-        
-        if (userRecords.length > 0) {
-          // Get all date columns (columns that contain '/')
-          const dateColumns = Object.keys(data[0]).filter(col => col.includes('/'));
-          
-          // Calculate attendance for each date
-          const history = [];
-          let totalSessions = 0;
-          let attendedSessions = 0;
-          
-          dateColumns.forEach(dateCol => {
-            totalSessions++;
-            // Check if user attended (value is 1)
-            const attended = userRecords.some(record => record[dateCol] === 1);
-            if (attended) {
-              attendedSessions++;
-            }
-            
-            history.push({
-              date: dateCol,
-              attended: attended
-            });
-          });
-          
-          // Calculate attendance rate
-          const rate = totalSessions > 0 ? (attendedSessions / totalSessions * 100).toFixed(1) : 0;
-          
-          setAttendanceRate(rate);
-          setAttendanceHistory(history.reverse()); // Show most recent first
-          setAttendanceData({
-            total: totalSessions,
-            attended: attendedSessions
-          });
+        if (!data || data.length === 0) {
+          console.warn('No attendance data found in Excel file');
+          setAttendanceRate(0);
+          setAttendanceData({ total: 0, attended: 0 });
+          setAttendanceHistory([]);
+          return;
         }
+        
+        // Find user's attendance records with improved matching logic
+        const userStudentId = String(user.student_id || user.id);
+        const userRecords = data.filter(record => {
+          // Try multiple possible field names for student ID
+          const recordId = String(record['Admission Numbers'] || record['Admin No.'] || record['Admission Number'] || '');
+          return recordId === userStudentId;
+        });
+        
+        if (userRecords.length === 0) {
+          console.warn(`No attendance records found for student ID: ${userStudentId}`);
+          // Check available student IDs for debugging
+          const availableIds = data.slice(0, 5).map(record => 
+            record['Admission Numbers'] || record['Admin No.'] || record['Admission Number'] || 'N/A'
+          );
+          console.log('Sample student IDs in Excel:', availableIds);
+          setAttendanceRate(0);
+          setAttendanceData({ total: 0, attended: 0 });
+          setAttendanceHistory([]);
+          return;
+        }
+        
+        // Get all date columns (columns that contain '/' and look like dates)
+        const dateColumns = Object.keys(data[0]).filter(col => {
+          return col.includes('/') && /\d+\/\d+\/\d+/.test(col);
+        });
+        
+        if (dateColumns.length === 0) {
+          console.warn('No date columns found in Excel data');
+          setAttendanceRate(0);
+          setAttendanceData({ total: 0, attended: 0 });
+          setAttendanceHistory([]);
+          return;
+        }
+        
+        // Calculate attendance for each date
+        const history = [];
+        let totalSessions = 0;
+        let attendedSessions = 0;
+        
+        dateColumns.forEach(dateCol => {
+          totalSessions++;
+          
+          // Check if user attended - handle multiple possible values
+          const attended = userRecords.some(record => {
+            const value = record[dateCol];
+            // Consider 1, true, "1", "true", "Present", "Y", "Yes" as attendance
+            return value === 1 || value === true || value === "1" || 
+                   value === "true" || value === "Present" || 
+                   value === "Y" || value === "Yes" ||
+                   String(value).toLowerCase() === "present";
+          });
+          
+          if (attended) {
+            attendedSessions++;
+          }
+          
+          history.push({
+            date: dateCol,
+            attended: attended
+          });
+        });
+        
+        // Calculate attendance rate
+        const rate = totalSessions > 0 ? (attendedSessions / totalSessions * 100).toFixed(1) : 0;
+        
+        setAttendanceRate(rate);
+        setAttendanceHistory(history.reverse()); // Show most recent first
+        setAttendanceData({
+          total: totalSessions,
+          attended: attendedSessions
+        });
+        
+        console.log(`Loaded attendance data: ${attendedSessions}/${totalSessions} sessions (${rate}%)`);
+        
       } catch (error) {
         console.error('Error loading attendance data:', error);
+        // Set default values on error
+        setAttendanceRate(0);
+        setAttendanceData({ total: 0, attended: 0 });
+        setAttendanceHistory([]);
       }
     };
     
@@ -261,7 +353,10 @@ export const ProfilePage = ({ user }) => {
                   <span className="text-sm text-blue-600">Attendance Rate</span>
                   <FiTrendingUp className="text-blue-600" />
                 </div>
-                <div className="text-3xl font-bold text-blue-700">{attendanceRate}%</div>
+                <div className="text-3xl font-bold text-blue-700">{attendanceRate || 0}%</div>
+                {attendanceData?.total === 0 && (
+                  <div className="text-xs text-gray-500 mt-1">No data available</div>
+                )}
               </div>
               
               <div className="bg-green-50 p-4 rounded-lg">
@@ -270,6 +365,9 @@ export const ProfilePage = ({ user }) => {
                   <FiCheckCircle className="text-green-600" />
                 </div>
                 <div className="text-3xl font-bold text-green-700">{attendanceData?.attended || 0}</div>
+                {attendanceData?.total === 0 && (
+                  <div className="text-xs text-gray-500 mt-1">No sessions recorded</div>
+                )}
               </div>
               
               <div className="bg-purple-50 p-4 rounded-lg">
@@ -278,11 +376,14 @@ export const ProfilePage = ({ user }) => {
                   <FiCalendar className="text-purple-600" />
                 </div>
                 <div className="text-3xl font-bold text-purple-700">{attendanceData?.total || 0}</div>
+                {attendanceData?.total === 0 && (
+                  <div className="text-xs text-gray-500 mt-1">No sessions available</div>
+                )}
               </div>
             </div>
 
             {/* Attendance History */}
-            {attendanceHistory.length > 0 && (
+            {attendanceHistory.length > 0 ? (
               <div>
                 <h3 className="text-lg font-medium mb-4">Recent Attendance History</h3>
                 <div className="max-h-64 overflow-y-auto">
@@ -304,6 +405,16 @@ export const ProfilePage = ({ user }) => {
                     ))}
                   </div>
                 </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <FiCalendar className="mx-auto text-gray-400 mb-4" size={48} />
+                <h3 className="text-lg font-medium text-gray-600 mb-2">No Attendance History</h3>
+                <p className="text-gray-500">
+                  {attendanceData?.total === 0 
+                    ? "No attendance records found for your student ID. Please contact the administrator if you believe this is an error."
+                    : "Your attendance history will appear here once you start attending sessions."}
+                </p>
               </div>
             )}
           </div>
