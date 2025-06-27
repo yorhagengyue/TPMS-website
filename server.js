@@ -1736,6 +1736,163 @@ app.post('/api/user/link-chess', authenticate, async (req, res) => {
   });
 });
 
+// Password reset request
+app.post('/api/auth/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+    
+    // Find student by email
+    const studentQuery = db.isPostgres
+      ? 'SELECT s.id, s.name, s.email, s.index_number FROM students s WHERE LOWER(s.email) = $1'
+      : 'SELECT s.id, s.name, s.email, s.index_number FROM students s WHERE LOWER(s.email) = ?';
+    
+    const students = await db.query(studentQuery, [email.toLowerCase()]);
+    
+    if (students.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No account found with this email address'
+      });
+    }
+    
+    const student = students[0];
+    
+    // Check if user account exists
+    const userQuery = db.isPostgres
+      ? 'SELECT id FROM users WHERE student_id = $1'
+      : 'SELECT id FROM users WHERE student_id = ?';
+    
+    const users = await db.query(userQuery, [student.id]);
+    
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No user account found for this email'
+      });
+    }
+    
+    // Generate verification code
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Send email
+    try {
+      await emailService.sendCode(email, verificationCode);
+      
+      return res.json({
+        success: true,
+        message: 'Password reset code sent to your email',
+        email: email
+      });
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send password reset email'
+      });
+    }
+  } catch (error) {
+    console.error('Error processing password reset request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error, please try again later'
+    });
+  }
+});
+
+// Reset password with verification code
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { email, verificationCode, newPassword } = req.body;
+    
+    if (!email || !verificationCode || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email, verification code, and new password are required'
+      });
+    }
+    
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long'
+      });
+    }
+    
+    // Verify the email verification code
+    const isValidCode = emailService.verifyCode(email, verificationCode);
+    
+    if (!isValidCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification code'
+      });
+    }
+    
+    // Find student by email
+    const studentQuery = db.isPostgres
+      ? 'SELECT s.id, s.name, s.email, s.index_number FROM students s WHERE LOWER(s.email) = $1'
+      : 'SELECT s.id, s.name, s.email, s.index_number FROM students s WHERE LOWER(s.email) = ?';
+    
+    const students = await db.query(studentQuery, [email.toLowerCase()]);
+    
+    if (students.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No account found with this email address'
+      });
+    }
+    
+    const student = students[0];
+    
+    // Find user account
+    const userQuery = db.isPostgres
+      ? 'SELECT id FROM users WHERE student_id = $1'
+      : 'SELECT id FROM users WHERE student_id = ?';
+    
+    const users = await db.query(userQuery, [student.id]);
+    
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No user account found for this email'
+      });
+    }
+    
+    const userId = users[0].id;
+    
+    // Update password
+    const auth = require('./src/lib/auth');
+    const result = await auth.setUserPassword(userId, newPassword);
+    
+    if (result.success) {
+      return res.json({
+        success: true,
+        message: 'Password reset successfully',
+        token: result.token,
+        user: result.user
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: result.message || 'Failed to reset password'
+      });
+    }
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error, please try again later'
+    });
+  }
+});
+
 // Public endpoint for exporting all attendance data to XLSX (for Render deployment)
 // Requires password authentication: "Iammaincomm"
 app.get('/api/public/export-attendance', async (req, res) => {

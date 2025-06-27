@@ -6,6 +6,7 @@ import { CheckinPage } from './components/pages/CheckinPage';
 import LoginPage from './components/pages/LoginPage';
 import RegisterPage from './components/pages/RegisterPage';
 import JoinUsPage from './components/pages/JoinUsPage';
+import { ForgotPasswordPage } from './components/pages/ForgotPasswordPage';
 import { StudentDashboard } from './components/pages/StudentDashboard';
 import ChessRankPage from './components/pages/ChessRankPage';
 import ProfilePage from './components/pages/ProfilePage';
@@ -171,8 +172,8 @@ const TPMSApp = () => {
             onLogout={handleLogout}
           />
           
-          {/* Show Banner on pages other than login, register and profile */}
-          {currentPage !== 'profile' && currentPage !== 'login' && currentPage !== 'register' && (
+          {/* Show Banner on pages other than login, register, forgot-password and profile */}
+          {currentPage !== 'profile' && currentPage !== 'login' && currentPage !== 'register' && currentPage !== 'forgot-password' && (
             <div className="pt-20">
               <BannerSection currentPage={currentPage} />
             </div>
@@ -180,7 +181,7 @@ const TPMSApp = () => {
 
           {/* Main content area */}
           <main className={`animate-fade-in ${
-            currentPage === 'login' || currentPage === 'register' || currentPage === 'joinus'
+            currentPage === 'login' || currentPage === 'register' || currentPage === 'forgot-password' || currentPage === 'joinus'
             ? 'pt-32' 
             : currentPage === 'profile'
             ? 'pt-24' // Profile page needs some padding
@@ -206,6 +207,7 @@ const TPMSApp = () => {
               } />
               <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
               <Route path="/register" element={<RegisterPage onLogin={handleLogin} />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage onLogin={handleLogin} />} />
               <Route path="/joinus" element={<JoinUsPage />} />
               <Route path="/events" element={
                 <AuthGuard requiredAuth={true}>

@@ -44,7 +44,8 @@ const ChessRankPage = ({ user }) => {
   };
 
   useEffect(() => {
-    fetchChessRankings();
+    // Auto-refresh when page loads
+    fetchChessRankings(true);
     
     // Set event listener to refresh data when window gains focus
     const handleFocus = () => {
