@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FiMail, FiLock, FiKey, FiArrowLeft } from 'react-icons/fi';
+import { FiUser, FiLock, FiKey, FiArrowLeft } from 'react-icons/fi';
 import { Link, useNavigate } from 'react-router-dom';
 import PageTransition from '../ui/PageTransition';
 
 export const ForgotPasswordPage = ({ onLogin }) => {
-  const [step, setStep] = useState(1); // 1: email, 2: verification & new password
-  const [email, setEmail] = useState('');
+  const [step, setStep] = useState(1); // 1: student ID, 2: verification & new password
+  const [studentId, setStudentId] = useState('');
+  const [email, setEmail] = useState(''); // Generated from student ID
   const [verificationCode, setVerificationCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -18,8 +19,8 @@ export const ForgotPasswordPage = ({ onLogin }) => {
   const handleRequestReset = async (e) => {
     e.preventDefault();
     
-    if (!email) {
-      setError('Please enter your email address');
+    if (!studentId) {
+      setError('Please enter your student ID');
       return;
     }
 
@@ -32,13 +33,14 @@ export const ForgotPasswordPage = ({ onLogin }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ studentId }),
       });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setSuccess('Verification code sent to your email!');
+        setEmail(data.email); // Set the generated email
+        setSuccess(`Verification code sent to ${data.email}!`);
         setStep(2);
       } else {
         setError(data.message || 'Failed to send reset code');
@@ -79,7 +81,7 @@ export const ForgotPasswordPage = ({ onLogin }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
+          studentId,
           verificationCode,
           newPassword
         }),
@@ -113,10 +115,11 @@ export const ForgotPasswordPage = ({ onLogin }) => {
     }
   };
 
-  const handleBackToEmail = () => {
+  const handleBackToStudentId = () => {
     setStep(1);
     setError('');
     setSuccess('');
+    setEmail('');
     setVerificationCode('');
     setNewPassword('');
     setConfirmPassword('');
@@ -137,7 +140,7 @@ export const ForgotPasswordPage = ({ onLogin }) => {
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
               {step === 1 
-                ? "Enter your email address to receive a verification code"
+                ? "Enter your student ID to receive a verification code"
                 : "Enter the verification code and your new password"
               }
             </p>
@@ -147,23 +150,26 @@ export const ForgotPasswordPage = ({ onLogin }) => {
             <form className="mt-8 space-y-6" onSubmit={handleRequestReset}>
               <div className="bg-white py-8 px-6 shadow-lg rounded-lg space-y-6">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    Email Address
+                  <label htmlFor="studentId" className="block text-sm font-medium text-gray-700">
+                    Student ID
                   </label>
                   <div className="mt-1 relative">
                     <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
+                      id="studentId"
+                      name="studentId"
+                      type="text"
+                      autoComplete="username"
                       required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      value={studentId}
+                      onChange={(e) => setStudentId(e.target.value)}
                       className="appearance-none block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter your registered email"
+                      placeholder="Enter your student ID (e.g. 2403880d)"
                     />
-                    <FiMail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                    <FiUser className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                   </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Your verification code will be sent to {studentId ? `${studentId.toLowerCase()}@tp.student.edu.sg` : 'your TP student email'}
+                  </p>
                 </div>
 
                 {error && (
@@ -188,7 +194,7 @@ export const ForgotPasswordPage = ({ onLogin }) => {
                         : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
                     }`}
                   >
-                    {loading ? 'Sending...' : 'Send Reset Code'}
+                    {loading ? 'Sending...' : 'Send Code to TP Email'}
                   </button>
                 </div>
               </div>
@@ -196,16 +202,24 @@ export const ForgotPasswordPage = ({ onLogin }) => {
           ) : (
             <form className="mt-8 space-y-6" onSubmit={handleResetPassword}>
               <div className="bg-white py-8 px-6 shadow-lg rounded-lg space-y-6">
-                <div className="flex items-center mb-4">
+                <div className="flex items-center justify-between mb-4">
                   <button
                     type="button"
-                    onClick={handleBackToEmail}
+                    onClick={handleBackToStudentId}
                     className="flex items-center text-blue-600 hover:text-blue-800 text-sm"
                   >
                     <FiArrowLeft className="mr-1" />
-                    Back to email
+                    Back to student ID
                   </button>
                 </div>
+                
+                {email && (
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                    <p className="text-sm text-blue-700">
+                      Verification code sent to: <span className="font-medium">{email}</span>
+                    </p>
+                  </div>
+                )}
 
                 <div>
                   <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700">

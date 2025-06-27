@@ -1739,26 +1739,29 @@ app.post('/api/user/link-chess', authenticate, async (req, res) => {
 // Password reset request
 app.post('/api/auth/forgot-password', async (req, res) => {
   try {
-    const { email } = req.body;
+    const { studentId } = req.body;
     
-    if (!email) {
+    if (!studentId) {
       return res.status(400).json({
         success: false,
-        message: 'Email is required'
+        message: 'Student ID is required'
       });
     }
     
-    // Find student by email
-    const studentQuery = db.isPostgres
-      ? 'SELECT s.id, s.name, s.email, s.index_number FROM students s WHERE LOWER(s.email) = $1'
-      : 'SELECT s.id, s.name, s.email, s.index_number FROM students s WHERE LOWER(s.email) = ?';
+    // Clean and normalize the student ID
+    const normalizedStudentId = studentId.toLowerCase().replace(/\s+/g, '');
     
-    const students = await db.query(studentQuery, [email.toLowerCase()]);
+    // Find student by student ID
+    const studentQuery = db.isPostgres
+      ? 'SELECT s.id, s.name, s.index_number FROM students s WHERE LOWER(s.index_number) = $1'
+      : 'SELECT s.id, s.name, s.index_number FROM students s WHERE LOWER(s.index_number) = ?';
+    
+    const students = await db.query(studentQuery, [normalizedStudentId]);
     
     if (students.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'No account found with this email address'
+        message: 'Student ID not found in system'
       });
     }
     
@@ -1774,21 +1777,25 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     if (users.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'No user account found for this email'
+        message: 'No user account found for this student ID'
       });
     }
+    
+    // Generate student email address using fixed format
+    const studentEmail = `${normalizedStudentId}@tp.student.edu.sg`;
     
     // Generate verification code
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     
-    // Send email
+    // Send email to student's TP email
     try {
-      await emailService.sendCode(email, verificationCode);
+      await emailService.sendCode(studentEmail, verificationCode);
       
       return res.json({
         success: true,
-        message: 'Password reset code sent to your email',
-        email: email
+        message: 'Password reset code sent to your TP student email',
+        email: studentEmail,
+        studentId: normalizedStudentId
       });
     } catch (error) {
       console.error('Error sending password reset email:', error);
@@ -1809,12 +1816,12 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 // Reset password with verification code
 app.post('/api/auth/reset-password', async (req, res) => {
   try {
-    const { email, verificationCode, newPassword } = req.body;
+    const { studentId, verificationCode, newPassword } = req.body;
     
-    if (!email || !verificationCode || !newPassword) {
+    if (!studentId || !verificationCode || !newPassword) {
       return res.status(400).json({
         success: false,
-        message: 'Email, verification code, and new password are required'
+        message: 'Student ID, verification code, and new password are required'
       });
     }
     
@@ -1825,8 +1832,14 @@ app.post('/api/auth/reset-password', async (req, res) => {
       });
     }
     
+    // Clean and normalize the student ID
+    const normalizedStudentId = studentId.toLowerCase().replace(/\s+/g, '');
+    
+    // Generate student email address using fixed format
+    const studentEmail = `${normalizedStudentId}@tp.student.edu.sg`;
+    
     // Verify the email verification code
-    const isValidCode = emailService.verifyCode(email, verificationCode);
+    const isValidCode = emailService.verifyCode(studentEmail, verificationCode);
     
     if (!isValidCode) {
       return res.status(400).json({
@@ -1835,17 +1848,17 @@ app.post('/api/auth/reset-password', async (req, res) => {
       });
     }
     
-    // Find student by email
+    // Find student by student ID
     const studentQuery = db.isPostgres
-      ? 'SELECT s.id, s.name, s.email, s.index_number FROM students s WHERE LOWER(s.email) = $1'
-      : 'SELECT s.id, s.name, s.email, s.index_number FROM students s WHERE LOWER(s.email) = ?';
+      ? 'SELECT s.id, s.name, s.index_number FROM students s WHERE LOWER(s.index_number) = $1'
+      : 'SELECT s.id, s.name, s.index_number FROM students s WHERE LOWER(s.index_number) = ?';
     
-    const students = await db.query(studentQuery, [email.toLowerCase()]);
+    const students = await db.query(studentQuery, [normalizedStudentId]);
     
     if (students.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'No account found with this email address'
+        message: 'Student ID not found in system'
       });
     }
     
@@ -1861,13 +1874,13 @@ app.post('/api/auth/reset-password', async (req, res) => {
     if (users.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'No user account found for this email'
+        message: 'No user account found for this student ID'
       });
     }
     
     const userId = users[0].id;
     
-    // Update password
+    // Update password hash in database
     const auth = require('./src/lib/auth');
     const result = await auth.setUserPassword(userId, newPassword);
     
