@@ -296,16 +296,17 @@ const sendVerificationCode = async (email, options = {}) => {
  * @returns {Promise<Object>} Send result
  */
 const sendPasswordResetCode = async (email, options = {}) => {
-  // Generate a consistent code for this request
-  const code = options.code || generateVerificationCode();
-  
-  // Store the code
-  saveVerificationCode(email, code);
-  
-  return sendVerificationCode(email, {
-    subject: 'TPMS Password Reset Code',
-    text: `Your password reset code is: ${code}\n\nThis code will expire in 10 minutes.`,
-    html: `
+  try {
+    // Use provided code or generate a new one
+    const code = options.code || generateVerificationCode();
+    
+    // Store the code
+    saveVerificationCode(email, code);
+    
+    // Email content
+    const subject = 'TPMS Password Reset Code';
+    const text = `Your password reset code is: ${code}\n\nThis code will expire in 10 minutes.`;
+    const html = `
     <style>
       body {
         margin: 20px;
@@ -338,9 +339,34 @@ const sendPasswordResetCode = async (email, options = {}) => {
     <div style="background: #dc2626; padding: 20px 10px; color: white; font-size: 13px; line-height: 1.7; text-align: center;">
       <p>Temasek Polytechnic Mindsports | Temasek Polytechnic, 21 Tampines Avenue 1 Singapore 529757</p>
     </div>
-    `,
-    ...options
-  });
+    `;
+    
+    // Create transporter
+    const transporter = createTransporter();
+    
+    // Send email
+    const info = await transporter.sendMail({
+      from: EMAIL_CONFIG.from,
+      to: email,
+      subject,
+      text,
+      html,
+    });
+    
+    console.log(`Password reset code sent to ${email}: ${code}`);
+    
+    return {
+      success: true,
+      messageId: info.messageId,
+      code: code  // Return the code that was actually sent
+    };
+  } catch (error) {
+    console.error('Error sending password reset email:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
 };
 
 module.exports = {
