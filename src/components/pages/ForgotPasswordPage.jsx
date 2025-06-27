@@ -168,7 +168,7 @@ export const ForgotPasswordPage = ({ onLogin }) => {
                     <FiUser className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                   </div>
                   <p className="mt-1 text-xs text-gray-500">
-                    Your verification code will be sent to {studentId ? `${studentId.toLowerCase()}@tp.student.edu.sg` : 'your TP student email'}
+                    Your verification code will be sent to {studentId ? `${studentId.toLowerCase()}@student.tp.edu.sg` : 'your TP student email'}
                   </p>
                 </div>
 

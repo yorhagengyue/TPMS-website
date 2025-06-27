@@ -1782,7 +1782,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     }
     
     // Generate student email address using fixed format
-    const studentEmail = `${normalizedStudentId}@tp.student.edu.sg`;
+    const studentEmail = `${normalizedStudentId}@student.tp.edu.sg`;
     
     // Generate verification code
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -1842,7 +1842,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
     const normalizedStudentId = studentId.toLowerCase().replace(/\s+/g, '');
     
     // Generate student email address using fixed format
-    const studentEmail = `${normalizedStudentId}@tp.student.edu.sg`;
+    const studentEmail = `${normalizedStudentId}@student.tp.edu.sg`;
     
     // Verify the email verification code
     const isValidCode = emailService.verifyCode(studentEmail, verificationCode);
