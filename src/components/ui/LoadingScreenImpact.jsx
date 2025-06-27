@@ -446,8 +446,8 @@ const LoadingScreenImpact = ({ onComplete }) => {
             style={{
               fontFamily: 'Montserrat, sans-serif',
               fontSize: 'clamp(120px, 20vw, 280px)',
-              textShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(239, 68, 68, 0.6)',
-              filter: 'drop-shadow(0 0 15px rgba(239, 68, 68, 0.8)'
+              textShadow: '0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(59, 130, 246, 0.6)',
+              filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.8))'
             }}
           >
             P

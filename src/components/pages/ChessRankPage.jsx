@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaChess, FaSpinner, FaExternalLinkAlt, FaLink } from 'react-icons/fa';
+import { FaChess, FaSpinner, FaExternalLinkAlt, FaLink, FaSync } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
@@ -7,34 +7,43 @@ const ChessRankPage = ({ user }) => {
   const [chessRankings, setChessRankings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Fetch chess player rankings data
-  useEffect(() => {
-    const fetchChessRankings = async () => {
-      try {
+  const fetchChessRankings = async (refresh = false) => {
+    try {
+      if (refresh) {
+        setIsRefreshing(true);
+      } else {
         setLoading(true);
-        setError(null);
-        
-        const response = await fetch('/api/chess-rank');
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to fetch chess rankings');
-        }
-        
-        if (data.success) {
-          setChessRankings(data.users);
-        } else {
-          throw new Error(data.message || 'Failed to fetch chess rankings');
-        }
-      } catch (err) {
-        console.error('Error fetching chess rankings:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
       }
-    };
+      setError(null);
+      
+      const url = refresh ? '/api/chess-rank?refresh=true' : '/api/chess-rank';
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch chess rankings');
+      }
+      
+      if (data.success) {
+        setChessRankings(data.users);
+        setLastUpdated(data.last_updated);
+      } else {
+        throw new Error(data.message || 'Failed to fetch chess rankings');
+      }
+    } catch (err) {
+      console.error('Error fetching chess rankings:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
 
+  useEffect(() => {
     fetchChessRankings();
     
     // Set event listener to refresh data when window gains focus
@@ -65,15 +74,35 @@ const ChessRankPage = ({ user }) => {
     >
       <div className="max-w-4xl mx-auto">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
-          <div className="flex items-center mb-6">
-            <FaChess className="text-3xl text-blue-600 mr-3" />
-            <h1 className="text-2xl md:text-3xl font-bold">TPMS Chess Rankings</h1>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center">
+              <FaChess className="text-3xl text-blue-600 mr-3" />
+              <h1 className="text-2xl md:text-3xl font-bold">TPMS Chess Rankings</h1>
+            </div>
+            <button
+              onClick={() => fetchChessRankings(true)}
+              disabled={isRefreshing || loading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
+                isRefreshing || loading
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+            >
+              <FaSync className={isRefreshing ? 'animate-spin' : ''} />
+              <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+            </button>
           </div>
           
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
+          <p className="text-gray-600 dark:text-gray-300 mb-2">
             Below are the current Chess.com ratings for TPMS members. Rankings are sorted by Rapid rating.
             Connect your Chess.com account in your profile to appear on this leaderboard!
           </p>
+          
+          {lastUpdated && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Last updated: {new Date(lastUpdated).toLocaleString()}
+            </p>
+          )}
           
           {/* Add Chess.com account binding button - only shown when user is logged in but has no linked account */}
           {user && !chessRankings.some(rank => rank.id === user.id) && (

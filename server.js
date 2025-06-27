@@ -16,29 +16,109 @@ const app = express();
 // Chess ranking endpoint (public endpoint, no authentication required)
 app.get('/api/chess-rank', async (req, res) => {
   try {
+    const { refresh } = req.query;
+    
     // Query for students with chess data, joining with users table
     const query = db.isPostgres
-      ? `SELECT u.id, u.username, u.email, s.chess_username, s.chess_rapid_rating as chess_rapid, 
-                s.chess_bullet_rating as chess_bullet, s.chess_rating as chess_blitz
+      ? `SELECT u.id, u.username, u.email, s.id as student_id, s.chess_username, 
+         s.chess_rapid_rating as chess_rapid, s.chess_bullet_rating as chess_bullet, 
+         s.chess_rating as chess_blitz, s.chess_daily_rating as chess_daily,
+         s.chess_tactics_rating as chess_tactics, s.chess_puzzle_rush_rating as chess_puzzle_rush
          FROM students s
          JOIN users u ON s.id = u.student_id
          WHERE s.chess_username IS NOT NULL 
-           AND (s.chess_rapid_rating > 0 OR s.chess_rating > 0 OR s.chess_bullet_rating > 0)
-         ORDER BY s.chess_rapid_rating DESC, s.chess_rating DESC, s.chess_bullet_rating DESC`
-      : `SELECT u.id, u.username, u.email, s.chess_username, s.chess_rapid_rating as chess_rapid, 
-                s.chess_bullet_rating as chess_bullet, s.chess_rating as chess_blitz
+         ORDER BY s.chess_rapid_rating DESC NULLS LAST, s.chess_rating DESC NULLS LAST, 
+                  s.chess_bullet_rating DESC NULLS LAST`
+      : `SELECT u.id, u.username, u.email, s.id as student_id, s.chess_username, 
+         s.chess_rapid_rating as chess_rapid, s.chess_bullet_rating as chess_bullet, 
+         s.chess_rating as chess_blitz, s.chess_daily_rating as chess_daily,
+         s.chess_tactics_rating as chess_tactics, s.chess_puzzle_rush_rating as chess_puzzle_rush
          FROM students s
          JOIN users u ON s.id = u.student_id
          WHERE s.chess_username IS NOT NULL 
-           AND (s.chess_rapid_rating > 0 OR s.chess_rating > 0 OR s.chess_bullet_rating > 0)
-         ORDER BY s.chess_rapid_rating DESC, s.chess_rating DESC, s.chess_bullet_rating DESC`;
+         ORDER BY COALESCE(s.chess_rapid_rating, 0) DESC, COALESCE(s.chess_rating, 0) DESC, 
+                  COALESCE(s.chess_bullet_rating, 0) DESC`;
     
     // Using the db module to query
-    const users = await db.query(query);
+    let users = await db.query(query);
+    
+    // If refresh is requested, update data from Chess.com for all users
+    if (refresh === 'true') {
+      console.log('Refreshing chess rankings from Chess.com...');
+      const updatePromises = users.map(async (user) => {
+        if (user.chess_username) {
+          try {
+            const chessData = await fetchChessData(user.chess_username);
+            if (chessData.success) {
+              // Update the database with fresh data
+              const updateQuery = db.isPostgres
+                ? `UPDATE students SET 
+                    chess_rating = $1,
+                    chess_rapid_rating = $2,
+                    chess_bullet_rating = $3,
+                    chess_daily_rating = $4,
+                    chess_tactics_rating = $5,
+                    chess_puzzle_rush_rating = $6
+                  WHERE id = $7`
+                : `UPDATE students SET 
+                    chess_rating = ?,
+                    chess_rapid_rating = ?,
+                    chess_bullet_rating = ?,
+                    chess_daily_rating = ?,
+                    chess_tactics_rating = ?,
+                    chess_puzzle_rush_rating = ?
+                  WHERE id = ?`;
+              
+              await db.query(updateQuery, [
+                chessData.chess_rating,
+                chessData.chess_rapid_rating,
+                chessData.chess_bullet_rating,
+                chessData.chess_daily_rating,
+                chessData.chess_tactics_rating,
+                chessData.chess_puzzle_rush_rating,
+                user.student_id
+              ]);
+              
+              // Update the user object with fresh data
+              user.chess_blitz = chessData.chess_rating;
+              user.chess_rapid = chessData.chess_rapid_rating;
+              user.chess_bullet = chessData.chess_bullet_rating;
+              user.chess_daily = chessData.chess_daily_rating;
+              user.chess_tactics = chessData.chess_tactics_rating;
+              user.chess_puzzle_rush = chessData.chess_puzzle_rush_rating;
+            }
+          } catch (error) {
+            console.error(`Error updating chess data for ${user.chess_username}:`, error);
+          }
+        }
+      });
+      
+      // Wait for all updates to complete
+      await Promise.all(updatePromises);
+      
+      // Re-sort the users after updating
+      users.sort((a, b) => {
+        const aRapid = a.chess_rapid || 0;
+        const bRapid = b.chess_rapid || 0;
+        if (aRapid !== bRapid) return bRapid - aRapid;
+        
+        const aBlitz = a.chess_blitz || 0;
+        const bBlitz = b.chess_blitz || 0;
+        if (aBlitz !== bBlitz) return bBlitz - aBlitz;
+        
+        const aBullet = a.chess_bullet || 0;
+        const bBullet = b.chess_bullet || 0;
+        return bBullet - aBullet;
+      });
+    }
+    
+    // Add last_updated timestamp
+    const timestamp = new Date().toISOString();
     
     res.json({
       success: true,
-      users: users
+      users: users,
+      last_updated: timestamp
     });
   } catch (error) {
     console.error('Error fetching chess rankings:', error);
@@ -729,13 +809,17 @@ app.post('/api/auth/logout', authenticate, async (req, res) => {
 // User profile route
 app.get('/api/users/profile', authenticate, async (req, res) => {
   try {
-    // Get user details
+    // Get user details including chess data
     const userQuery = db.isPostgres
-      ? `SELECT u.id, u.username, u.role, s.name, s.index_number, s.email, s.course
+      ? `SELECT u.id, u.username, u.role, s.name, s.index_number, s.email, s.course,
+         s.chess_username, s.chess_rating, s.chess_rapid_rating, s.chess_bullet_rating,
+         s.chess_daily_rating, s.chess_tactics_rating, s.chess_puzzle_rush_rating
        FROM users u
        JOIN students s ON u.student_id = s.id
          WHERE u.id = $1`
-      : `SELECT u.id, u.username, u.role, s.name, s.index_number, s.email, s.course
+      : `SELECT u.id, u.username, u.role, s.name, s.index_number, s.email, s.course,
+         s.chess_username, s.chess_rating, s.chess_rapid_rating, s.chess_bullet_rating,
+         s.chess_daily_rating, s.chess_tactics_rating, s.chess_puzzle_rush_rating
          FROM users u
          JOIN students s ON u.student_id = s.id
          WHERE u.id = ?`;
@@ -1650,39 +1734,6 @@ app.post('/api/user/link-chess', authenticate, async (req, res) => {
     message: 'Please use the new verification flow',
     useNewFlow: true
   });
-});
-
-// 获取所有用户的Chess.com评分
-app.get('/api/users/chess-ratings', async (req, res) => {
-  try {
-    // 获取所有有Chess.com绑定的用户
-    const usersQuery = db.isPostgres
-      ? `SELECT s.id, s.name, s.course, s.chess_username, 
-          s.chess_rating, s.chess_rapid_rating, s.chess_bullet_rating, 
-          s.chess_daily_rating, s.chess_tactics_rating, s.chess_puzzle_rush_rating
-        FROM students s
-        WHERE s.chess_username IS NOT NULL
-        ORDER BY s.name`
-      : `SELECT s.id, s.name, s.course, s.chess_username, 
-          s.chess_rating, s.chess_rapid_rating, s.chess_bullet_rating, 
-          s.chess_daily_rating, s.chess_tactics_rating, s.chess_puzzle_rush_rating
-        FROM students s
-        WHERE s.chess_username IS NOT NULL
-        ORDER BY s.name`;
-    
-    const users = await db.query(usersQuery);
-    
-    return res.json({
-      success: true,
-      users
-    });
-  } catch (error) {
-    console.error('Error fetching chess ratings:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch chess ratings'
-    });
-  }
 });
 
 // Public endpoint for exporting all attendance data to XLSX (for Render deployment)
