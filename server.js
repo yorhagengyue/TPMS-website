@@ -1789,14 +1789,20 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     
     // Send email to student's TP email
     try {
-      await emailService.sendCode(studentEmail, verificationCode);
-      
-      return res.json({
-        success: true,
-        message: 'Password reset code sent to your TP student email',
-        email: studentEmail,
-        studentId: normalizedStudentId
+      const result = await emailService.sendPasswordResetCode(studentEmail, {
+        code: verificationCode
       });
+      
+      if (result.success) {
+        return res.json({
+          success: true,
+          message: 'Password reset code sent to your TP student email',
+          email: studentEmail,
+          studentId: normalizedStudentId
+        });
+      } else {
+        throw new Error(result.error || 'Failed to send email');
+      }
     } catch (error) {
       console.error('Error sending password reset email:', error);
       return res.status(500).json({
