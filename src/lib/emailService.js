@@ -298,11 +298,11 @@ const sendVerificationCode = async (email, options = {}) => {
 const sendPasswordResetCode = async (email, options = {}) => {
   try {
     // Use provided code or generate a new one
-    const code = options.code || generateVerificationCode();
-    
-    // Store the code
-    saveVerificationCode(email, code);
-    
+  const code = options.code || generateVerificationCode();
+  
+  // Store the code
+  saveVerificationCode(email, code);
+  
     // Email content
     const subject = 'TPMS Password Reset Code';
     const text = `Your password reset code is: ${code}\n\nThis code will expire in 10 minutes.`;

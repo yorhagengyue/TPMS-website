@@ -420,9 +420,9 @@ const LoginPage = ({ onLogin }) => {
         <div className="text-center mt-4">
           {!needsPasswordSetup && (
             <>
-              <p className="text-sm text-gray-600">
-                Don't have an account? <a href="#" onClick={goToRegister} className="text-primary-600 hover:text-primary-700">Create account</a>
-              </p>
+            <p className="text-sm text-gray-600">
+              Don't have an account? <a href="#" onClick={goToRegister} className="text-primary-600 hover:text-primary-700">Create account</a>
+            </p>
               <p className="text-sm text-gray-600 mt-2">
                 Forgot your password? <a href="/forgot-password" className="text-primary-600 hover:text-primary-700">Reset password</a>
               </p>

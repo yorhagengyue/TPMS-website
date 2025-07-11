@@ -57,9 +57,9 @@ export const EventsPage = ({ user }) => {
               >
                 View Rankings →
               </Link>
-            </div>
-          </div>
-          
+              </div>
+              </div>
+              
           {/* Events List */}
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Upcoming Events</h2>
@@ -99,15 +99,15 @@ export const EventsPage = ({ user }) => {
                       <FiMapPin />
                       <span>{event.location}</span>
                     </div>
-                  </div>
+                </div>
                 </motion.div>
               ))
             ) : (
               <div className="bg-gray-50 rounded-lg p-8 text-center">
                 <p className="text-gray-600">No upcoming events at the moment. Check back later!</p>
-              </div>
-            )}
-          </div>
+                </div>
+              )}
+            </div>
           
           {/* Join CCA Notice */}
           <div className="mt-12 bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-lg">

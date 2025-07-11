@@ -12,36 +12,36 @@ const ChessRankPage = ({ user }) => {
 
   // Fetch chess player rankings data
   const fetchChessRankings = async (refresh = false) => {
-    try {
+      try {
       if (refresh) {
         setIsRefreshing(true);
       } else {
         setLoading(true);
       }
-      setError(null);
-      
+        setError(null);
+        
       const url = refresh ? '/api/chess-rank?refresh=true' : '/api/chess-rank';
       const response = await fetch(url);
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch chess rankings');
-      }
-      
-      if (data.success) {
-        setChessRankings(data.users);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to fetch chess rankings');
+        }
+        
+        if (data.success) {
+          setChessRankings(data.users);
         setLastUpdated(data.last_updated);
-      } else {
-        throw new Error(data.message || 'Failed to fetch chess rankings');
-      }
-    } catch (err) {
-      console.error('Error fetching chess rankings:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
+        } else {
+          throw new Error(data.message || 'Failed to fetch chess rankings');
+        }
+      } catch (err) {
+        console.error('Error fetching chess rankings:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
       setIsRefreshing(false);
-    }
-  };
+      }
+    };
 
   useEffect(() => {
     // Auto-refresh when page loads
@@ -77,8 +77,8 @@ const ChessRankPage = ({ user }) => {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center">
-              <FaChess className="text-3xl text-blue-600 mr-3" />
-              <h1 className="text-2xl md:text-3xl font-bold">TPMS Chess Rankings</h1>
+            <FaChess className="text-3xl text-blue-600 mr-3" />
+            <h1 className="text-2xl md:text-3xl font-bold">TPMS Chess Rankings</h1>
             </div>
             <button
               onClick={() => fetchChessRankings(true)}
